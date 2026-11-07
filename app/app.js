@@ -1516,7 +1516,7 @@
   function renderIndices() {
     var aluCount = 0, eurCount = 0;
     Object.keys(S.book).forEach(function (k) { if (S.book[k].type === 'alu') aluCount++; if (S.book[k].type === 'eur') eurCount++; });
-    $('indices').innerHTML = ['alu_kg', 'eur_mad'].map(function (id) {
+    $('indices').innerHTML = ['alu_kg'].concat(eurCount ? ['eur_mad'] : []).map(function (id) {
       var it = S.book[id], sv = E.series(it.hist, S.settings.policy.windowDays, TODAY, it.max);
       var age = sv.lastDate ? E.daysBetween(sv.lastDate, TODAY) : 999;
       var h = '<div class="card idx-card"><div class="idx-top"><div><h3>' + esc(it.name) + '</h3><div class="sub">Pilote ' + (id === 'alu_kg' ? aluCount + ' profilés aluminium' : eurCount + ' articles importés') + '</div></div>' +

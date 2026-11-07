@@ -26,8 +26,8 @@ test('profilé alu suit l’indice ; article en euros suit EUR/MAD', () => {
   const a = E.unitCost(book.alu_poteau_150, book, s, TODAY);
   assert.equal(a.now, 4.7 * 50 + 30);
   assert.equal(a.max, 4.7 * 60 + 30);
-  book.somfy_zip.hist = [{ d: TODAY, v: 100 }]; book.somfy_zip.max = 120;
-  const z = E.unitCost(book.somfy_zip, book, s, TODAY);
+  book.test_eur = { type: 'eur', cat: 'equipement', hist: [{ d: TODAY, v: 100 }], max: 120 };
+  const z = E.unitCost(book.test_eur, book, s, TODAY);
   assert.equal(z.now, 100 * 10 * (1 + s.landedEur));
   assert.ok(Math.abs(z.max - 120 * 11 * (1 + s.landedEur)) < 1e-9);
 });
@@ -36,9 +36,8 @@ test('article importé saisi en MAD : pris tel quel, sans change ni frais d’ap
   const book = clone(C.BOOK), s = clone(C.SETTINGS);
   s.policy.buffer = 0;
   book.eur_mad.hist = [{ d: TODAY, v: 10 }]; book.eur_mad.max = 11;
-  book.somfy_banne.hist = [{ d: '2026-06-15', v: 200 }, { d: TODAY, v: 2600, cur: 'MAD' }];
-  book.somfy_banne.max = 300;
-  const u = E.unitCost(book.somfy_banne, book, s, TODAY);
+  book.test_eur = { type: 'eur', cat: 'equipement', hist: [{ d: '2026-06-15', v: 200 }, { d: TODAY, v: 2600, cur: 'MAD' }], max: 300 };
+  const u = E.unitCost(book.test_eur, book, s, TODAY);
   assert.equal(u.now, 2600);
   assert.equal(u.win, Math.max(2600, 200 * 10 * 1.25)); // plus haut 12 mois, tous relevés en MAD
   assert.ok(Math.abs(u.max - 300 * 11 * 1.25) < 1e-9);
