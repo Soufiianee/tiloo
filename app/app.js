@@ -639,18 +639,34 @@
   function renderCatalog() {
     var fam = null, h = '', arch = PRODUCTS.filter(isArchived);
     function btn(p, tag) { return '<button type="button" data-p="' + p.id + '" aria-pressed="' + (p.id === S.current.productId) + '">' + icon(p.icon) + '<span><b>' + esc(p.short) + (tag ? ' <span class="pill">' + tag + '</span>' : '') + '</b><small>' + esc(p.blurb) + '</small></span></button>'; }
-    activeProducts().forEach(function (p) {
+    var act = activeProducts();
+    act.forEach(function (p) {
       if (p.family !== fam) { fam = p.family; h += '<h3>' + esc(fam) + '</h3>'; }
       h += btn(p);
+      if (p.id === S.current.productId && act.length > 1) h += '<button type="button" class="btn sm ghost arch-act" data-arch="' + p.id + '">Archiver ce produit</button>';
     });
     if (arch.length) {
       var open = arch.some(function (p) { return p.id === S.current.productId; });
-      h += '<details class="arch"' + (open ? ' open' : '') + '><summary>Produits archivés (' + arch.length + ')</summary><p class="sub">Consultables, mais retirés du catalogue. Réactivation dans Réglages › Marges.</p>' +
-        arch.map(function (p) { return btn(p, 'archivé'); }).join('') + '</details>';
+      h += '<details class="arch"' + (open ? ' open' : '') + '><summary>Archivés (' + arch.length + ')</summary><p class="sub">Retirés du catalogue, toujours consultables. « Désarchiver » remet le produit dans le catalogue.</p>' +
+        arch.map(function (p) { return '<div class="arch-row">' + btn(p) + '<button type="button" class="btn sm ghost unarch" data-unarch="' + p.id + '" aria-label="Désarchiver ' + esc(p.name) + '">Désarchiver</button></div>'; }).join('') + '</details>';
     }
     $('catalog').innerHTML = h;
   }
+  /* Archiver / désarchiver : réglage d'équipe (éditeurs de la page). */
+  function setArchived(id, on) {
+    if (!canAdmin()) return;
+    if (!S.settings.archived) S.settings.archived = {};
+    S.settings.archived[id] = on;
+    if (!activeProducts().length) { S.settings.archived[id] = false; toast('Gardez au moins un produit actif'); return; }
+    save(); persistSettings(); renderCatalog();
+    if (document.getElementById('s-margins') && location.hash === '#reglages') renderSettings();
+    toast(byId[id].name + (on ? ' archivé' : ' remis dans le catalogue'));
+  }
   $('catalog').addEventListener('click', function (e) {
+    var u = e.target.closest('[data-unarch]');
+    if (u) { setArchived(u.dataset.unarch, false); return; }
+    var ar = e.target.closest('[data-arch]');
+    if (ar) { setArchived(ar.dataset.arch, true); return; }
     var b = e.target.closest('button[data-p]'); if (!b) return;
     if (S.current.productId !== b.dataset.p) { S.current = { productId: b.dataset.p, params: {}, tier: null, mode: null, picked: null }; S.editing = null; save(); }
     renderCatalog(); renderForm(); renderResult();
@@ -689,7 +705,7 @@
   var COMP_DEFAULT = { structure: 'Structure', couverture: 'Couverture', fixation: 'Fixations & fondations', toile: 'Toile', mecanisme: 'Mécanisme', commande: 'Commande', automatisme: 'Automatisme', cable: 'Câble', accast: 'Accastillage', vitrage: 'Vitrage', plafond: 'Plafond' };
   var GROUP_COMP = { 'Profilés aluminium': 'Structure aluminium', 'Métaux au kilo': 'Structure métallique', 'Couvertures & vitrages': 'Couverture & vitrage', 'Toiles': 'Toile',
     'Systèmes de stores': 'Mécanisme', 'Motorisation & éclairage': 'Motorisation & éclairage', 'Fixations & gros œuvre': 'Fixations & fondations', 'Main-d’œuvre': 'Pose' };
-  function modeOf(prod) { return S.current.mode || (prod.versions ? 'pret' : 'composer'); }
+  function modeOf(prod) { return prod.versions && S.current.mode === 'pret' ? 'pret' : 'composer'; }
   function isPicked(prod, comp) { return !comp || !S.current.picked || !!S.current.picked[comp]; }
   function compLabel(prod, id) { var c = (prod.comps || []).filter(function (x) { return x.id === id; })[0]; return c ? c.l : COMP_DEFAULT[id] || id; }
   /* Répartition du coût par composant (pour « Ce qui fait le prix »). */
@@ -711,8 +727,8 @@
     var h = '<div class="cfg-head"><div><h2>' + esc(prod.name) + '</h2><p class="lede">' + esc(prod.blurb) + '</p></div>' +
       '<div class="row">' + (S.editing ? '<span class="pill warn">Modification d’une ligne du devis</span>' : '') +
       (mode === 'composer' ? '<button class="btn sm ghost" type="button" id="f-reset">Valeurs par défaut</button>' : '') + '</div></div>';
-    if (prod.versions) h += '<div class="modes" role="tablist" aria-label="Façon de chiffrer"><button type="button" role="tab" data-mode="pret" aria-selected="' + (mode === 'pret') + '"><b>Prêt à chiffrer</b><small>3 configurations prêtes</small></button>' +
-      '<button type="button" role="tab" data-mode="composer" aria-selected="' + (mode === 'composer') + '"><b>Composer</b><small>composant par composant</small></button></div>';
+    if (prod.versions) h += '<div class="modes" role="tablist" aria-label="Façon de chiffrer"><button type="button" role="tab" data-mode="composer" aria-selected="' + (mode === 'composer') + '"><b>Composer</b><small>composant par composant</small></button>' +
+      '<button type="button" role="tab" data-mode="pret" aria-selected="' + (mode === 'pret') + '"><b>Prêt à chiffrer</b><small>3 configurations prêtes</small></button></div>';
     h += '<div class="plan" id="plan"><div class="plan-bar" id="plan-bar"></div><div id="plan-2d"></div><div id="plan-3d" class="v3d" hidden></div><div id="plan-photo" hidden></div><div id="plan-sun" class="sunbar" hidden></div><div class="plan-facts" id="plan-facts"></div></div>';
     var secs = [], bySec = {}, secComp = {};
     prod.params.forEach(function (d) {
@@ -1851,12 +1867,7 @@
     var el = e.target, v = parseFloat(el.value);
     if (SF[el.id]) { if (isNaN(v)) return; SF[el.id][1](v); }
     else if (el.id === 's-cond') S.settings.conditions = el.value;
-    else if (el.dataset.active) {
-      if (!S.settings.archived) S.settings.archived = {};
-      S.settings.archived[el.dataset.active] = !el.checked;
-      if (!activeProducts().length) { S.settings.archived[el.dataset.active] = false; el.checked = true; toast('Gardez au moins un produit actif'); return; }
-      renderCatalog();
-    }
+    else if (el.dataset.active) { setArchived(el.dataset.active, !el.checked); el.checked = !isArchived(byId[el.dataset.active]); return; }
     else if (el.dataset.margin) { if (isNaN(v)) return; S.settings.margins[el.dataset.margin] = Math.min(0.8, Math.max(0, v / 100)); }
     else if (el.dataset.access) { if (isNaN(v)) return; S.settings.access[el.dataset.access] = v; }
     else if (el.dataset.zone) {

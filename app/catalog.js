@@ -800,7 +800,7 @@
       }
     },
     {
-      id: 'carport', name: 'Abri de voiture', short: 'Abri voiture', family: 'Pergolas & structures', icon: 'carport', margin: 0.32, waste: 0.07,
+      id: 'carport', name: 'Abri de voiture (ancien)', short: 'Abri voiture (ancien)', family: 'Pergolas & structures', icon: 'carport', margin: 0.32, waste: 0.07,
       blurb: 'Structure métallique au choix, bâche ou couverture rigide.',
       comps: [{ id: 'structure', l: 'Structure métallique' }, { id: 'couverture', l: 'Couverture' }],
       params: [
