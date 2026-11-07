@@ -2,7 +2,6 @@
 (function () {
   'use strict';
   var C = window.SLCatalog, E = window.SLEngine;
-  var KEY = 'storeluxe-chiffrage-v2';
   var TODAY = new Date().toISOString().slice(0, 10);
   var PRODUCTS = C.PRODUCTS, SOURCES = C.SOURCES;
   var byId = {}; PRODUCTS.forEach(function (p) { byId[p.id] = p; });
@@ -12,42 +11,215 @@
     max: { l: 'Prudent', s: 'plus haut jamais relevé' }
   };
 
-  /* ================= État ================= */
-  function clone(o) { return JSON.parse(JSON.stringify(o)); }
-  function freshState() {
-    return {
-      settings: clone(C.SETTINGS), book: clone(C.BOOK),
+  /* ================= État =================
+   * Deux niveaux :
+   *  - ce que fait la personne (produit ouvert, devis actif) : ce navigateur ;
+   *  - les données de l'équipe (prix, réglages, devis) : base partagée de la
+   *    page quand elle est disponible, sinon ce navigateur (« mode local »).
+   */
+  var KEY = 'storeluxe-chiffrage-v3', LOCAL_KEY = 'storeluxe-chiffrage-v3-local', OLD_KEY = 'storeluxe-chiffrage-v2';
+  var CLOSED = { accepte: 1, perdu: 1, realise: 1 };
+  function clone(o) { return o == null ? o : JSON.parse(JSON.stringify(o)); }
+  function mergeSettings(raw) {
+    var s = clone(C.SETTINGS);
+    if (!raw) return s;
+    Object.keys(raw).forEach(function (k) { if (k !== 'policy' && k !== 'access') s[k] = clone(raw[k]); });
+    s.policy = Object.assign({}, C.SETTINGS.policy, raw.policy || {});
+    s.access = Object.assign({}, C.SETTINGS.access, raw.access || {});
+    return s;
+  }
+  /* Carnet = catalogue + surcharges (historique, maximum, kg, façonnage). */
+  function buildBook(over) {
+    var b = clone(C.BOOK);
+    Object.keys(over || {}).forEach(function (id) {
+      var it = over[id], cur = b[id];
+      if (!cur || !it) return;
+      if (Array.isArray(it.hist) && it.hist.length) cur.hist = clone(it.hist);
+      ['kg', 'fab', 'max'].forEach(function (k) { if (it[k] != null) cur[k] = it[k]; });
+    });
+    return b;
+  }
+  function overridesOf(book) {
+    var out = {};
+    Object.keys(book).forEach(function (id) {
+      var it = book[id], base = C.BOOK[id]; if (!base) return;
+      var o = {}, any = false;
+      if (JSON.stringify(it.hist) !== JSON.stringify(base.hist)) { o.hist = it.hist; any = true; }
+      ['kg', 'fab', 'max'].forEach(function (k) { if (it[k] !== base[k] && it[k] != null) { o[k] = it[k]; any = true; } });
+      if (any) out[id] = o;
+    });
+    return out;
+  }
+  function readJSON(k) { try { var r = localStorage.getItem(k); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+  function writeJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* stockage indisponible */ } }
+
+  function load() {
+    var s = {
+      settings: clone(C.SETTINGS), book: clone(C.BOOK), quotes: {},
       site: { client: '', zone: 'agadir', access: 'normal', discount: 0 },
       current: { productId: PRODUCTS[0].id, params: {}, tier: null },
-      cart: [], quoteNo: null, editing: null,
+      activeId: null, editing: null,
       aluCalc: { lme: 3065, premium: 500, conversion: 1900 }
     };
-  }
-  function merge(s, saved) {
-    if (saved.settings) {
-      Object.keys(saved.settings).forEach(function (k) { if (k !== 'policy' && k !== 'access') s.settings[k] = saved.settings[k]; });
-      s.settings.policy = Object.assign({}, C.SETTINGS.policy, saved.settings.policy || {});
-      s.settings.access = Object.assign({}, C.SETTINGS.access, saved.settings.access || {});
+    var me = readJSON(KEY), local = readJSON(LOCAL_KEY), old = !me && !local ? readJSON(OLD_KEY) : null;
+    if (old) { // reprise de la version 2 (un seul devis, prix locaux)
+      local = { settings: old.settings || null, book: old.book ? overridesOf(buildBook(old.book)) : {}, quotes: {} };
+      if (Array.isArray(old.cart) && old.cart.length) {
+        var now = new Date().toISOString(), id = 'q' + Date.now().toString(36);
+        local.quotes[id] = { id: id, no: old.quoteNo || 'SL-' + TODAY.replace(/-/g, '').slice(2) + '-V2', status: 'brouillon', site: old.site || s.site,
+          lines: old.cart.filter(function (l) { return byId[l.productId]; }), createdAt: now, updatedAt: now, createdBy: null, updatedBy: null };
+        me = { activeId: id };
+      }
+      me = Object.assign(me || {}, { site: old.site, current: old.current, aluCalc: old.aluCalc });
+      writeJSON(LOCAL_KEY, local);
     }
-    if (saved.book) Object.keys(saved.book).forEach(function (id) {
-      var it = saved.book[id], cur = s.book[id];
-      if (!cur || !it) return;
-      if (Array.isArray(it.hist) && it.hist.length) cur.hist = it.hist;
-      ['kg', 'fab', 'buffer', 'max'].forEach(function (k) { if (it[k] != null) cur[k] = it[k]; });
-    });
-    ['site', 'aluCalc'].forEach(function (k) { if (saved[k]) Object.assign(s[k], saved[k]); });
-    if (saved.current && byId[saved.current.productId]) s.current = Object.assign({ params: {}, tier: null }, saved.current);
-    if (Array.isArray(saved.cart)) s.cart = saved.cart.filter(function (l) { return byId[l.productId]; });
-    if (saved.quoteNo) s.quoteNo = saved.quoteNo;
-  }
-  function load() {
-    var s = freshState();
-    try { var raw = localStorage.getItem(KEY); if (raw) merge(s, JSON.parse(raw)); } catch (e) { /* stockage indisponible */ }
-    s.editing = null;
+    if (me) {
+      if (me.site) Object.assign(s.site, me.site);
+      if (me.current && byId[me.current.productId]) s.current = Object.assign({ params: {}, tier: null }, me.current);
+      if (me.aluCalc) Object.assign(s.aluCalc, me.aluCalc);
+      s.activeId = me.activeId || null;
+    }
+    if (local) {
+      s.settings = mergeSettings(local.settings);
+      s.book = buildBook(local.book);
+      s.quotes = local.quotes || {};
+    }
     return s;
   }
   var S = load();
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* ignoré */ } }
+
+  /* ---------- Stockage : local ou partagé ---------- */
+  var STORE = { mode: 'local', db: null, user: null, me: null, canWrite: true, canAdmin: true, chains: {}, timers: {}, pendingLocal: null };
+  function shared() { return STORE.mode === 'shared'; }
+  /* Préférences de la personne (toujours dans ce navigateur). */
+  function save() {
+    writeJSON(KEY, { site: S.site, current: S.current, activeId: S.activeId, aluCalc: S.aluCalc });
+    if (!shared()) writeJSON(LOCAL_KEY, { settings: S.settings, book: overridesOf(S.book), quotes: S.quotes });
+  }
+  function onWriteError(e) {
+    var code = e && e.code;
+    if (code === 'invalid_argument') { STORE.canWrite = false; setSync('warn', 'Lecture seule'); toast('Modification refusée : votre accès à cette page est en lecture seule.'); refresh(); }
+    else if (code === 'quota_exceeded') toast('La base de l’équipe est pleine : supprimez d’anciens devis.');
+    else if (code === 'revoked') { setSync('warn', 'Accès retiré'); toast('L’accès à la base de l’équipe a été retiré.'); }
+    else toast('Enregistrement impossible pour le moment : réessayez dans un instant.');
+  }
+  /* Une écriture à la fois par document ; `delay` regroupe la frappe. */
+  function writeDoc(path, getData, delay) {
+    if (!shared()) { save(); return; }
+    clearTimeout(STORE.timers[path]);
+    var run = function () {
+      var prev = STORE.chains[path] || Promise.resolve();
+      STORE.chains[path] = prev.then(function () { return STORE.db.doc(path).set(getData()); }).catch(onWriteError);
+    };
+    if (delay) STORE.timers[path] = setTimeout(run, delay); else run();
+  }
+  function deleteDoc(path) {
+    if (!shared()) { save(); return; }
+    var prev = STORE.chains[path] || Promise.resolve();
+    STORE.chains[path] = prev.then(function () { return STORE.db.doc(path).delete(); }).catch(onWriteError);
+  }
+  function stamp() { return { at: new Date().toISOString(), by: STORE.me || null }; }
+  function persistPrice(id) {
+    var it = S.book[id];
+    writeDoc('prices/' + id, function () {
+      var o = { hist: it.hist, updatedAt: new Date().toISOString(), updatedBy: STORE.me || null };
+      ['kg', 'fab', 'max'].forEach(function (k) { if (it[k] != null) o[k] = it[k]; });
+      return o;
+    });
+  }
+  function persistSettings() {
+    writeDoc('config/settings', function () { return { settings: S.settings, updatedAt: new Date().toISOString(), updatedBy: STORE.me || null }; }, 700);
+  }
+  function persistQuote(q, delay) { writeDoc('quotes/' + q.id, function () { return S.quotes[q.id] || q; }, delay); }
+
+  /* ---------- Indicateur de synchronisation ---------- */
+  function setSync(state, label) {
+    var el = $('sync'); el.className = 'sync ' + state; el.querySelector('span').textContent = label;
+    el.title = state === 'local' ? 'Les prix, réglages et devis sont enregistrés dans ce navigateur seulement.' : state === 'ok' ? 'Prix, réglages et devis partagés avec toute l’équipe.' : '';
+  }
+
+  /* ---------- Noms des collègues ---------- */
+  var NAMES = {}, nameWait = null;
+  function who(id) { return id && NAMES[id] ? NAMES[id] : null; }
+  function wantNames(ids) {
+    if (!STORE.user) return;
+    var need = ids.filter(function (id) { return id && !(id in NAMES); });
+    if (!need.length || nameWait) return;
+    nameWait = STORE.user.profiles(need).then(function (ps) {
+      need.forEach(function (id) { var p = ps[id] || {}; NAMES[id] = { name: p.isMe ? 'vous' : (p.name || 'un collègue'), avatar: p.avatarUrl || '' }; });
+      nameWait = null; refresh();
+    }, function () { nameWait = null; });
+  }
+  function byLabel(id) {
+    var n = who(id); if (!n) return '';
+    return '<span class="who" data-who="' + esc(id) + '">' + (n.avatar ? '<img src="' + esc(n.avatar) + '" alt="">' : '') + '<span class="js-name"></span></span>';
+  }
+  /* Les noms sont la saisie d'autres personnes : posés en textContent. */
+  function fillNames(root) {
+    root.querySelectorAll('[data-who]').forEach(function (el) {
+      var n = who(el.dataset.who), t = el.querySelector('.js-name');
+      if (n && t) t.textContent = n.name;
+    });
+  }
+
+  /* ---------- Connexion à la base de l'équipe ---------- */
+  function connect() {
+    if (!window.claude || typeof window.claude.use !== 'function') { setSync('local', 'Mode local'); return; }
+    setSync('warn', 'Connexion…');
+    var slow = setTimeout(function () { if (!shared()) setSync('warn', 'Connexion lente…'); }, 10000);
+    Promise.all([window.claude.use('db'), window.claude.use('user')]).then(function (r) {
+      clearTimeout(slow);
+      var db = r[0], user = r[1];
+      if (!db) { setSync('local', 'Mode local'); return; }
+      var hadLocal = readJSON(LOCAL_KEY);
+      STORE.db = db; STORE.user = user; STORE.mode = 'shared';
+      // les données locales restent dans ce navigateur ; on propose de les partager
+      if (hadLocal && (Object.keys(hadLocal.book || {}).length || Object.keys(hadLocal.quotes || {}).length)) STORE.pendingLocal = hadLocal;
+      S.settings = mergeSettings(null); S.book = clone(C.BOOK); S.quotes = {};
+      if (S.activeId && hadLocal && hadLocal.quotes && hadLocal.quotes[S.activeId]) S.activeId = null;
+      refresh();
+      return Promise.all([user ? user.id() : null, user ? user.can('data.write') : null, user ? user.canEdit() : false]).then(function (u) {
+        STORE.me = u[0]; STORE.canWrite = u[1] !== false; STORE.canAdmin = !!u[2];
+        subscribe();
+      });
+    }, function () { clearTimeout(slow); setSync('local', 'Mode local'); });
+  }
+  function subscribe() {
+    var db = STORE.db, first = { p: 0, s: 0, q: 0 };
+    var wait = setTimeout(function () { setSync('warn', 'Données de l’équipe injoignables pour l’instant'); }, 10000);
+    function confirmed(k, snap) {
+      if (snap.metadata && !snap.metadata.fromCache) first[k] = 1;
+      if (first.p && first.s && first.q) { clearTimeout(wait); setSync('ok', STORE.canWrite ? 'Équipe · synchronisé' : 'Équipe · lecture seule'); }
+    }
+    function dead(e) { clearTimeout(wait); setSync('warn', e && e.code === 'revoked' ? 'Accès retiré' : 'Synchronisation interrompue'); }
+    db.collection('prices').onSnapshot(function (snap) {
+      var over = {}; snap.docs.forEach(function (d) { over[d.id] = d.data(); });
+      S.book = buildBook(over); confirmed('p', snap); refresh();
+    }, dead);
+    db.doc('config/settings').onSnapshot(function (d) {
+      S.settings = mergeSettings(d.exists ? (d.data() || {}).settings : null); confirmed('s', d); refresh();
+    }, dead);
+    db.collection('quotes').orderBy('updatedAt', 'desc').limit(300).onSnapshot(function (snap) {
+      var qs = {}; snap.docs.forEach(function (d) { var q = clone(d.data()); q.id = d.id; qs[d.id] = q; });
+      S.quotes = qs;
+      var a = S.quotes[S.activeId];
+      if (a && !S.editing && !inside('.site')) S.site = Object.assign({}, S.site, a.site);
+      confirmed('q', snap); refresh();
+    }, dead);
+  }
+  /* Le focus est-il dans cette zone ? (on ne redessine pas sous les doigts) */
+  function inside(sel) { var a = document.activeElement; return !!(a && a.closest && a.closest(sel) && /INPUT|SELECT|TEXTAREA/.test(a.tagName)); }
+  var refreshT;
+  function refresh() {
+    clearTimeout(refreshT);
+    refreshT = setTimeout(function () {
+      if (!inside('.site')) renderSite();
+      renderResult(); renderCount();
+      if (!$('v-devis').hidden && !inside('#v-devis')) renderQuotes();
+      if (!$('v-prix').hidden && !inside('#v-prix')) renderBook();
+      if (!$('v-reglages').hidden && !inside('#v-reglages')) renderSettings();
+    }, 30);
+  }
 
   /* ================= Utilitaires ================= */
   var nf0 = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
@@ -72,8 +244,8 @@
     }
     try { navigator.clipboard.writeText(text).then(function () { toast(okMsg); }, fallback); } catch (e) { fallback(); }
   }
-  function ctx() { return { access: S.site.access, zone: S.site.zone, discount: +S.site.discount || 0 }; }
-  function price(productId, params) { return E.priceLine(byId[productId], params, S.book, S.settings, TODAY, ctx()); }
+  function ctx(site) { site = site || S.site; return { access: site.access, zone: site.zone, discount: +site.discount || 0 }; }
+  function price(productId, params, site) { return E.priceLine(byId[productId], params, S.book, S.settings, TODAY, ctx(site)); }
   function curTier() { return S.current.tier || S.settings.policy.base; }
   function srcLink(key, short) {
     var s = SOURCES[key]; if (!s) return '';
@@ -255,25 +427,13 @@
     TABS.forEach(function (k) { $('v-' + k).hidden = k !== t; });
     document.querySelectorAll('.tabs a').forEach(function (a) { if (a.dataset.tab === t) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     $('mbar').hidden = t !== 'configurer';
-    if (t === 'devis') renderDoc();
+    if (t === 'devis') renderQuotes();
     if (t === 'prix') renderBook();
     if (t === 'reglages') renderSettings();
     if (h.indexOf('e-') === 0) { var el = $(h); if (el) el.scrollIntoView(); } else window.scrollTo(0, 0);
   }
   window.addEventListener('hashchange', route);
   function go(tab) { if (location.hash === '#' + tab) route(); else location.hash = tab; }
-
-  /* ================= Chantier ================= */
-  function renderSite() {
-    $('c-zone').innerHTML = S.settings.zones.map(function (z) { return '<option value="' + esc(z.id) + '">' + esc(z.name) + (z.cost ? ' · ' + nf0.format(z.cost) + ' MAD' : '') + '</option>'; }).join('');
-    $('c-client').value = S.site.client; $('c-zone').value = S.site.zone; $('c-access').value = S.site.access; $('c-disc').value = String(S.site.discount || 0);
-  }
-  ['c-client', 'c-zone', 'c-access', 'c-disc'].forEach(function (id) {
-    $(id).addEventListener('input', function () {
-      S.site.client = $('c-client').value; S.site.zone = $('c-zone').value; S.site.access = $('c-access').value; S.site.discount = +$('c-disc').value;
-      save(); renderResult();
-    });
-  });
 
   /* ================= Catalogue ================= */
   function renderCatalog() {
@@ -416,7 +576,7 @@
     if (r.stale.length) al.push('<div class="alert info">' + r.stale.length + ' prix de l’étude à confirmer auprès de vos fournisseurs (onglet Prix &amp; sources).</div>');
     if (al.length) h += '<div class="alerts">' + al.join('') + '</div>';
     if (S.editing) h += '<div class="row"><button class="btn pri" type="button" id="r-update" style="flex:1">Mettre à jour la ligne</button><button class="btn" type="button" id="r-cancel">Annuler</button></div>';
-    else h += '<div class="row"><button class="btn pri" type="button" id="r-add" style="flex:1">Ajouter au devis</button><button class="btn" type="button" id="r-copy">Copier le prix</button></div>';
+    else h += '<div class="row"><button class="btn pri" type="button" id="r-add" style="flex:1">' + (activeQuote() && !CLOSED[activeQuote().status] ? 'Ajouter au devis ' + esc(activeQuote().no.slice(-3)) : 'Créer un devis') + '</button><button class="btn" type="button" id="r-copy">Copier le prix</button></div>';
     h += '</div>';
     // détail interne
     var cats = { matiere: 'Matière (avec chutes)', equipement: 'Équipements', pose: 'Pose (coef. accès)' };
@@ -434,17 +594,6 @@
     $('mbar-p').textContent = nf0.format(sale * tva()) + ' MAD';
     $('mbar-add').textContent = S.editing ? 'Mettre à jour' : 'Ajouter au devis';
   }
-  function addOrUpdate() {
-    var entry = { productId: S.current.productId, params: clone(E.fullParams(byId[S.current.productId], S.current.params)), tier: curTier() };
-    if (S.editing) {
-      S.cart = S.cart.map(function (l) { return l.uid === S.editing ? Object.assign({ uid: l.uid }, entry) : l; });
-      S.editing = null; save(); renderForm(); renderResult(); renderCount(); toast('Ligne mise à jour'); go('devis'); return;
-    }
-    if (!S.cart.length || !S.quoteNo) S.quoteNo = 'SL-' + TODAY.replace(/-/g, '').slice(2) + '-' + Math.random().toString(36).slice(2, 5).toUpperCase();
-    entry.uid = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-    S.cart.push(entry); save(); renderCount();
-    toast('Ajouté au devis (' + S.cart.length + ' ligne' + (S.cart.length > 1 ? 's' : '') + ')');
-  }
   $('result').addEventListener('click', function (e) {
     var tb = e.target.closest('[data-tier]');
     if (tb) { S.current.tier = tb.dataset.tier; save(); renderResult(); return; }
@@ -458,30 +607,161 @@
   $('mbar-add').addEventListener('click', addOrUpdate);
 
   /* ================= Devis ================= */
-  function renderCount() { var c = $('cart-count'); c.textContent = S.cart.length; c.hidden = !S.cart.length; }
-  function quote() {
-    var entries = S.cart.map(function (l) { return { uid: l.uid, tier: l.tier, line: price(l.productId, l.params) }; });
-    return { entries: entries, q: E.priceQuote(entries, S.settings, ctx()) };
+  var STATUS = {
+    brouillon: { l: 'Brouillon' }, envoye: { l: 'Envoyé' }, accepte: { l: 'Accepté' }, perdu: { l: 'Perdu' }, realise: { l: 'Réalisé' }
+  };
+  var LOSS = { prix: 'Prix trop élevé', delai: 'Délai', concurrent: 'Parti chez un concurrent', sans_suite: 'Projet abandonné', autre: 'Autre raison' };
+  var qFilter = 'tous', qSearch = '', confirmDel = false;
+  function activeQuote() { return (S.activeId && S.quotes[S.activeId]) || null; }
+  /* Une fois le devis envoyé, le prix client est figé ; seul le coût suit le marché. */
+  function quoteCalc(q) {
+    var site = q.site || S.site;
+    var entries = (q.lines || []).filter(function (l) { return byId[l.productId]; }).map(function (l) {
+      var live = price(l.productId, l.params, site), t = l.tier || live.base;
+      if (l.frozen != null) { live = Object.assign({}, live); live.sale = Object.assign({}, live.sale); live.sale[t] = l.frozen; }
+      return { uid: l.uid, tier: l.tier, line: live };
+    });
+    var r = E.priceQuote(entries, S.settings, ctx(site));
+    if (q.frozenTravel != null && r.travel !== q.frozenTravel) {
+      var dt = q.frozenTravel - r.travel, cost = r.costNow + dt;
+      r.travel = q.frozenTravel; r.ht += dt;
+      r.discount = site.discount ? E.roundUp(r.ht * site.discount, S.settings.rounding) : 0;
+      r.htNet = r.ht - r.discount; r.tva = r.htNet * S.settings.tva; r.ttc = r.htNet + r.tva;
+      r.costNow = cost; r.marginIfToday = r.htNet > 0 ? 1 - cost / r.htNet : 0;
+    }
+    return { entries: entries, q: r };
+  }
+  function freeze(q) {
+    var site = q.site || S.site;
+    (q.lines || []).forEach(function (l) {
+      if (l.frozen == null && byId[l.productId]) { var r = price(l.productId, l.params, site); l.frozen = r.sale[l.tier || r.base]; }
+    });
+    if (q.frozenTravel == null) {
+      var tmp = clone(q); tmp.frozenTravel = null; tmp.lines = (q.lines || []).map(function (l) { var c = clone(l); delete c.frozen; return c; });
+      q.frozenTravel = quoteCalc(tmp).q.travel;
+    }
+    if (!q.frozenAt) q.frozenAt = new Date().toISOString();
+  }
+  function unfreeze(q) { (q.lines || []).forEach(function (l) { delete l.frozen; }); delete q.frozenTravel; delete q.frozenAt; }
+  function snapOf(q) {
+    var d = quoteCalc(q);
+    return { ht: d.q.htNet, ttc: d.q.ttc, costNow: d.q.costNow, laborDays: d.q.laborDays, title: d.entries.map(function (e) { return e.line.productName; }).join(', ') };
+  }
+  function newQuote() {
+    var now = new Date().toISOString(), id = 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    var q = { id: id, no: 'SL-' + TODAY.replace(/-/g, '').slice(2) + '-' + Math.random().toString(36).slice(2, 5).toUpperCase(), status: 'brouillon',
+      site: clone(S.site), lines: [], createdAt: now, createdBy: STORE.me || null, updatedAt: now, updatedBy: STORE.me || null };
+    S.quotes[id] = q; S.activeId = id;
+    return q;
+  }
+  /* Le coût estimé d'un chantier réalisé est figé, pour mesurer l'écart avec le réel. */
+  function commitQuote(q, delay) {
+    var st = stamp(); q.updatedAt = st.at; q.updatedBy = st.by;
+    if ((q.status || 'brouillon') === 'brouillon') unfreeze(q); else freeze(q);
+    if (q.status === 'realise' && q.snap && q.snapFrozen) { /* figé */ } else q.snap = snapOf(q);
+    q.snapFrozen = q.status === 'realise';
+    S.quotes[q.id] = q; save(); persistQuote(q, delay); renderCount();
+  }
+  function canWrite() { if (STORE.canWrite) return true; toast('Votre accès à cette page est en lecture seule.'); return false; }
+
+  /* Chantier : modifie le devis actif s'il est encore ouvert. */
+  function renderSite() {
+    $('c-zone').innerHTML = S.settings.zones.map(function (z) { return '<option value="' + esc(z.id) + '">' + esc(z.name) + (z.cost ? ' · ' + nf0.format(z.cost) + ' MAD' : '') + '</option>'; }).join('');
+    $('c-client').value = S.site.client || ''; $('c-zone').value = S.site.zone; $('c-access').value = S.site.access; $('c-disc').value = String(S.site.discount || 0);
+  }
+  ['c-client', 'c-zone', 'c-access', 'c-disc'].forEach(function (id) {
+    $(id).addEventListener('input', function () {
+      S.site = { client: $('c-client').value, zone: $('c-zone').value, access: $('c-access').value, discount: +$('c-disc').value };
+      var q = activeQuote();
+      if (q && !CLOSED[q.status] && STORE.canWrite) {
+        q.site = clone(S.site);
+        if (id !== 'c-client') { (q.lines || []).forEach(function (l) { delete l.frozen; }); delete q.frozenTravel; }
+        commitQuote(q, id === 'c-client' ? 800 : 0);
+      }
+      save(); renderResult();
+    });
+  });
+
+  function addOrUpdate() {
+    if (!canWrite()) return;
+    var entry = { productId: S.current.productId, params: clone(E.fullParams(byId[S.current.productId], S.current.params)), tier: curTier() };
+    var q = activeQuote();
+    if (S.editing && q) {
+      q.lines = q.lines.map(function (l) { return l.uid === S.editing ? Object.assign({ uid: l.uid }, entry) : l; });
+      S.editing = null; commitQuote(q); renderForm(); renderResult(); toast('Ligne mise à jour'); go('devis'); return;
+    }
+    var fresh = !q || CLOSED[q.status];
+    if (fresh) q = newQuote();
+    entry.uid = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+    q.lines.push(entry); commitQuote(q);
+    toast(fresh ? 'Nouveau devis ' + q.no + ' créé' : 'Ajouté au devis ' + q.no + ' (' + q.lines.length + ' lignes)');
+  }
+  function renderCount() {
+    var q = activeQuote(), n = q ? q.lines.length : 0, c = $('cart-count');
+    c.textContent = n; c.hidden = !n;
+  }
+
+  function stChip(s) { return '<span class="st st-' + s + '">' + (STATUS[s] || STATUS.brouillon).l + '</span>'; }
+  function shortDate(iso) { return iso ? frDate(iso.slice(0, 10)).slice(0, 5) : ''; }
+  function renderQList() {
+    var all = Object.keys(S.quotes).map(function (k) { return S.quotes[k]; }).sort(function (a, b) { return (b.updatedAt || '') < (a.updatedAt || '') ? -1 : 1; });
+    var count = { brouillon: 0, envoye: 0, accepte: 0, perdu: 0, realise: 0 };
+    all.forEach(function (q) { count[q.status || 'brouillon']++; });
+    var decided = count.accepte + count.realise + count.perdu, won = count.accepte + count.realise;
+    var gaps = all.filter(function (q) { return q.status === 'realise' && q.actual && q.actual.cost > 0 && q.snap && q.snap.costNow > 0; })
+      .map(function (q) { return q.actual.cost / q.snap.costNow - 1; });
+    var gap = gaps.length ? gaps.reduce(function (a, b) { return a + b; }, 0) / gaps.length : null;
+    var h = '<div class="row" style="justify-content:space-between"><h3>Devis de l’équipe</h3><button class="btn sm pri" type="button" id="q-new">Nouveau</button></div>';
+    if (shared() && STORE.pendingLocal && Object.keys(STORE.pendingLocal.quotes || {}).length) h += localNotice();
+    h += '<div class="qstats"><div><span>En cours</span><b>' + (count.brouillon + count.envoye) + '</b></div><div><span>Taux de signature</span><b>' + (decided ? Math.round(won / decided * 100) + ' %' : '—') + '</b></div>' +
+      '<div title="Coût réel des chantiers réalisés comparé au coût estimé"><span>Écart coût réel</span><b>' + (gap == null ? '—' : (gap > 0 ? '+' : '') + Math.round(gap * 100) + ' %') + '</b></div></div>';
+    h += '<input class="inp" type="search" id="q-search" placeholder="Client ou numéro" value="' + esc(qSearch) + '" autocomplete="off">';
+    h += '<div class="qfilter" role="group" aria-label="Filtrer par statut">' + [['tous', 'Tous']].concat(Object.keys(STATUS).map(function (k) { return [k, STATUS[k].l + (count[k] ? ' ' + count[k] : '')]; })).map(function (f) {
+      return '<button type="button" data-qf="' + f[0] + '" aria-pressed="' + (qFilter === f[0]) + '">' + esc(f[1]) + '</button>';
+    }).join('') + '</div>';
+    var list = all.filter(function (q) {
+      if (qFilter !== 'tous' && (q.status || 'brouillon') !== qFilter) return false;
+      if (!qSearch) return true;
+      return ((q.site && q.site.client || '') + ' ' + q.no + ' ' + (q.snap && q.snap.title || '')).toLowerCase().indexOf(qSearch.toLowerCase()) >= 0;
+    });
+    var ids = [];
+    h += '<div style="display:grid;gap:2px">' + (list.length ? list.map(function (q) {
+      ids.push(q.updatedBy);
+      return '<button type="button" class="qitem" data-q="' + esc(q.id) + '" aria-current="' + (q.id === S.activeId) + '">' +
+        '<span class="top"><b>' + esc(q.site && q.site.client || 'Client à préciser') + '</b>' + stChip(q.status || 'brouillon') + '</span>' +
+        '<small><span>' + esc(q.no) + ' · ' + esc(q.snap && q.snap.title || 'vide') + '</span></small>' +
+        '<small><span class="num">' + (q.snap ? nf0.format(q.snap.ttc) + ' TTC' : '') + '</span><span>' + shortDate(q.updatedAt) + ' ' + byLabel(q.updatedBy) + '</span></small></button>';
+    }).join('') : '<p class="sub" style="margin:8px 4px">' + (all.length ? 'Aucun devis ne correspond.' : 'Aucun devis pour l’instant. Configurez un produit puis « Ajouter au devis ».') + '</p>') + '</div>';
+    $('qlist').innerHTML = h; fillNames($('qlist'));
+    wantNames(ids);
   }
   function renderDoc() {
-    var d = quote(), q = d.q, T = tva();
-    var zone = q.zone.name.split(' (')[0];
-    if (!d.entries.length) {
-      $('doc').innerHTML = '<div class="empty-state">' + icon('bioclim') + '<h2>Aucun produit dans le devis</h2><p>Configurez un produit, puis « Ajouter au devis ». Un devis peut réunir plusieurs produits, par exemple une pergola et ses stores ZIP.</p><button class="btn pri" type="button" data-go="configurer">Configurer un produit</button></div>';
+    var Q = activeQuote();
+    if (!Q) {
+      $('doc').innerHTML = '<div class="empty-state">' + icon('bioclim') + '<h2>Aucun devis ouvert</h2><p>Choisissez un devis dans la liste, ou configurez un produit puis « Ajouter au devis ».</p><button class="btn pri" type="button" data-go="configurer">Configurer un produit</button></div>';
       $('doc-side').innerHTML = '';
       return;
     }
+    var d = quoteCalc(Q), q = d.q, zone = q.zone.name.split(' (')[0], site = Q.site || {};
+    var locked = CLOSED[Q.status] || !STORE.canWrite;
     var h = '<div class="doc-head"><div class="brand">' + document.querySelector('.brand svg').outerHTML + '<div><b>Store Luxe</b><span class="sub">Pergolas, vérandas et stores sur mesure · depuis 1999</span></div></div>' +
-      '<div class="doc-meta"><b>Devis estimatif</b><span class="num">' + esc(S.quoteNo || '') + '</span><span>Le ' + frDate(TODAY) + '</span><span>Valable jusqu’au ' + frDate(E.addDays(TODAY, S.settings.validityDays)) + '</span></div></div>';
-    h += '<div class="doc-to"><div><span>Client</span><b>' + esc(S.site.client || 'À préciser') + '</b></div><div><span>Chantier</span><b>' + esc(zone) + '</b></div><div><span>Prestation</span><b>Fourniture et pose</b></div></div>';
+      '<div class="doc-meta"><b>Devis estimatif</b><span class="num">' + esc(Q.no) + '</span><span>Le ' + frDate((Q.createdAt || TODAY).slice(0, 10)) + '</span><span>Valable jusqu’au ' + frDate(E.addDays((Q.createdAt || TODAY).slice(0, 10), S.settings.validityDays)) + '</span></div></div>';
+    h += '<div class="doc-to"><div><span>Client</span><b>' + esc(site.client || 'À préciser') + '</b></div><div><span>Chantier</span><b>' + esc(zone) + '</b></div><div><span>Statut</span><b>' + stChip(Q.status || 'brouillon') + '</b></div></div>';
+    if (!d.entries.length) h += '<p class="sub">Ce devis n’a pas encore de ligne.</p>';
+    if (Q.frozenAt) {
+      var target = Math.min.apply(null, d.entries.map(function (e) { return e.line.margin; }).concat([1]));
+      h += q.marginIfToday < target - 0.005
+        ? '<div class="alert">Les prix fournisseurs ont monté depuis l’envoi du ' + frDate(Q.frozenAt.slice(0, 10)) + ' : marge réelle ' + pct(q.marginIfToday) + ' au lieu de ' + pct(target) + ' visés. Les prix client restent ceux envoyés.</div>'
+        : '<div class="alert info">Prix client figés à l’envoi le ' + frDate(Q.frozenAt.slice(0, 10)) + '. Marge si achat aujourd’hui : ' + pct(q.marginIfToday) + '.</div>';
+    }
     h += '<div>';
     d.entries.forEach(function (e, i) {
       var r = e.line, t = e.tier || r.base;
       h += '<div class="qline"><span class="n">' + String(i + 1).padStart(2, '0') + '</span><div><b>' + esc(r.productName) + '</b><div class="sub">' + esc(r.summary) + '</div>' +
         (r.details.length ? '<ul>' + r.details.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') + '</div>' +
-        '<div><div class="amt">' + nf0.format(r.sale[t]) + ' HT</div><div class="tools">' +
+        '<div><div class="amt">' + nf0.format(r.sale[t]) + ' HT</div>' + (locked ? '' : '<div class="tools">' +
         '<select data-tierline="' + e.uid + '" aria-label="Niveau de prix de la ligne ' + (i + 1) + '">' + E.TIERS.map(function (k) { return '<option value="' + k + '"' + (k === t ? ' selected' : '') + '>' + TIER[k].l + '</option>'; }).join('') + '</select>' +
-        '<button class="btn sm ghost" type="button" data-edit="' + e.uid + '">Modifier</button><button class="btn sm ghost danger" type="button" data-del="' + e.uid + '" aria-label="Retirer la ligne ' + (i + 1) + '">Retirer</button></div></div></div>';
+        '<button class="btn sm ghost" type="button" data-edit="' + e.uid + '">Modifier</button><button class="btn sm ghost danger" type="button" data-del="' + e.uid + '" aria-label="Retirer la ligne ' + (i + 1) + '">Retirer</button></div>') + '</div></div>';
     });
     h += '</div><div class="totals num">';
     h += '<div><span>Sous-total</span><span>' + mad(q.ht - q.travel) + '</span></div>';
@@ -492,23 +772,43 @@
     h += '<div class="cond"><b style="color:var(--ink)">Conditions</b><span>' + esc(S.settings.conditions) + '</span><span>Store Luxe · Entrée 6, Av. 2 Mars, Souk Elhad, Agadir · +212 6 67 62 03 60 · contact@storeluxe.ma</span></div>';
     $('doc').innerHTML = h;
 
+    // panneau latéral
+    var st = Q.status || 'brouillon', ro = !STORE.canWrite;
     var side = '<div class="card pad stack"><h3>Envoyer au client</h3>' +
       '<button class="btn pri wide" type="button" id="k-wa">Copier le message WhatsApp</button>' +
       '<button class="btn wide" type="button" id="k-txt">Copier le devis en texte</button>' +
-      '<p class="sub" style="margin:0">Le message reprend chaque ligne TTC, le total et la date de validité.</p></div>';
+      '<p class="sub" style="margin:0">' + (st === 'brouillon' ? 'Copier le message marque le devis comme envoyé.' : 'Le message reprend chaque ligne TTC, le total et la validité.') + '</p></div>';
+    side += '<div class="card pad stack"><h3>Suivi</h3><div class="status-seg" role="group" aria-label="Statut du devis">' + Object.keys(STATUS).map(function (k) {
+      return '<button type="button" data-status="' + k + '" aria-pressed="' + (k === st) + '"' + (ro ? ' disabled' : '') + '>' + STATUS[k].l + '</button>';
+    }).join('') + '</div>';
+    if (st === 'perdu') side += '<div class="fld"><label for="k-loss">Raison</label><select class="inp" id="k-loss"' + (ro ? ' disabled' : '') + '><option value="">À préciser</option>' + Object.keys(LOSS).map(function (k) { return '<option value="' + k + '"' + (Q.lossReason === k ? ' selected' : '') + '>' + LOSS[k] + '</option>'; }).join('') + '</select></div>';
+    if (st === 'realise') {
+      var a = Q.actual || {}, est = Q.snap || {};
+      var g = a.cost > 0 && est.costNow > 0 ? a.cost / est.costNow - 1 : null;
+      side += '<p class="sub" style="margin:0">Bilan du chantier : saisissez ce que le chantier a réellement coûté, pour recaler les estimations.</p>' +
+        '<div class="grid" style="grid-template-columns:1fr 1fr;gap:8px"><div class="fld"><label for="k-acost">Coût réel (MAD HT)</label><input class="inp num" id="k-acost" type="number" min="0" step="100" value="' + (a.cost || '') + '"' + (ro ? ' disabled' : '') + '></div>' +
+        '<div class="fld"><label for="k-adays">Jours de pose réels</label><input class="inp num" id="k-adays" type="number" min="0" step="0.5" value="' + (a.days || '') + '"' + (ro ? ' disabled' : '') + '></div></div>' +
+        '<div class="kpis"><div class="kpi"><span>Coût estimé</span><b>' + nf0.format(est.costNow || 0) + '</b></div><div class="kpi' + (g != null && g <= 0.03 ? ' good' : '') + '"><span>Écart</span><b' + (g != null && g > 0.03 ? ' style="color:var(--bad)"' : '') + '>' + (g == null ? '—' : (g > 0 ? '+' : '') + pct(g)) + '</b></div>' +
+        '<div class="kpi"><span>Jours estimés</span><b>' + nf2.format(est.laborDays || 0) + '</b></div><div class="kpi"><span>Jours réels</span><b>' + (a.days ? nf2.format(a.days) : '—') + '</b></div></div>';
+    }
+    side += '<p class="sub" style="margin:0">Créé le ' + frDate((Q.createdAt || '').slice(0, 10)) + ' ' + byLabel(Q.createdBy) + ' · modifié le ' + frDate((Q.updatedAt || '').slice(0, 10)) + ' ' + byLabel(Q.updatedBy) + '</p></div>';
     side += '<div class="card pad stack"><h3>Lecture interne</h3><div class="kpis">' +
       '<div class="kpi"><span>Coût au prix du jour</span><b>' + nf0.format(q.costNow) + '</b></div>' +
       '<div class="kpi good"><span>Marge si achat aujourd’hui</span><b>' + pct(q.marginIfToday) + '</b></div>' +
       '<div class="kpi"><span>Jours de pose</span><b>' + nf2.format(q.laborDays) + '</b></div>' +
       '<div class="kpi"><span>Lignes</span><b>' + d.entries.length + '</b></div></div>' +
-      '<div class="row"><button class="btn sm" type="button" data-go="configurer">Ajouter un produit</button><button class="btn sm ghost danger" type="button" id="k-clear">Nouveau devis</button></div>' +
-      '<div id="k-confirm" hidden class="alert">Vider ce devis ?<div class="row" style="margin-top:8px"><button class="btn sm danger" type="button" id="k-clear-yes">Oui, vider</button><button class="btn sm" type="button" id="k-clear-no">Annuler</button></div></div></div>';
-    $('doc-side').innerHTML = side;
+      '<div class="row">' + (locked ? '' : '<button class="btn sm" type="button" data-go="configurer">Ajouter un produit</button>') +
+      '<button class="btn sm" type="button" id="k-dup"' + (ro ? ' disabled' : '') + '>Dupliquer</button><button class="btn sm ghost danger" type="button" id="k-del"' + (ro ? ' disabled' : '') + '>Supprimer</button></div>' +
+      (confirmDel ? '<div class="alert">Supprimer le devis ' + esc(Q.no) + (shared() ? ' pour toute l’équipe' : '') + ' ?<div class="row" style="margin-top:8px"><button class="btn sm danger" type="button" id="k-del-yes">Oui, supprimer</button><button class="btn sm" type="button" id="k-del-no">Annuler</button></div></div>' : '') + '</div>';
+    $('doc-side').innerHTML = side; fillNames($('doc-side'));
+    wantNames([Q.createdBy, Q.updatedBy]);
   }
-  function quoteText(whatsapp) {
-    var d = quote(), q = d.q, T = tva(), zone = q.zone.name.split(' (')[0];
-    var t = whatsapp ? 'Bonjour' + (S.site.client ? ' ' + S.site.client : '') + ',\n\nVoici l’estimation Store Luxe pour votre projet à ' + zone + ' :\n\n'
-      : 'STORE LUXE — Devis estimatif ' + (S.quoteNo || '') + '\nDate : ' + frDate(TODAY) + ' · Client : ' + (S.site.client || 'à préciser') + ' · Chantier : ' + zone + '\n\n';
+  function renderQuotes() { renderQList(); renderDoc(); }
+  function quoteText(Q, whatsapp) {
+    var d = quoteCalc(Q), q = d.q, T = tva(), zone = q.zone.name.split(' (')[0], client = Q.site && Q.site.client;
+    var valid = frDate(E.addDays((Q.createdAt || TODAY).slice(0, 10), S.settings.validityDays));
+    var t = whatsapp ? 'Bonjour' + (client ? ' ' + client : '') + ',\n\nVoici l’estimation Store Luxe pour votre projet à ' + zone + ' :\n\n'
+      : 'STORE LUXE — Devis estimatif ' + Q.no + '\nDate : ' + frDate((Q.createdAt || TODAY).slice(0, 10)) + ' · Client : ' + (client || 'à préciser') + ' · Chantier : ' + zone + '\n\n';
     d.entries.forEach(function (e, i) {
       var r = e.line, k = e.tier || r.base;
       t += (whatsapp ? '• ' : (i + 1) + '. ') + r.productName + ' — ' + r.summary + (r.details.length ? ' (' + r.details.join(', ') + ')' : '') + ' : ' +
@@ -517,29 +817,84 @@
     if (q.travel) t += (whatsapp ? '• ' : '') + 'Déplacement ' + zone + ' : ' + (whatsapp ? mad(q.travel * T) + ' TTC' : mad(q.travel) + ' HT') + '\n';
     if (q.discount) t += (whatsapp ? '• ' : '') + 'Remise : − ' + (whatsapp ? mad(q.discount * T) + ' TTC' : mad(q.discount) + ' HT') + '\n';
     t += '\nTotal : ' + mad(q.ttc) + ' TTC (' + mad(q.htNet) + ' HT + TVA ' + Math.round(S.settings.tva * 100) + ' %)\n';
-    t += 'Fourniture et pose comprises. Valable jusqu’au ' + frDate(E.addDays(TODAY, S.settings.validityDays)) + '.\n' + S.settings.conditions + '\n\nStore Luxe · Agadir · +212 6 67 62 03 60';
+    t += 'Fourniture et pose comprises. Valable jusqu’au ' + valid + '.\n' + S.settings.conditions + '\n\nStore Luxe · Agadir · +212 6 67 62 03 60';
     return t;
   }
-  document.getElementById('v-devis').addEventListener('click', function (e) {
+  function openQuote(id) {
+    var q = S.quotes[id]; if (!q) return;
+    S.activeId = id; S.editing = null; confirmDel = false;
+    if (q.site) S.site = Object.assign({}, S.site, clone(q.site));
+    save(); renderSite(); renderResult(); renderCount(); renderQuotes();
+  }
+  var vd = document.getElementById('v-devis');
+  vd.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.go) go(b.dataset.go);
-    if (b.dataset.del) { S.cart = S.cart.filter(function (l) { return l.uid !== b.dataset.del; }); save(); renderCount(); renderDoc(); }
+    var Q = activeQuote();
+    if (b.dataset.go) { go(b.dataset.go); return; }
+    if (b.dataset.q) { openQuote(b.dataset.q); return; }
+    if (b.dataset.qf) { qFilter = b.dataset.qf; renderQList(); return; }
+    if (b.id === 'q-new') { S.activeId = null; S.editing = null; S.site = { client: '', zone: S.site.zone, access: 'normal', discount: 0 }; save(); renderSite(); renderCount(); renderQuotes(); go('configurer'); $('c-client').focus(); return; }
+    if (b.id === 'local-share') { shareLocal(); return; }
+    if (!Q) return;
+    if (b.dataset.del) { if (!canWrite()) return; Q.lines = Q.lines.filter(function (l) { return l.uid !== b.dataset.del; }); commitQuote(Q); renderQuotes(); }
     if (b.dataset.edit) {
-      var l = S.cart.filter(function (x) { return x.uid === b.dataset.edit; })[0]; if (!l) return;
+      var l = Q.lines.filter(function (x) { return x.uid === b.dataset.edit; })[0]; if (!l) return;
       S.current = { productId: l.productId, params: clone(l.params), tier: l.tier }; S.editing = l.uid; save();
       renderCatalog(); renderForm(); renderResult(); go('configurer');
     }
-    if (b.id === 'k-wa') copy(quoteText(true), 'Message copié : collez-le dans WhatsApp');
-    if (b.id === 'k-txt') copy(quoteText(false), 'Devis copié');
-    if (b.id === 'k-clear') $('k-confirm').hidden = false;
-    if (b.id === 'k-clear-no') $('k-confirm').hidden = true;
-    if (b.id === 'k-clear-yes') { S.cart = []; S.quoteNo = null; save(); renderCount(); renderDoc(); toast('Devis vidé'); }
+    if (b.dataset.status) {
+      if (!canWrite()) return;
+      Q.status = b.dataset.status; commitQuote(Q); renderQuotes();
+      if (Q.status === 'realise') toast('Saisissez le coût réel pour mesurer l’écart avec l’estimation');
+    }
+    if (b.id === 'k-wa') {
+      copy(quoteText(Q, true), 'Message copié : collez-le dans WhatsApp');
+      if ((Q.status || 'brouillon') === 'brouillon' && STORE.canWrite) { Q.status = 'envoye'; Q.sentAt = new Date().toISOString(); commitQuote(Q); renderQuotes(); }
+    }
+    if (b.id === 'k-txt') copy(quoteText(Q, false), 'Devis copié');
+    if (b.id === 'k-dup') {
+      if (!canWrite()) return;
+      var lines = clone(Q.lines), site = clone(Q.site);
+      var n = newQuote(); n.lines = lines; n.site = site; S.site = clone(site); commitQuote(n); renderSite(); renderQuotes(); toast('Copie créée : ' + n.no);
+    }
+    if (b.id === 'k-del') { confirmDel = true; renderDoc(); }
+    if (b.id === 'k-del-no') { confirmDel = false; renderDoc(); }
+    if (b.id === 'k-del-yes') {
+      confirmDel = false; delete S.quotes[Q.id]; deleteDoc('quotes/' + Q.id); S.activeId = null; save(); renderCount(); renderQuotes(); toast('Devis supprimé');
+    }
   });
-  document.getElementById('v-devis').addEventListener('change', function (e) {
-    var uid = e.target.dataset && e.target.dataset.tierline; if (!uid) return;
-    S.cart.forEach(function (l) { if (l.uid === uid) l.tier = e.target.value; }); save(); renderDoc();
+  vd.addEventListener('change', function (e) {
+    var el = e.target, Q = activeQuote(); if (!Q || !STORE.canWrite) return;
+    if (el.dataset.tierline) { Q.lines.forEach(function (l) { if (l.uid === el.dataset.tierline) { l.tier = el.value; delete l.frozen; } }); commitQuote(Q); renderQuotes(); }
+    if (el.id === 'k-loss') { Q.lossReason = el.value; commitQuote(Q); }
+    if (el.id === 'k-acost' || el.id === 'k-adays') {
+      Q.actual = { cost: +$('k-acost').value || 0, days: +$('k-adays').value || 0 };
+      commitQuote(Q); renderQuotes();
+    }
   });
-  document.addEventListener('click', function (e) { var b = e.target.closest('[data-go]'); if (b && !b.closest('#v-devis')) go(b.dataset.go); });
+  vd.addEventListener('input', function (e) { if (e.target.id === 'q-search') { qSearch = e.target.value; renderQList(); var el = $('q-search'); el.focus(); el.setSelectionRange(qSearch.length, qSearch.length); } });
+
+  /* ---------- Données saisies avant le partage ---------- */
+  function localNotice() {
+    var p = STORE.pendingLocal, np = Object.keys(p.book || {}).length, nq = Object.keys(p.quotes || {}).length;
+    var parts = []; if (np) parts.push(np + ' prix'); if (nq) parts.push(nq + ' devis');
+    return '<div class="notice warn"><span>' + parts.join(' et ') + ' saisis sur ce navigateur ne sont pas encore partagés avec l’équipe.</span>' +
+      (STORE.canWrite ? '<button class="btn sm" type="button" id="local-share">Les partager</button>' : '') + '</div>';
+  }
+  function shareLocal() {
+    var p = STORE.pendingLocal; if (!p || !canWrite()) return;
+    Object.keys(p.book || {}).forEach(function (id) {
+      var it = S.book[id]; if (!it) return;
+      var mine = p.book[id], seen = {};
+      if (mine.hist) it.hist = it.hist.concat(mine.hist).filter(function (x) { var k = x.d + '|' + x.v; if (seen[k]) return false; seen[k] = 1; return true; });
+      ['kg', 'fab', 'max'].forEach(function (k) { if (mine[k] != null) it[k] = mine[k]; });
+      persistPrice(id);
+    });
+    Object.keys(p.quotes || {}).forEach(function (id) { var q = clone(p.quotes[id]); q.id = id; S.quotes[id] = q; commitQuote(q); });
+    STORE.pendingLocal = null;
+    try { localStorage.removeItem(LOCAL_KEY); } catch (e) { /* ignoré */ }
+    toast('Vos prix et devis sont maintenant partagés avec l’équipe'); refresh();
+  }
 
   /* ================= Prix & sources ================= */
   function spark(hist, cls, lines) {
@@ -588,7 +943,7 @@
   }
   function calcVals() { return { lme: +$('lc-lme').value || 0, premium: +$('lc-prem').value || 0, conversion: +$('lc-conv').value || 0, usd: +$('lc-usd').value || 0 }; }
   function renderBook() {
-    renderIndices();
+    renderIndices(); renderJournal();
     var groups = [];
     Object.keys(S.book).forEach(function (k) { var g = S.book[k].group; if (g && groups.indexOf(g) < 0) groups.push(g); });
     var gsel = $('p-group'), gv = gsel.value;
@@ -630,17 +985,36 @@
     if (!shown) h += '<tr><td colspan="8" class="sub" style="padding:18px">Aucun article ne correspond.</td></tr>';
     $('book').innerHTML = h + '</tbody>';
     $('p-count').textContent = shown + ' articles · ' + staleN + ' à confirmer';
+    if (!STORE.canWrite) document.querySelectorAll('#v-prix .upd input, #v-prix .upd button, #v-prix .calc input, #lc-save').forEach(function (el) { el.disabled = true; });
   }
   var openHist = {};
-  function addPrice(id, v, src) {
-    var it = S.book[id];
-    it.hist = it.hist.filter(function (p) { return p.d !== TODAY; }).concat([{ d: TODAY, v: v, src: src || 'manuel' }]);
+  /* Un relevé par jour et par article ; il garde qui l'a saisi et quand. */
+  function addPrice(id, v) {
+    var it = S.book[id], st = stamp();
+    it.hist = it.hist.filter(function (p) { return p.d !== TODAY; }).concat([{ d: TODAY, v: v, src: 'manuel', by: st.by, at: st.at }]);
+    persistPrice(id);
   }
   function saveNewPrice(id) {
+    if (!canWrite()) return;
     var inp = $('u-' + id), v = parseFloat(String(inp.value).replace(',', '.'));
     if (!(v > 0)) { toast('Saisissez un prix supérieur à 0'); inp.focus(); return; }
     addPrice(id, v);
-    save(); renderBook(); renderResult(); toast(S.book[id].name + ' : ' + nf2.format(v) + ' enregistré');
+    save(); renderBook(); renderResult(); toast(S.book[id].name + ' : ' + nf2.format(v) + (shared() ? ' enregistré pour toute l’équipe' : ' enregistré'));
+  }
+  function renderJournal() {
+    var rows = [];
+    Object.keys(S.book).forEach(function (id) { (S.book[id].hist || []).forEach(function (p) { if (p.at) rows.push({ id: id, p: p }); }); });
+    rows.sort(function (a, b) { return a.p.at < b.p.at ? 1 : -1; });
+    rows = rows.slice(0, 10);
+    var h = '<div class="row" style="justify-content:space-between"><h3>Dernières mises à jour</h3><span class="sub">' + (shared() ? 'visibles par toute l’équipe' : 'mode local : ce navigateur seulement') + '</span></div>';
+    if (!rows.length) h += '<p class="sub" style="margin:0">Aucun prix saisi pour l’instant. Commencez par le cours de l’aluminium et l’EUR/MAD ci-dessus, puis les articles marqués « à confirmer ».</p>';
+    else h += '<div>' + rows.map(function (r) {
+      var it = S.book[r.id];
+      return '<div class="jrow"><span class="num sub">' + frDate(r.p.at.slice(0, 10)).slice(0, 5) + '</span><span><b style="font-weight:600">' + esc(it.name) + '</b> · <span class="num">' + nf2.format(r.p.v) + '</span> ' + esc(it.type === 'eur' ? '€/' + it.unit : it.type === 'index' ? it.unit : 'MAD/' + it.unit) + '</span><span class="sub">' + byLabel(r.p.by) + '</span></div>';
+    }).join('') + '</div>';
+    $('journal').innerHTML = h; fillNames($('journal'));
+    wantNames(rows.map(function (r) { return r.p.by; }));
+    $('p-banner').innerHTML = shared() && STORE.pendingLocal && Object.keys(STORE.pendingLocal.book || {}).length ? localNotice() : '';
   }
   var vp = document.getElementById('v-prix');
   vp.addEventListener('click', function (e) {
@@ -649,15 +1023,18 @@
     if (b.dataset.hist) { openHist[b.dataset.hist] = !openHist[b.dataset.hist]; renderBook(); }
     if (b.dataset.delh) {
       var parts = b.dataset.delh.split('|'), it = S.book[parts[0]];
+      if (!canWrite()) return;
       if (it.hist.length <= 1) { toast('Un article garde au moins un prix'); return; }
       var done = false;
       it.hist = it.hist.filter(function (p) { if (!done && p.d === parts[1] && String(p.v) === parts[2]) { done = true; return false; } return true; });
-      save(); renderBook(); renderResult();
+      persistPrice(parts[0]); save(); renderBook(); renderResult();
     }
+    if (b.id === 'local-share') shareLocal();
     if (b.id === 'lc-save') {
+      if (!canWrite()) return;
       var c = calcVals(); if (!(c.lme > 0 && c.usd > 0)) { toast('Renseignez la cote LME et le cours USD/MAD'); return; }
       S.aluCalc = { lme: c.lme, premium: c.premium, conversion: c.conversion };
-      addPrice('usd_mad', c.usd); addPrice('alu_kg', Math.round(E.aluFromLme(c.lme, c.premium, c.conversion, c.usd) * 100) / 100, 'manuel');
+      addPrice('usd_mad', c.usd); addPrice('alu_kg', Math.round(E.aluFromLme(c.lme, c.premium, c.conversion, c.usd) * 100) / 100);
       save(); renderBook(); renderResult(); toast('Indice alu mis à jour depuis la cote LME');
     }
   });
@@ -681,6 +1058,14 @@
     's-lodge': [function () { return S.settings.lodgingPerNight; }, function (v) { S.settings.lodgingPerNight = Math.max(0, v); }]
   };
   function renderSettings() {
+    var locked = shared() && !(STORE.canAdmin && STORE.canWrite);
+    $('s-note').innerHTML = !shared() ? '<div class="notice"><span>Mode local : les réglages, prix et devis sont enregistrés dans ce navigateur seulement. Ouverte depuis claude.ai, la page les partage avec l’équipe.</span></div>'
+      : locked ? '<div class="notice warn"><span>Vous voyez les réglages de l’équipe. Seuls les éditeurs de la page peuvent les modifier.</span></div>'
+      : '<div class="notice"><span>Les réglages s’appliquent aux devis de toute l’équipe dès leur modification.</span></div>';
+    setTimeout(function () {
+      document.querySelectorAll('#v-reglages .cols > .card:not(:last-child) input, #v-reglages .cols > .card:not(:last-child) button, #s-zones input, #s-cond').forEach(function (el) { el.disabled = locked; });
+      $('x-import').disabled = locked; $('x-reset').disabled = locked;
+    });
     document.querySelectorAll('#s-base button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === S.settings.policy.base)); });
     Object.keys(SF).forEach(function (id) { $(id).value = SF[id][0](); });
     $('s-cond').value = S.settings.conditions;
@@ -701,7 +1086,8 @@
   var vr = document.getElementById('v-reglages');
   vr.addEventListener('click', function (e) {
     var b = e.target.closest('#s-base button'); if (!b) return;
-    S.settings.policy.base = b.dataset.v; S.current.tier = null; save(); renderSettings(); renderResult();
+    if (!canAdmin()) return;
+    S.settings.policy.base = b.dataset.v; S.current.tier = null; save(); persistSettings(); renderSettings(); renderResult();
   });
   vr.addEventListener('input', function (e) {
     var el = e.target, v = parseFloat(el.value);
@@ -714,10 +1100,14 @@
       if (el.dataset.k === 'lodging') z.lodging = el.checked; else if (el.dataset.k === 'cost') { if (isNaN(v)) return; z.cost = v; } else z.name = el.value;
       renderSite();
     } else return;
-    save(); renderResult();
+    save(); persistSettings(); renderResult();
   });
+  function canAdmin() {
+    if (!shared() || (STORE.canAdmin && STORE.canWrite)) return true;
+    toast('Seuls les éditeurs de la page modifient les réglages de l’équipe.'); return false;
+  }
   $('x-export').addEventListener('click', function () {
-    var data = JSON.stringify({ app: 'storeluxe-chiffrage', version: 2, saved: TODAY, settings: S.settings, book: S.book, aluCalc: S.aluCalc }, null, 1);
+    var data = JSON.stringify({ app: 'storeluxe-chiffrage', version: 3, saved: TODAY, settings: S.settings, book: overridesOf(S.book), aluCalc: S.aluCalc }, null, 1);
     $('x-text').value = data; copy(data, 'Sauvegarde copiée');
   });
   $('x-file').addEventListener('change', function () {
@@ -728,16 +1118,25 @@
     try {
       var data = JSON.parse($('x-text').value);
       if (!data.book && !data.settings) throw new Error('format');
-      merge(S, { settings: data.settings, book: data.book, aluCalc: data.aluCalc }); save(); renderAll(); toast('Sauvegarde importée');
+      if (!canAdmin()) return;
+      var over = overridesOf(buildBook(data.book || {}));
+      if (data.settings) { S.settings = mergeSettings(data.settings); persistSettings(); }
+      var book = buildBook(Object.assign(overridesOf(S.book), over));
+      S.book = book; Object.keys(over).forEach(persistPrice);
+      if (data.aluCalc) Object.assign(S.aluCalc, data.aluCalc);
+      save(); renderAll(); toast(shared() ? 'Sauvegarde importée pour toute l’équipe' : 'Sauvegarde importée');
     } catch (e) { toast('Texte illisible : collez une sauvegarde complète (JSON)'); }
   });
-  $('x-reset').addEventListener('click', function () { $('x-confirm').hidden = false; });
+  $('x-reset').addEventListener('click', function () { if (!canAdmin()) return; $('x-confirm').hidden = false; });
   $('x-reset-no').addEventListener('click', function () { $('x-confirm').hidden = true; });
   $('x-reset-yes').addEventListener('click', function () {
-    var keep = { site: S.site, cart: S.cart, quoteNo: S.quoteNo, current: S.current };
-    S = freshState(); Object.assign(S, keep); save(); $('x-confirm').hidden = true; renderAll(); toast('Prix de l’étude restaurés');
+    Object.keys(overridesOf(S.book)).forEach(function (id) { deleteDoc('prices/' + id); });
+    S.book = clone(C.BOOK); S.settings = clone(C.SETTINGS);
+    if (shared()) deleteDoc('config/settings');
+    save(); $('x-confirm').hidden = true; renderAll(); toast(shared() ? 'Prix et réglages de l’étude restaurés pour toute l’équipe' : 'Prix de l’étude restaurés');
   });
 
   function renderAll() { renderSite(); renderCatalog(); renderForm(); renderResult(); renderCount(); route(); }
   renderAll();
+  connect();
 })();

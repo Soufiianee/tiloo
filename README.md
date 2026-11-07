@@ -91,6 +91,18 @@ Every quote shows three prices, chosen from the study (`docs/etude-prix.md`):
 
 The level can be chosen per quote line. The aluminium index can be recalculated from the LME price: (LME + premium + extrusion & coating) × USD/MAD.
 
+## 2c. Team mode (since v3)
+
+Opened from claude.ai, the page uses a database shared by everyone the artifact is shared with:
+
+- **Prices**: one shared price list. Each new price records who entered it and when ("Dernières mises à jour" in *Prix & sources*).
+- **Settings** (margins, policy, zones, conditions): shared, editable by the page's editors only.
+- **Quotes**: every quote is saved and visible to the team, with statuses draft → sent → accepted / lost (with reason) → completed.
+- **Locked prices**: once a quote is sent, its client prices no longer change. If suppliers have raised prices since, the quote shows the real margin.
+- **Job review**: on a completed quote, enter the real cost and real installation days. The list shows the average gap between estimate and actual, plus the signing rate.
+
+Without claude.ai (for example `app/index.html` opened locally), the tool runs in **local mode**: same features, data stored in the browser. Prices and quotes entered locally can then be shared with the team in one click.
+
 ## 3. Using the tool
 
 - **Configurer** (configure): city, access, client → product → dimensions/options. A dimensioned drawing (top view, profile or front view) updates live. The price excl. and incl. VAT shows instantly, with the bar for cost today / ceiling cushion / margin, technical alerts, and the internal cost breakdown. "Ajouter au devis" adds the line to the quote. A quote can combine products (pergola + ZIP + awning). "Copier pour WhatsApp" copies the message to send.
@@ -102,6 +114,5 @@ The level can be chosen per quote line. The aluminium index can be recalculated 
 ## 4. Limits of this prototype and next steps
 
 - **Starting prices come from the study (public prices and market ranges), not from your suppliers.** Before any real quote, enter your purchase prices (the two indices first, then the items marked "à vérifier").
-- Data is stored in **each user's browser**. Next step: a shared price book, so that a price entered by one person applies to the whole team.
 - The takeoff rules (posts every 4 m, slats in 6 m modules, labour days…) are reasonable defaults. They should be adjusted on 5 or 6 real past jobs, comparing actual cost against what the tool computes.
 - Possible later additions: PDF quote with logo, a simplified public configurator for the site (showing a range "from X to Y MAD"), and history of sent quotes.

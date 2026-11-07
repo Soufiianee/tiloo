@@ -230,7 +230,7 @@ td small { color: var(--muted); display: block; font-size: 12px; }
 .up { color: var(--bad); }
 
 /* ---------- Devis ---------- */
-.quote-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+.quote-grid { display: grid; grid-template-columns: 290px minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
 .doc { padding: clamp(18px, 4vw, 44px); display: grid; gap: 22px; }
 .doc-head { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; align-items: flex-start; padding-bottom: 18px; border-bottom: 2px solid var(--ink); }
 .doc-head .brand b { font-size: 22px; }
@@ -294,6 +294,44 @@ td small { color: var(--muted); display: block; font-size: 12px; }
 .fact span { font-size: 12px; color: var(--muted); }
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start; }
 
+/* ---------- Synchronisation ---------- */
+.sync { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); padding: 4px 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); white-space: nowrap; }
+.sync i { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+.sync.ok i { background: var(--good); }
+.sync.warn i { background: var(--warn); }
+.sync.local i { background: var(--faint); }
+
+/* ---------- Liste des devis ---------- */
+.qlist { padding: 12px; display: grid; gap: 10px; align-content: start; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); max-height: calc(100vh - 90px); overflow-y: auto; }
+.qstats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.qstats div { background: var(--surface-2); border-radius: var(--r); padding: 8px; display: grid; gap: 1px; }
+.qstats span { font-size: 11px; color: var(--muted); }
+.qstats b { font-family: var(--f-display); font-stretch: 88%; font-weight: 800; font-size: 19px; font-variant-numeric: tabular-nums; }
+.qfilter { display: flex; gap: 4px; flex-wrap: wrap; }
+.qfilter button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 3px 10px; font-size: 12px; color: var(--muted); }
+.qfilter button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.qitem { display: grid; gap: 3px; text-align: left; border: 1px solid transparent; background: none; border-radius: var(--r); padding: 9px 10px; width: 100%; color: var(--ink); }
+.qitem:hover { background: var(--surface-2); }
+.qitem[aria-current="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.qitem .top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.qitem b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qitem small { color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; gap: 8px; }
+.st { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; white-space: nowrap; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+.st-envoye { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.st-accepte, .st-realise { background: var(--good-soft); color: var(--good); border-color: transparent; }
+.st-perdu { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+.status-seg { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 6px; }
+.status-seg button { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 7px 6px; font-size: 13px; }
+.status-seg button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.who { display: inline-flex; align-items: center; gap: 6px; }
+.who img { width: 18px; height: 18px; border-radius: 50%; }
+.jrow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.jrow:last-child { border-bottom: 0; }
+.notice { padding: 12px 14px; border-radius: var(--r); background: var(--accent-soft); color: var(--ink); display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.notice.warn { background: var(--warn-soft); }
+fieldset[disabled] { opacity: .6; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+
 /* ---------- Barre mobile & toast ---------- */
 .mbar { display: none; }
 .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: var(--r); font-weight: 500; z-index: 30; box-shadow: var(--shadow); max-width: calc(100% - 32px); }
@@ -305,6 +343,8 @@ td small { color: var(--muted); display: block; font-size: 12px; }
   .rail button { flex: none; grid-template-columns: 24px auto; white-space: nowrap; }
   .rail button svg { width: 24px; height: 24px; }
   .study { grid-template-columns: minmax(0, 1fr); }
+  .quote-grid { grid-template-columns: minmax(0, 1fr) 320px; }
+  .qlist { grid-column: 1 / -1; position: static; max-height: none; }
   .toc { display: none; }
 }
 @media (max-width: 900px) {
@@ -317,6 +357,7 @@ td small { color: var(--muted); display: block; font-size: 12px; }
   .mbar b { font-family: var(--f-display); font-stretch: 88%; font-weight: 800; font-size: 22px; }
   .calc { grid-template-columns: 1fr 1fr; }
 }
+@media (max-width: 680px) { .sync span { display: none; } }
 @media (max-width: 520px) {
   .site { grid-template-columns: 1fr; }
   .top-in { gap: 10px; flex-wrap: wrap; }
@@ -340,6 +381,7 @@ td small { color: var(--muted); display: block; font-size: 12px; }
       <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="5" width="28" height="4" rx="1" style="fill:var(--ink)"></rect><path d="M4 9 L28 9 L24 19 L8 19 Z" style="fill:var(--accent)"></path><path d="M8 19 L24 19" style="stroke:var(--ink);stroke-width:2"></path><path d="M10 9 L8 19 M16 9 L16 19 M22 9 L24 19" style="stroke:var(--surface);stroke-width:1.2;opacity:.7"></path><rect x="6" y="19" width="2" height="9" style="fill:var(--ink)"></rect><rect x="24" y="19" width="2" height="9" style="fill:var(--ink)"></rect></svg>
       <div><b>Store Luxe</b><span>Chiffrage</span></div>
     </div>
+    <span class="sync" id="sync" role="status"><i></i><span>Chargement…</span></span>
     <nav class="tabs" aria-label="Sections">
       <a href="#configurer" data-tab="configurer">Configurer</a>
       <a href="#devis" data-tab="devis">Devis <span class="badge" id="cart-count" hidden>0</span></a>
@@ -376,6 +418,7 @@ td small { color: var(--muted); display: block; font-size: 12px; }
   <!-- ================= DEVIS ================= -->
   <section class="view" id="v-devis" hidden>
     <div class="quote-grid">
+      <aside class="card qlist" id="qlist" aria-label="Devis de l’équipe"></aside>
       <article class="card doc" id="doc"></article>
       <aside class="stack" id="doc-side"></aside>
     </div>
@@ -387,7 +430,9 @@ td small { color: var(--muted); display: block; font-size: 12px; }
       <h2>Prix &amp; sources</h2>
       <p class="lede">Chaque article garde l’historique de ses prix. Le devis utilise le prix du jour (plancher), le plus haut des 12 derniers mois (conseillé) ou le plus haut jamais relevé (prudent). Saisissez un nouveau prix dès qu’un fournisseur l’annonce.</p>
     </div>
+    <div id="p-banner"></div>
     <div class="idx" id="indices"></div>
+    <div class="card pad stack" id="journal"></div>
     <div class="card pad stack">
       <div class="tools">
         <input class="inp" id="p-search" type="search" placeholder="Rechercher un article ou un fournisseur" autocomplete="off">
@@ -528,7 +573,8 @@ Devis        = Σ lignes + déplacement (+ nuitées hors zone) − remise ; TTC 
 
   <!-- ================= RÉGLAGES ================= -->
   <section class="view" id="v-reglages" hidden>
-    <div><h2>Réglages</h2><p class="lede">Politique de prix, marges, zones et conditions. Tout est enregistré dans ce navigateur ; utilisez la sauvegarde pour le partager avec l’équipe.</p></div>
+    <div><h2>Réglages</h2><p class="lede">Politique de prix, marges, zones et conditions, communs à toute l’équipe.</p></div>
+    <div id="s-note"></div>
     <div class="cols">
       <div class="card pad stack">
         <h3>Politique de prix</h3>
@@ -557,7 +603,7 @@ Devis        = Σ lignes + déplacement (+ nuitées hors zone) − remise ; TTC 
         <div class="tbl-wrap"><table id="s-zones"></table></div>
         <h3>Conditions imprimées sur le devis</h3>
         <textarea class="inp" id="s-cond" aria-label="Conditions du devis"></textarea>
-        <h3>Sauvegarde</h3>
+        <h3>Sauvegarde et transfert</h3>
         <div class="row"><button class="btn sm" id="x-export" type="button">Copier la sauvegarde</button><label class="btn sm" for="x-file">Ouvrir un fichier…</label><input type="file" id="x-file" accept="application/json,.json" hidden></div>
         <textarea class="inp code" id="x-text" placeholder="Collez ici une sauvegarde, puis Importer"></textarea>
         <div class="row"><button class="btn sm" id="x-import" type="button">Importer</button><button class="btn sm danger" id="x-reset" type="button">Revenir aux prix de l’étude</button></div>
