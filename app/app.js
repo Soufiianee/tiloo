@@ -615,10 +615,11 @@
 
 
   /* ================= Onglets ================= */
-  var TABS = ['configurer', 'devis', 'prix', 'etude', 'reglages'];
+  var TABS = ['configurer', 'devis', 'prix', 'reglages'];
   function route() {
     var h = (location.hash || '#configurer').slice(1), t = h;
-    if (h.indexOf('e-') === 0) t = 'etude';
+    // l'étude de marché est repliée en bas des réglages
+    if (h === 'etude' || h.indexOf('e-') === 0) { t = 'reglages'; $('study-d').open = true; }
     if (TABS.indexOf(t) < 0) t = 'configurer';
     TABS.forEach(function (k) { $('v-' + k).hidden = k !== t; });
     document.querySelectorAll('.tabs a').forEach(function (a) { if (a.dataset.tab === t) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
@@ -626,7 +627,7 @@
     if (t === 'devis') renderQuotes();
     if (t === 'prix') { renderBook(); renderInvoice(); }
     if (t === 'reglages') renderSettings();
-    if (h.indexOf('e-') === 0) { var el = $(h); if (el) el.scrollIntoView(); } else window.scrollTo(0, 0);
+    if (h.indexOf('e-') === 0 || h === 'etude') { var el = h === 'etude' ? $('study-d') : $(h); if (el) setTimeout(function () { el.scrollIntoView(); }); } else window.scrollTo(0, 0);
   }
   window.addEventListener('hashchange', route);
   function go(tab) { if (location.hash === '#' + tab) route(); else location.hash = tab; }
