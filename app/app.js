@@ -628,7 +628,7 @@
     document.querySelectorAll('.tabs a').forEach(function (a) { if (a.dataset.tab === t) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     $('mbar').hidden = t !== 'configurer';
     if (t === 'devis') renderQuotes();
-    if (t === 'prix') { renderBook(); renderInvoice(); }
+    if (t === 'prix') { renderPP(); renderBook(); renderInvoice(); }
     if (t === 'reglages') renderSettings();
     if (h.indexOf('e-') === 0 || h === 'etude') { var el = h === 'etude' ? $('study-d') : $(h); if (el) setTimeout(function () { el.scrollIntoView(); }); } else window.scrollTo(0, 0);
   }
@@ -786,7 +786,11 @@
   function renderPareto(r, t) {
     var prod = byId[S.current.productId], sh = shares(r, t, prod), box = $('pareto'), nop = r.unpriced && r.unpriced.length;
     document.querySelectorAll('#form [data-share]').forEach(function (el) {
-      el.hidden = !!nop; if (nop) return;
+      if (nop) {
+        var miss = r.lines.filter(function (l) { return l.comp === el.dataset.share && l.unpriced; }).map(function (l) { return l.item; }).filter(function (x, i, a) { return a.indexOf(x) === i; }).length;
+        el.textContent = miss ? miss + ' prix à saisir' : 'prix renseignés'; el.className = 'pill ' + (miss ? 'warn' : 'good'); return;
+      }
+      el.className = 'pill';
       var row = sh.rows.filter(function (x) { return x.comp === el.dataset.share; })[0];
       el.textContent = row ? Math.round(row.share * 100) + ' % du coût' : '';
     });
@@ -916,6 +920,7 @@
     if (al.length) h += '<div class="alerts">' + al.join('') + '</div>';
     if (S.editing) h += '<div class="row"><button class="btn pri" type="button" id="r-update" style="flex:1">Mettre à jour la ligne</button><button class="btn" type="button" id="r-cancel">Annuler</button></div>';
     else h += '<div class="row"><button class="btn pri" type="button" id="r-add" style="flex:1">' + (activeQuote() && !CLOSED[activeQuote().status] ? 'Ajouter au devis ' + esc(activeQuote().no.slice(-3)) : 'Créer un devis') + '</button><button class="btn" type="button" id="r-vers" title="Ajouter trois versions Essentiel, Confort et Premium">3 versions</button><button class="btn ghost" type="button" id="r-copy">Copier</button></div>';
+    if (prod.priceGroup) h += '<button class="btn ghost wide" type="button" data-goprix="config">Prix des articles du ' + esc(prod.short.toLowerCase()) + ' (' + ppDone(prod) + ' / ' + ppItems(prod).length + ' renseignés) →</button>';
     h += '</div>';
     // détail interne
     var cats = { matiere: 'Matière (avec chutes)', equipement: 'Équipements', pose: 'Pose (coef. accès)' };
@@ -933,36 +938,103 @@
     $('mbar-p').textContent = nf0.format(sale * tva()) + ' MAD';
     $('mbar-add').textContent = S.editing ? 'Mettre à jour' : 'Ajouter au devis';
   }
+  /* ---------- Prix d'un produit en configuration ---------- */
+  function ppItems(prod) { return prod && prod.priceGroup ? Object.keys(S.book).filter(function (id) { return S.book[id].group === prod.priceGroup; }) : []; }
+  function ppDone(prod) { return ppItems(prod).filter(function (id) { return !E.unitCost(S.book[id], S.book, S.settings, TODAY).unpriced; }).length; }
+  function progHTML(prod) {
+    var n = ppItems(prod).length, d = ppDone(prod);
+    return '<div class="prog"><div class="sub"><span>Prix du ' + esc(prod.short.toLowerCase()) + ' renseignés</span><b class="num">' + d + ' / ' + n + '</b></div><div class="prog-bar"><i style="width:' + (n ? d / n * 100 : 0).toFixed(1) + '%"></i></div></div>';
+  }
   /* Produit en configuration : quantités calculées, prix encore inconnus. */
   function renderUnpriced(prod, r) {
     renderPlan(r); renderPareto(r, curTier()); renderPresets(curTier()); updateDeltas(r, curTier());
     var all = [], miss = r.unpriced.length;
     r.lines.forEach(function (l) { if (all.indexOf(l.item) < 0) all.push(l.item); });
     var h = '<div class="price"><div><h3>' + esc(r.productName) + '</h3><div class="sub">' + esc(r.summary) + '</div></div>';
-    h += '<div class="todo-price"><b>Prix à renseigner</b><span>' + miss + ' article' + (miss > 1 ? 's' : '') + ' sur ' + all.length + ' sans prix pour cette configuration. Les quantités sont calculées ; le prix s’affichera dès que tous les prix seront saisis.</span></div>';
-    h += '<div class="row"><button class="btn pri" type="button" id="r-fill" style="flex:1">Renseigner les prix</button></div>';
+    h += '<div class="todo-price"><b>Prix à renseigner</b><span>Il manque <b>' + miss + ' prix sur ' + all.length + '</b> pour chiffrer cette configuration. Saisissez-les ci-dessous ou dans la page des prix : le prix de vente s’affiche dès que tout est rempli.</span></div>';
+    if (prod.priceGroup) h += progHTML(prod);
+    h += '<div class="row"><button class="btn pri" type="button" data-goprix="config" style="flex:1">Saisir les prix du ' + esc(prod.short.toLowerCase()) + '</button></div>';
     var al = r.warnings.map(function (w) { return '<div class="alert">' + esc(w) + '</div>'; });
     if (al.length) h += '<div class="alerts">' + al.join('') + '</div>';
-    h += '</div><details class="det" open><summary>Quantités de cette configuration</summary><div class="tbl-wrap"><table><thead><tr><th>Article</th><th class="r">Qté</th><th class="r">PU</th></tr></thead><tbody>';
+    h += '</div><details class="det" open><summary>Quantités et prix de cette configuration</summary><div class="tbl-wrap"><table><thead><tr><th>Article</th><th class="r">Qté</th><th class="r">Prix HT</th></tr></thead><tbody>';
+    var seen = {};
     r.lines.forEach(function (l) {
+      var input = l.unpriced && !seen[l.item];
+      seen[l.item] = true;
       h += '<tr><td>' + esc(l.name) + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</td><td class="r num">' + nf2.format(l.qty) + ' ' + esc(l.unit) + '</td><td class="r">' +
-        (l.unpriced ? '<span class="pill warn">à renseigner</span>' : '<span class="num">' + nf0.format(l['pu_' + curTier()]) + '</span>') + '</td></tr>';
+        (input ? '<div class="qrow-in"><input class="inp num" type="number" inputmode="decimal" step="0.01" min="0" id="pq-' + l.item + '" placeholder="MAD/' + esc(l.unit) + '" aria-label="Prix ' + esc(l.name) + ' en MAD HT par ' + esc(l.unit) + '"><button class="btn sm pri" type="button" data-ppsave="' + l.item + '" data-src="pq-">OK</button></div>'
+          : l.unpriced ? '<span class="pill warn">à renseigner</span>' : '<span class="num">' + nf0.format(l['pu_' + curTier()]) + '</span>') + '</td></tr>';
     });
     h += '</tbody></table></div></details>';
     $('result').innerHTML = h;
     $('mbar-l').textContent = 'Prix à renseigner';
-    $('mbar-p').textContent = miss + ' article' + (miss > 1 ? 's' : '');
-    $('mbar-add').textContent = 'Renseigner';
+    $('mbar-p').textContent = miss + ' prix manquant' + (miss > 1 ? 's' : '');
+    $('mbar-add').textContent = 'Saisir les prix';
   }
-  function goFill(group) {
+  var ppFilter = 'config';
+  function goPrices(filter) {
+    ppFilter = filter || 'config';
     go('prix');
-    setTimeout(function () {
-      $('p-search').value = ''; $('p-stale').checked = true; renderBook();
-      if (group) { $('p-group').value = group; renderBook(); }
-    });
+    setTimeout(function () { renderPP(); var el = $('pp'); if (el && !el.hidden) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30);
   }
+  function renderPP() {
+    var box = $('pp'), prod = byId[S.current.productId];
+    if (!prod || !prod.priceGroup) { box.hidden = true; return; }
+    box.hidden = false;
+    var ids = ppItems(prod), r = price(prod.id, S.current.params), used = {};
+    r.lines.forEach(function (l) { used[l.item] = true; });
+    var info = {};
+    ids.forEach(function (id) { info[id] = E.unitCost(S.book[id], S.book, S.settings, TODAY); });
+    var todo = ids.filter(function (id) { return info[id].unpriced; }).length, cfgTodo = ids.filter(function (id) { return used[id] && info[id].unpriced; }).length;
+    var h = '<div class="pp-head"><div class="pp-top"><div><h3>Prix du ' + esc(prod.short.toLowerCase()) + '</h3><p>Prix d’achat HT de chaque article, en MAD. Les articles marqués d’un trait bleu servent à la configuration en cours (' + esc(r.summary) + ').</p></div>' +
+      '<button class="btn" type="button" id="pp-back">← Retour au ' + esc(prod.short.toLowerCase()) + '</button></div>' + progHTML(prod) +
+      '<div class="pp-filter" role="group" aria-label="Articles affichés">' +
+      [['config', 'Configuration en cours', cfgTodo], ['todo', 'À renseigner', todo], ['all', 'Tous les articles', 0]].map(function (f) {
+        return '<button type="button" data-ppf="' + f[0] + '" aria-pressed="' + (ppFilter === f[0]) + '">' + f[1] + (f[2] ? ' · ' + f[2] : '') + '</button>';
+      }).join('') + '</div></div>';
+    var subs = [], bySub = {};
+    ids.forEach(function (id) {
+      var it = S.book[id], u = info[id];
+      if (ppFilter === 'config' && !used[id]) return;
+      if (ppFilter === 'todo' && !u.unpriced) return;
+      var sb = it.sub || 'Articles'; if (!bySub[sb]) { bySub[sb] = []; subs.push(sb); }
+      bySub[sb].push('<div class="pp-row' + (used[id] ? ' used' : '') + (ppJust === id ? ' just' : '') + '"><div><b>' + esc(it.name) + '</b><small>par ' + esc(it.unit) + (used[id] ? ' · dans la configuration' : '') + '</small></div>' +
+        '<div class="cur">' + (u.unpriced ? '<span class="pill warn">à renseigner</span>' : '<b class="num">' + nf2.format(u.now) + '</b> <small>MAD</small><br><small>' + frDate(u.lastDate) + '</small>') + '</div>' +
+        '<div class="upd"><input class="inp num" type="number" inputmode="decimal" step="0.01" min="0" id="pp-' + id + '" placeholder="' + (u.unpriced ? 'MAD/' + esc(it.unit) : 'Nouveau') + '" aria-label="Prix ' + esc(it.name) + ' en MAD HT"><button class="btn sm' + (u.unpriced ? ' pri' : '') + '" type="button" data-ppsave="' + id + '" data-src="pp-">' + (u.unpriced ? 'Enregistrer' : 'Mettre à jour') + '</button></div></div>');
+    });
+    subs.forEach(function (sb) { h += '<div class="pp-grp"><span>' + esc(sb) + '</span><span>' + bySub[sb].length + '</span></div>' + bySub[sb].join(''); });
+    if (!subs.length) h += '<div class="pp-empty">' + (ppFilter === 'config' ? 'Tous les prix de la configuration en cours sont renseignés. ' : ppFilter === 'todo' ? 'Tous les prix sont renseignés. ' : '') + '<button class="btn sm" type="button" data-ppf="all">Voir tous les articles</button></div>';
+    box.innerHTML = h;
+    ppJust = null;
+    if (!STORE.canWrite) box.querySelectorAll('.upd input, .upd button').forEach(function (el) { el.disabled = true; });
+  }
+  var ppJust = null;
+  function ppSave(id, src) {
+    if (!canWrite()) return;
+    var inp = $(src + id), v = parseFloat(String(inp.value).replace(',', '.'));
+    if (!(v > 0)) { toast('Saisissez un prix supérieur à 0'); inp.focus(); return; }
+    var prod = byId[S.current.productId], wasDone = last && last.unpriced && !last.unpriced.length;
+    addPrice(id, v, 'MAD'); save(); ppJust = id;
+    renderResult(); renderCount();
+    if (location.hash === '#prix') { renderPP(); renderBook(); }
+    var r = last, msg = S.book[id].name + ' : ' + nf2.format(v) + ' MAD enregistré';
+    if (r && !r.unpriced.length && !wasDone) msg = 'Configuration complète : le prix du ' + prod.short.toLowerCase() + ' est calculé';
+    else if (r && r.unpriced.length) msg += ' · encore ' + r.unpriced.length + ' pour cette configuration';
+    toast(msg);
+    var next = src === 'pq-' ? document.querySelector('#result .qrow-in input') : document.querySelector('#pp .upd input');
+    if (next && src === 'pq-') next.focus();
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-ppsave]'); if (b) { ppSave(b.dataset.ppsave, b.dataset.src); return; }
+    var f = e.target.closest('[data-ppf]'); if (f) { ppFilter = f.dataset.ppf; renderPP(); return; }
+    var g = e.target.closest('[data-goprix]'); if (g) { goPrices(g.dataset.goprix); return; }
+    if (e.target.id === 'pp-back') { go('configurer'); setTimeout(function () { $('result').scrollIntoView({ block: 'start' }); }, 30); }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' || !e.target.id) return;
+    var m = /^(pp-|pq-)(.+)$/.exec(e.target.id); if (m && S.book[m[2]]) { e.preventDefault(); ppSave(m[2], m[1]); }
+  });
   $('result').addEventListener('click', function (e) {
-    if (e.target.id === 'r-fill') { goFill(last && last.lines[0] && last.lines[0].group); return; }
     var tb = e.target.closest('[data-tier]');
     if (tb) { S.current.tier = tb.dataset.tier; save(); renderResult(); return; }
     if (e.target.id === 'r-add' || e.target.id === 'r-update') addOrUpdate();
@@ -1071,7 +1143,7 @@
   });
 
   function addOrUpdate() {
-    if (last && last.unpriced && last.unpriced.length) { goFill(last.lines[0] && last.lines[0].group); return; }
+    if (last && last.unpriced && last.unpriced.length) { goPrices("config"); return; }
     if (!canWrite()) return;
     var entry = { productId: S.current.productId, params: clone(E.fullParams(byId[S.current.productId], S.current.params)), tier: curTier() };
     var q = activeQuote();

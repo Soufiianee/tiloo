@@ -146,6 +146,34 @@ textarea.code { font-family: var(--f-mono); font-size: 12px; min-height: 120px; 
 .rail .unarch, .rail .arch-act { display: inline-flex; padding: 0 10px; height: 28px; font-size: 12px; white-space: nowrap; }
 .rail .arch-act { justify-self: start; margin: 2px 0 6px 50px; color: var(--muted); }
 .rail button .pill { font-size: 10px; padding: 0 6px; vertical-align: 1px; }
+/* Prix d'un produit : saisie guidée */
+.pp { overflow: hidden; scroll-margin-top: 84px; }
+.pp-head { padding: 18px 20px 14px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
+.pp-top { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.pp-top h3 { font-size: 18px; text-transform: none; letter-spacing: 0; color: var(--ink); margin: 0; }
+.pp-top p { margin: 4px 0 0; font-size: 13px; color: var(--muted); max-width: 62ch; }
+.prog { display: grid; gap: 6px; }
+.prog .sub { display: flex; justify-content: space-between; font-size: 12px; }
+.prog-bar { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.prog-bar i { display: block; height: 100%; background: var(--good); border-radius: 4px; transition: width .3s; }
+.pp-filter { display: flex; gap: 6px; flex-wrap: wrap; }
+.pp-filter button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 13px; color: var(--ink); }
+.pp-filter button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.pp-grp { padding: 10px 20px 4px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--surface-2); display: flex; justify-content: space-between; }
+.pp-row { display: grid; grid-template-columns: minmax(0, 1fr) 130px 210px; gap: 12px; align-items: center; padding: 10px 20px; border-top: 1px solid var(--line); }
+.pp-row.used { box-shadow: inset 3px 0 0 var(--accent); }
+.pp-row b { font-weight: 600; font-size: 14px; display: block; }
+.pp-row small { color: var(--muted); font-size: 12px; }
+.pp-row .cur { text-align: right; font-size: 14px; }
+.pp-row .cur b { display: inline; }
+.pp-row .upd { display: flex; gap: 6px; }
+.pp-row .upd input { flex: 1; min-width: 0; height: 34px; }
+.pp-row.just { animation: ppok 1.2s ease; }
+@keyframes ppok { from { background: var(--good-soft); } to { background: transparent; } }
+.pp-empty { padding: 22px 20px; color: var(--muted); font-size: 14px; }
+.qrow-in { display: flex; gap: 4px; justify-content: flex-end; }
+.qrow-in input { width: 86px; height: 30px; text-align: right; }
+.res-prog { display: grid; gap: 6px; }
 .todo-price { display: grid; gap: 4px; padding: 12px 14px; border-radius: var(--r); background: var(--warn-soft); color: var(--warn); }
 .todo-price b { font-size: 18px; }
 .todo-price span { color: var(--ink); font-size: 13px; }
@@ -480,6 +508,9 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
   .rail { grid-column: 1 / -1; position: static; display: flex; overflow-x: auto; gap: 4px; max-height: none; }
   .rail h3, .rail button small { display: none; }
   .rail details.arch { flex: none; margin: 0; border: 0; padding: 0; }
+  .pp-row { grid-template-columns: minmax(0, 1fr) auto; padding: 12px 16px; }
+  .pp-row .upd { grid-column: 1 / -1; }
+  .pp-head, .pp-grp { padding-left: 16px; padding-right: 16px; }
   .rail details.arch > p { display: none; }
   .rail .arch-act { margin: 0; align-self: center; flex: none; }
   .rail .arch-row { grid-template-columns: auto auto; }
@@ -652,6 +683,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
       <p class="lede">Saisissez les prix en MAD HT, tels que vos fournisseurs vous les facturent (le choix € reste possible pour les articles importés en direct). Chaque article garde l’historique de ses prix. Le devis utilise le prix du jour (plancher), le plus haut des 12 derniers mois (conseillé) ou le plus haut jamais relevé (prudent). Saisissez un nouveau prix dès qu’un fournisseur l’annonce.</p>
     </div>
     <div id="p-banner"></div>
+    <div class="card pp" id="pp" hidden></div>
     <div class="card pad stack" id="invoice"></div>
     <div class="idx" id="indices"></div>
     <div class="card pad stack" id="journal"></div>

@@ -245,46 +245,46 @@
    * Aucun relevé : le coût reste inconnu tant que l'équipe n'a pas saisi le prix de chaque article. */
   var CP_GROUP = 'Carport (abri voiture)';
   [
-    ['cp_acier_kg', 'Acier (tube rond ou carré)', 'kg', 'matiere'],
-    ['cp_alu_kg', 'Aluminium (tube profilé)', 'kg', 'matiere'],
-    ['cp_inox_kg', 'Inox 304 (tube)', 'kg', 'matiere'],
-    ['cp_bois_120', 'Bois lamellé-collé 120 × 120', 'ml', 'matiere'],
-    ['cp_bois_140', 'Bois lamellé-collé 140 × 140', 'ml', 'matiere'],
-    ['cp_bois_160', 'Bois lamellé-collé 160 × 160', 'ml', 'matiere'],
-    ['cp_bois_chevron', 'Chevron bois (pannes)', 'ml', 'matiere'],
-    ['cp_fab_acier_kg', 'Façonnage et soudure acier', 'kg', 'pose'],
-    ['cp_fab_alu_kg', 'Façonnage et assemblage aluminium', 'kg', 'pose'],
-    ['cp_fab_inox_kg', 'Façonnage et soudure inox', 'kg', 'pose'],
-    ['cp_fab_bois_ml', 'Taille et assemblage bois', 'ml', 'pose'],
-    ['cp_fin_peinture_m2', 'Finition apprêt + peinture', 'm²', 'equipement'],
-    ['cp_fin_thermo_m2', 'Finition thermolaquage', 'm²', 'equipement'],
-    ['cp_fin_galva_kg', 'Galvanisation à chaud', 'kg', 'equipement'],
-    ['cp_fin_lasure_ml', 'Traitement autoclave + lasure (bois)', 'ml', 'equipement'],
-    ['cp_couv_pvc_1', 'Bâche PVC 1er choix', 'm²', 'matiere'],
-    ['cp_couv_pvc_2', 'Bâche PVC 2e choix', 'm²', 'matiere'],
-    ['cp_couv_toile_1', 'Toile 1er choix', 'm²', 'matiere'],
-    ['cp_couv_toile_2', 'Toile 2e choix', 'm²', 'matiere'],
-    ['cp_couv_sandwich_1', 'Panneau sandwich 1er choix', 'm²', 'matiere'],
-    ['cp_couv_sandwich_2', 'Panneau sandwich 2e choix', 'm²', 'matiere'],
-    ['cp_couv_dalakit_1', 'Dalle à kit 1er choix', 'm²', 'matiere'],
-    ['cp_couv_dalakit_2', 'Dalle à kit 2e choix', 'm²', 'matiere'],
-    ['cp_couv_bac_1', 'Bac acier 1er choix', 'm²', 'matiere'],
-    ['cp_couv_bac_2', 'Bac acier 2e choix', 'm²', 'matiere'],
-    ['cp_gouttiere', 'Gouttière', 'ml', 'equipement'],
-    ['cp_descente', 'Descente d’eau pluviale', 'u', 'equipement'],
-    ['cp_platine', 'Platine métallique', 'u', 'equipement'],
-    ['cp_goujon', 'Goujon mécanique (cheville à tige)', 'u', 'equipement'],
-    ['cp_chimique', 'Cheville chimique (mur creux)', 'u', 'equipement'],
-    ['cp_plot', 'Plot béton 40 × 40 × 50 cm (fouille + coulage)', 'u', 'pose'],
-    ['cp_paves', 'Dépose et repose des pavés autour d’un plot', 'u', 'pose'],
-    ['cp_dalle', 'Dalle béton complète (coulage)', 'm²', 'pose'],
-    ['cp_bardage', 'Fermeture latérale (bardage)', 'm²', 'matiere'],
-    ['cp_lambrequin', 'Lambrequin (bandeau de façade)', 'ml', 'matiere'],
-    ['cp_spot', 'Spot LED', 'u', 'equipement'],
-    ['cp_alim', 'Alimentation LED', 'u', 'equipement'],
-    ['cp_elec', 'Raccordement électrique', 'forfait', 'pose'],
-    ['cp_pose_jour', 'Équipe de pose', 'jour', 'pose']
-  ].forEach(function (a) { BOOK[a[0]] = { name: a[1], unit: a[2], cat: a[3], type: 'mad', group: CP_GROUP, hist: [] }; });
+    ['cp_acier_kg', 'Acier (tube rond ou carré)', 'kg', 'matiere', 'Structure'],
+    ['cp_alu_kg', 'Aluminium (tube profilé)', 'kg', 'matiere', 'Structure'],
+    ['cp_inox_kg', 'Inox 304 (tube)', 'kg', 'matiere', 'Structure'],
+    ['cp_bois_120', 'Bois lamellé-collé 120 × 120', 'ml', 'matiere', 'Structure'],
+    ['cp_bois_140', 'Bois lamellé-collé 140 × 140', 'ml', 'matiere', 'Structure'],
+    ['cp_bois_160', 'Bois lamellé-collé 160 × 160', 'ml', 'matiere', 'Structure'],
+    ['cp_bois_chevron', 'Chevron bois (pannes)', 'ml', 'matiere', 'Structure'],
+    ['cp_fab_acier_kg', 'Façonnage et soudure acier', 'kg', 'pose', 'Structure'],
+    ['cp_fab_alu_kg', 'Façonnage et assemblage aluminium', 'kg', 'pose', 'Structure'],
+    ['cp_fab_inox_kg', 'Façonnage et soudure inox', 'kg', 'pose', 'Structure'],
+    ['cp_fab_bois_ml', 'Taille et assemblage bois', 'ml', 'pose', 'Structure'],
+    ['cp_fin_peinture_m2', 'Finition apprêt + peinture', 'm²', 'equipement', 'Finitions'],
+    ['cp_fin_thermo_m2', 'Finition thermolaquage', 'm²', 'equipement', 'Finitions'],
+    ['cp_fin_galva_kg', 'Galvanisation à chaud', 'kg', 'equipement', 'Finitions'],
+    ['cp_fin_lasure_ml', 'Traitement autoclave + lasure (bois)', 'ml', 'equipement', 'Finitions'],
+    ['cp_couv_pvc_1', 'Bâche PVC 1er choix', 'm²', 'matiere', 'Toiture'],
+    ['cp_couv_pvc_2', 'Bâche PVC 2e choix', 'm²', 'matiere', 'Toiture'],
+    ['cp_couv_toile_1', 'Toile 1er choix', 'm²', 'matiere', 'Toiture'],
+    ['cp_couv_toile_2', 'Toile 2e choix', 'm²', 'matiere', 'Toiture'],
+    ['cp_couv_sandwich_1', 'Panneau sandwich 1er choix', 'm²', 'matiere', 'Toiture'],
+    ['cp_couv_sandwich_2', 'Panneau sandwich 2e choix', 'm²', 'matiere', 'Toiture'],
+    ['cp_couv_dalakit_1', 'Dalle à kit 1er choix', 'm²', 'matiere', 'Toiture'],
+    ['cp_couv_dalakit_2', 'Dalle à kit 2e choix', 'm²', 'matiere', 'Toiture'],
+    ['cp_couv_bac_1', 'Bac acier 1er choix', 'm²', 'matiere', 'Toiture'],
+    ['cp_couv_bac_2', 'Bac acier 2e choix', 'm²', 'matiere', 'Toiture'],
+    ['cp_gouttiere', 'Gouttière', 'ml', 'equipement', 'Toiture'],
+    ['cp_descente', 'Descente d’eau pluviale', 'u', 'equipement', 'Toiture'],
+    ['cp_platine', 'Platine métallique', 'u', 'equipement', 'Sol et fixations'],
+    ['cp_goujon', 'Goujon mécanique (cheville à tige)', 'u', 'equipement', 'Sol et fixations'],
+    ['cp_chimique', 'Cheville chimique (mur creux)', 'u', 'equipement', 'Sol et fixations'],
+    ['cp_plot', 'Plot béton 40 × 40 × 50 cm (fouille + coulage)', 'u', 'pose', 'Sol et fixations'],
+    ['cp_paves', 'Dépose et repose des pavés autour d’un plot', 'u', 'pose', 'Sol et fixations'],
+    ['cp_dalle', 'Dalle béton complète (coulage)', 'm²', 'pose', 'Sol et fixations'],
+    ['cp_bardage', 'Fermeture latérale (bardage)', 'm²', 'matiere', 'Options'],
+    ['cp_lambrequin', 'Lambrequin (bandeau de façade)', 'ml', 'matiere', 'Options'],
+    ['cp_spot', 'Spot LED', 'u', 'equipement', 'Options'],
+    ['cp_alim', 'Alimentation LED', 'u', 'equipement', 'Options'],
+    ['cp_elec', 'Raccordement électrique', 'forfait', 'pose', 'Options'],
+    ['cp_pose_jour', 'Équipe de pose', 'jour', 'pose', 'Pose']
+  ].forEach(function (a) { BOOK[a[0]] = { name: a[1], unit: a[2], cat: a[3], sub: a[4], type: 'mad', group: CP_GROUP, hist: [] }; });
 
   var SETTINGS = {
     policy: { windowDays: 365, buffer: 0.02, base: 'win' },
@@ -433,11 +433,12 @@
   var CP_COUV = { pvc: 'bâche PVC', toile: 'toile', sandwich: 'panneau sandwich', dalakit: 'dalle à kit', bac: 'bac acier' };
   var CP_MAT = { acier: 'acier', alu: 'aluminium', bois: 'bois', inox: 'inox' };
   var CP_FIN = { peinture: 'apprêt + peinture', thermo: 'thermolaqué', galva: 'galvanisé à chaud', brut: 'brut', autoclave: 'autoclave', lasure: 'autoclave + lasure' };
+  function fr(x) { return String(x).replace('.', ','); }
   function cpMetal(p) { return p.mat !== 'bois'; }
   function cpFin(p) { return p.mat === 'acier' ? p.finA : p.mat === 'alu' ? p.finL : p.mat === 'bois' ? p.finB : null; }
   var CARPORT = {
-    id: 'abri-voiture', name: 'Carport (abri de voiture)', short: 'Carport', family: 'Produit en configuration', icon: 'carport', margin: 0.32, waste: 0.07,
-    blurb: 'Configuration complète. Prix à renseigner article par article dans l’onglet Prix.',
+    id: 'abri-voiture', name: 'Carport (abri de voiture)', short: 'Carport', family: 'Produit en configuration', icon: 'carport', margin: 0.32, waste: 0.07, priceGroup: CP_GROUP,
+    blurb: 'Sur mesure : structure, toiture, sol et options.',
     comps: [{ id: 'structure', l: 'Structure' }, { id: 'couverture', l: 'Toiture' }, { id: 'fixation', l: 'Sol et fixations' }],
     params: [
       { id: 'places', sec: 'Dimensions', label: 'Nombre de places', type: 'count', unit: 'places', min: 1, max: 6, def: 1 },
@@ -559,13 +560,13 @@
 
       var days = h.r1(1 + area / 15 + (p.mat === 'inox' ? 0.5 : p.mat === 'bois' ? 0.3 : 0) + (p.forme === 'cintre' ? 0.3 : 0) +
         (p.sol === 'paves' || p.sol === 'plots' ? gp * 0.08 : 0) + (p.sol === 'dalle_neuve' ? area / 25 : 0) + closed * p.H / 20);
-      L.push({ item: 'cp_pose_jour', qty: days, note: 'estimation ' + days + ' j' });
+      L.push({ item: 'cp_pose_jour', qty: days, note: 'estimation ' + fr(days) + ' j' });
 
       var solN = { dalle: 'sur dalle existante', paves: 'plots sous pavés', plots: 'plots isolés', dalle_neuve: 'dalle béton coulée' }[p.sol];
       return { lines: L, warnings: W, laborDays: days, area: area,
         details: [CP_MAT[p.mat] + (fin ? ' ' + CP_FIN[fin] : '') + ', ' + sectName + (cpMetal(p) ? ' × ' + p.t + ' mm' : ''), CP_COUV[p.couv] + (p.q === '2' ? ' 2e choix' : ' 1er choix') + ', ' + R.l, solN]
           .concat(p.gout ? ['gouttière'] : []).concat(closed ? ['côtés fermés'] : []).concat(p.lamb ? ['lambrequin'] : []).concat(p.spots ? [p.spots + ' spots LED'] : []),
-        summary: n + ' place' + (n > 1 ? 's' : '') + ', ' + h.r2(Wd) + ' × ' + p.P + ' m, ' + (auto ? 'autoportant' : 'adossé') + ', ' + np + ' poteaux',
+        summary: n + ' place' + (n > 1 ? 's' : '') + ', ' + fr(h.r2(Wd)) + ' × ' + fr(p.P) + ' m, ' + (auto ? 'autoportant' : 'adossé') + ', ' + np + ' poteaux',
         geo: { kind: 'plan', L: Wd, P: p.P, H: p.H, ral: p.mat === 'bois' ? 'special' : p.mat === 'acier' && fin === 'galva' || p.mat === 'inox' ? 'sable' : 'standard',
           wall: !auto, posts: posts(Wd, p.P, spans, auto), roof: 'chevrons', pitch: rigid ? 0.9 : 1.2,
           couv: p.couv === 'sandwich' || p.couv === 'dalakit' || p.couv === 'bac' ? 'sandwich_40' : 'poly_16', sides: [], cars: n, spots: p.spots } };
