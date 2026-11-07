@@ -81,7 +81,7 @@
       if (me.current && byId[me.current.productId]) s.current = Object.assign({ params: {}, tier: null }, me.current);
       if (me.aluCalc) Object.assign(s.aluCalc, me.aluCalc);
       s.activeId = me.activeId || null;
-      s.view = me.view || '2d'; s.open3d = me.open3d;
+      s.view = me.view || '2d'; s.open3d = me.open3d; s.sun = me.sun;
     }
     if (local) {
       s.settings = mergeSettings(local.settings);
@@ -97,7 +97,7 @@
   function shared() { return STORE.mode === 'shared'; }
   /* Préférences de la personne (toujours dans ce navigateur). */
   function save() {
-    writeJSON(KEY, { site: S.site, current: S.current, activeId: S.activeId, aluCalc: S.aluCalc, view: S.view, open3d: S.open3d });
+    writeJSON(KEY, { site: S.site, current: S.current, activeId: S.activeId, aluCalc: S.aluCalc, view: S.view, open3d: S.open3d, sun: S.sun });
     if (!shared()) writeJSON(LOCAL_KEY, { settings: S.settings, book: overridesOf(S.book), quotes: S.quotes });
   }
   function onWriteError(e) {
@@ -169,6 +169,10 @@
   /* ---------- Connexion à la base de l'équipe ---------- */
   function connect() {
     if (!window.claude || typeof window.claude.use !== 'function') { setSync('local', 'Mode local'); return; }
+    window.claude.use('sample').then(function (sm) {
+      STORE.sample = sm || null; if (!sm) return;
+      sm.limits().then(function (l) { STORE.sampleImages = l && l.images ? l.images.mediaTypes : null; renderInvoice(); }, function () { renderInvoice(); });
+    }, function () { STORE.sample = null; });
     setSync('warn', 'Connexion…');
     var slow = setTimeout(function () { if (!shared()) setSync('warn', 'Connexion lente…'); }, 10000);
     Promise.all([window.claude.use('db'), window.claude.use('user')]).then(function (r) {
@@ -433,30 +437,182 @@
     return out;
   }
 
-  /* ================= Plan 2D / vue 3D ================= */
+  /* ================= Plan coté / vue 3D / sur photo ================= */
+  var ZONE_GEO = { agadir: [30.42, -9.6], souss: [30.42, -9.45], sud: [31.51, -9.77], marrakech: [31.63, -8.01], casa: [33.57, -7.59], nord: [35.76, -5.83] };
+  var ORIENTS = [['N', 0, 'Nord'], ['NE', 45, 'Nord-Est'], ['E', 90, 'Est'], ['SE', 135, 'Sud-Est'], ['S', 180, 'Sud'], ['SO', 225, 'Sud-Ouest'], ['O', 270, 'Ouest'], ['NO', 315, 'Nord-Ouest']];
+  var DATES = [['3-21', 'Printemps · 21 mars'], ['6-21', 'Été · 21 juin'], ['7-15', 'Plein été · 15 juillet'], ['8-15', '15 août'], ['9-21', 'Automne · 21 sept.'], ['12-21', 'Hiver · 21 déc.']];
+  function sunCfg() { return Object.assign({ date: '7-15', hour: 16, orient: 180 }, S.sun || {}); }
+  function bearingName(az) { var n = ['nord', 'nord-est', 'est', 'sud-est', 'sud', 'sud-ouest', 'ouest', 'nord-ouest']; return n[Math.round(az / 45) % 8]; }
+  function applySunNow() {
+    if (!window.SL3D) return;
+    var c = sunCfg(), g = ZONE_GEO[S.site.zone] || ZONE_GEO.agadir, md = c.date.split('-');
+    var info = SL3D.setSun({ month: +md[0], day: +md[1], hour: c.hour, lat: g[0], lon: g[1], orient: c.orient });
+    var out = $('sun-read'); if (!out) return info;
+    var hh = Math.floor(c.hour), mm = Math.round((c.hour - hh) * 60);
+    var time = String(hh).padStart(2, '0') + 'h' + String(mm).padStart(2, '0');
+    if (info.alt <= 0) { out.textContent = time + ' · soleil couché'; return info; }
+    clearTimeout(applySunNow.t);
+    applySunNow.t = setTimeout(function () {
+      var sh = SL3D.shade(), o = $('sun-read'); if (!o) return;
+      o.innerHTML = '<span>' + time + ' · soleil ' + bearingName(info.az) + ', ' + Math.round(info.alt) + '° de haut</span>' + (sh != null ? '<b class="shade num">' + Math.round(sh * 100) + ' % de la terrasse à l’ombre</b>' : '');
+    }, 120);
+    return info;
+  }
+  function sunBar() {
+    var c = sunCfg();
+    return '<label class="fld"><span class="lbl">Date</span><select class="inp" id="sun-date">' + DATES.map(function (d) { return '<option value="' + d[0] + '"' + (d[0] === c.date ? ' selected' : '') + '>' + d[1] + '</option>'; }).join('') + '</select></label>' +
+      '<label class="fld sun-hour"><span class="lbl">Heure</span><input type="range" id="sun-hour" min="7" max="20" step="0.25" value="' + c.hour + '"></label>' +
+      '<label class="fld"><span class="lbl">La terrasse regarde vers</span><select class="inp" id="sun-orient">' + ORIENTS.map(function (o) { return '<option value="' + o[1] + '"' + (o[1] === c.orient ? ' selected' : '') + '>' + o[2] + '</option>'; }).join('') + '</select></label>' +
+      '<div class="sun-read" id="sun-read" role="status"></div>';
+  }
   function renderPlan(r) {
     if (!$('plan')) return;
-    var can3d = window.SL3D && SL3D.supports(r.geo), v3 = can3d && S.view === '3d';
-    $('plan-bar').innerHTML = can3d ? '<div class="seg" role="group" aria-label="Type de vue"><button type="button" data-view="2d" aria-pressed="' + !v3 + '">Plan coté</button><button type="button" data-view="3d" aria-pressed="' + v3 + '">Vue 3D</button></div>' +
-      (v3 ? '<div class="row">' + (r.geo.roof === 'lames' ? '<label class="v3-range" for="v3-open">Lames <input type="range" id="v3-open" min="0" max="1" step="0.01" value="' + (S.open3d != null ? S.open3d : 0.55) + '"></label>' : '') +
-        '<button class="btn sm ghost" type="button" id="v3-reset">Recentrer</button></div>' : '<span class="sub">Vue de dessus, cotes en mètres</span>') : '';
-    $('plan-2d').hidden = v3;
-    $('plan-3d').hidden = !v3;
-    if (!v3) $('plan-2d').innerHTML = draw(r.geo);
-    $('plan-facts').innerHTML = legendFor(r.geo).join('') + (r.area ? '<span class="pill">' + m2(r.area) + ' m²</span>' : '') + '<span class="pill">' + nf2.format(r.laborDays) + ' j de pose</span>' + (v3 ? '<span class="sub">Glissez pour tourner · molette ou pincement pour zoomer</span>' : '');
-    if (v3) {
-      SL3D.show($('plan-3d'), r.geo).then(function (ok) {
+    var g = r.geo, can3d = window.SL3D && SL3D.supports(g), canPh = can3d && SL3D.supportsPhoto(g);
+    var view = S.view === '3d' && can3d ? '3d' : S.view === 'photo' && canPh ? 'photo' : '2d';
+    var full = $('plan').classList.contains('full');
+    if (full && view === '2d') { setFull(false); full = false; }
+    var tabs = '<div class="seg" role="group" aria-label="Type de vue"><button type="button" data-view="2d" aria-pressed="' + (view === '2d') + '">Plan coté</button>' +
+      (can3d ? '<button type="button" data-view="3d" aria-pressed="' + (view === '3d') + '">Vue 3D</button>' : '') +
+      (canPh ? '<button type="button" data-view="photo" aria-pressed="' + (view === 'photo') + '">Sur photo</button>' : '') + '</div>';
+    var tools = view === '3d' ? '<div class="row">' + (g.roof === 'lames' ? '<label class="v3-range" for="v3-open">Lames <input type="range" id="v3-open" min="0" max="1" step="0.01" value="' + (S.open3d != null ? S.open3d : 0.55) + '"></label>' : '') +
+      '<button class="btn sm ghost" type="button" id="v3-reset">Recentrer</button><button class="btn sm" type="button" id="v3-full">' + (full ? 'Fermer' : 'Plein écran') + '</button></div>'
+      : view === '2d' ? '<span class="sub">Vue de dessus, cotes en mètres</span>' : (full ? '<button class="btn sm" type="button" id="v3-full">Fermer</button>' : '');
+    $('plan-bar').innerHTML = tabs + tools;
+    $('plan-2d').hidden = view !== '2d';
+    $('plan-3d').hidden = view !== '3d';
+    $('plan-sun').hidden = view === '2d';
+    $('plan-photo').hidden = view !== 'photo';
+    if (view === '2d') $('plan-2d').innerHTML = draw(g);
+    if (view !== '2d' && !$('sun-date')) $('plan-sun').innerHTML = sunBar();
+    $('plan-facts').innerHTML = legendFor(g).join('') + (r.area ? '<span class="pill">' + m2(r.area) + ' m²</span>' : '') + '<span class="pill">' + nf2.format(r.laborDays) + ' j de pose</span>' +
+      (view === '3d' ? '<span class="sub">Glissez pour tourner · molette ou pincement pour zoomer</span>' : '');
+    if (view === '3d') {
+      SL3D.show($('plan-3d'), g).then(function (ok) {
         if (!ok) { S.view = '2d'; save(); toast('La vue 3D n’a pas pu se charger sur cet appareil.'); renderPlan(r); return; }
         if (S.open3d != null) SL3D.setOpen(S.open3d);
+        applySunNow();
       });
     }
+    if (view === 'photo') { applySunNow(); renderPhoto(g); }
   }
+  function setFull(on) {
+    $('plan').classList.toggle('full', on); document.body.classList.toggle('noscroll', on);
+    var b = $('v3-full'); if (b) b.textContent = on ? 'Fermer' : 'Plein écran';
+    if (window.SL3D) setTimeout(function () { SL3D.update(last && last.geo); }, 30);
+  }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('plan') && $('plan').classList.contains('full')) setFull(false); });
+
+  /* ---------- Simulation sur la photo du chantier ---------- */
+  var PH = null; // { canvas (photo réduite), w, h, pts: [[x,y]×4], out: canvas composé }
+  var PH_LABELS = ['Pied de façade, à gauche', 'Pied de façade, à droite', 'Avant, à droite', 'Avant, à gauche'];
+  function renderPhoto(g) {
+    var box = $('plan-photo');
+    if (!PH) {
+      box.innerHTML = '<label class="ph-drop" for="ph-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3v13H4z"/><circle cx="12" cy="13" r="4"/></svg>' +
+        '<b>Importer la photo du chantier</b><span>Une photo de la terrasse prise de face ou de biais, avec le sol visible. Vous toucherez ensuite les 4 coins de l’emplacement.</span></label>' +
+        '<input type="file" id="ph-file" accept="image/*" hidden>';
+      return;
+    }
+    var n = PH.pts.length;
+    box.innerHTML = '<p class="ph-step" role="status">' + (n < 4 ? '<b>Point ' + (n + 1) + ' sur 4 :</b> touchez « ' + PH_LABELS[n] + ' » sur la photo.' + (n === 0 ? ' Pour une structure autoportante, prenez le côté maison comme façade.' : '')
+      : '<b>Emplacement posé.</b> Faites glisser un point pour ajuster. Les dimensions restent celles du devis (' + (g.kind === 'banne' ? m(g.W) + ' × ' + m(g.A) : m(g.L) + ' × ' + m(g.P)) + ').') + '</p>' +
+      '<div class="ph-stage" id="ph-stage"><canvas id="ph-canvas" width="' + PH.w + '" height="' + PH.h + '"></canvas><svg id="ph-svg" viewBox="0 0 ' + PH.w + ' ' + PH.h + '" aria-label="Points de calage"></svg></div>' +
+      '<div class="row ph-actions"><button class="btn sm ghost" type="button" id="ph-reset">Recommencer les points</button><label class="btn sm ghost" for="ph-file">Autre photo</label><input type="file" id="ph-file" accept="image/*" hidden>' +
+      (n === 4 ? '<button class="btn sm" type="button" id="ph-save">Enregistrer l’image</button><button class="btn sm pri" type="button" id="ph-attach">Joindre au devis</button>' : '') + '</div>';
+    drawPhotoPoints();
+    composePhoto(g);
+  }
+  function drawPhotoPoints() {
+    var svg = $('ph-svg'); if (!svg || !PH) return;
+    var r = Math.max(10, PH.w / 70), p = PH.pts, h = '';
+    if (p.length > 1) h += '<polygon points="' + p.map(function (q) { return q.join(','); }).join(' ') + '" class="ph-poly"/>';
+    p.forEach(function (q, i) { h += '<g class="ph-pt" data-i="' + i + '"><circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + r + '"/><text x="' + q[0] + '" y="' + (q[1] + r * 0.38) + '" font-size="' + r * 1.1 + '">' + (i + 1) + '</text></g>'; });
+    svg.innerHTML = h;
+  }
+  var composeT;
+  function composePhoto(g) {
+    clearTimeout(composeT);
+    composeT = setTimeout(function () {
+      var cv = $('ph-canvas'); if (!cv || !PH) return;
+      var ctx2 = cv.getContext('2d');
+      ctx2.drawImage(PH.canvas, 0, 0, PH.w, PH.h);
+      PH.out = null;
+      if (PH.pts.length < 4) return;
+      SL3D.photo(g, PH.w, PH.h, PH.pts).then(function (ov) {
+        if (!ov || !$('ph-canvas')) { if (!ov) toast('Placement impossible : vérifiez l’ordre des 4 points.'); return; }
+        ctx2.drawImage(PH.canvas, 0, 0, PH.w, PH.h); ctx2.drawImage(ov, 0, 0, PH.w, PH.h);
+        // bandeau Store Luxe
+        var bh = Math.round(PH.h * 0.055), fs = Math.round(bh * 0.45);
+        ctx2.fillStyle = 'rgba(19,29,39,.62)'; ctx2.fillRect(0, PH.h - bh, PH.w, bh);
+        ctx2.fillStyle = '#fff'; ctx2.font = '600 ' + fs + 'px "IBM Plex Sans", system-ui, sans-serif'; ctx2.textBaseline = 'middle';
+        ctx2.fillText('Store Luxe · ' + (last ? last.productName + ', ' + last.summary : ''), Math.round(bh * 0.45), PH.h - bh / 2);
+        ctx2.textAlign = 'right'; ctx2.font = fs * 0.85 + 'px "IBM Plex Sans", system-ui, sans-serif';
+        ctx2.fillText('Simulation non contractuelle', PH.w - Math.round(bh * 0.45), PH.h - bh / 2); ctx2.textAlign = 'left';
+        PH.out = cv;
+      });
+    }, 60);
+  }
+  function loadPhotoFile(file) {
+    if (!file || !/^image\//.test(file.type)) { toast('Choisissez une image (JPEG ou PNG).'); return; }
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function () {
+      var k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+      var w = Math.round(img.naturalWidth * k), h = Math.round(img.naturalHeight * k), c = document.createElement('canvas');
+      c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); URL.revokeObjectURL(url);
+      PH = { canvas: c, w: w, h: h, pts: [] }; renderPlan(last);
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); toast('Cette image n’a pas pu être lue.'); };
+    img.src = url;
+  }
+  function photoJpeg(maxW, maxLen) {
+    var src = PH.out, k = Math.min(1, maxW / src.width), c = document.createElement('canvas');
+    c.width = Math.round(src.width * k); c.height = Math.round(src.height * k); c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+    var q = 0.82, url = c.toDataURL('image/jpeg', q);
+    while (url.length > maxLen && q > 0.35) { q -= 0.08; url = c.toDataURL('image/jpeg', q); }
+    return url;
+  }
+  var phDrag = null;
+  function phPoint(e) { var svg = $('ph-svg'), rc = svg.getBoundingClientRect(); return [Math.round((e.clientX - rc.left) * PH.w / rc.width), Math.round((e.clientY - rc.top) * PH.h / rc.height)]; }
+  $('form').addEventListener('pointerdown', function (e) {
+    if (!PH || !e.target.closest('#ph-svg')) return;
+    e.preventDefault();
+    var p = phPoint(e), rc = $('ph-svg').getBoundingClientRect(), tol = 28 * PH.w / rc.width, best = -1, bd = tol;
+    PH.pts.forEach(function (q, i) { var d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < bd) { bd = d; best = i; } });
+    if (best >= 0) { phDrag = best; try { $('ph-svg').setPointerCapture(e.pointerId); } catch (err) { /* ignoré */ } return; }
+    if (PH.pts.length < 4) { PH.pts.push(p); renderPhoto(last.geo); }
+  });
+  $('form').addEventListener('pointermove', function (e) {
+    if (phDrag == null || !PH) return;
+    PH.pts[phDrag] = phPoint(e); drawPhotoPoints();
+  });
+  $('form').addEventListener('pointerup', function () { if (phDrag != null) { phDrag = null; composePhoto(last.geo); } });
+
   $('form').addEventListener('click', function (e) {
     var b = e.target.closest('[data-view]');
     if (b) { S.view = b.dataset.view; save(); renderPlan(last || price(S.current.productId, S.current.params)); return; }
-    if (e.target.id === 'v3-reset' && window.SL3D) SL3D.reset();
+    var id = e.target.id;
+    if (id === 'v3-reset' && window.SL3D) SL3D.reset();
+    if (id === 'v3-full') setFull(!$('plan').classList.contains('full'));
+    if (id === 'ph-reset' && PH) { PH.pts = []; renderPhoto(last.geo); }
+    if (id === 'ph-save' && PH && PH.out) {
+      PH.out.toBlob(function (bl) { saveBlob(pdfText('Projet Store Luxe' + (S.site.client ? ' - ' + S.site.client : '')).replace(/[\\/:*?"<>|]+/g, ' ') + '.jpg', bl, 'Image enregistrée : vous pouvez l’envoyer sur WhatsApp'); }, 'image/jpeg', 0.88);
+    }
+    if (id === 'ph-attach' && PH && PH.out) {
+      if (!canWrite()) return;
+      var Q = activeQuote();
+      if (!Q || CLOSED[Q.status] || !Q.lines.some(function (l) { return l.productId === S.current.productId; })) { addOrUpdate(); Q = activeQuote(); }
+      if (Q) { saveVisual(Q, photoJpeg(1200, 190000)); toast('Simulation jointe au devis ' + Q.no); }
+    }
   });
-  $('form').addEventListener('input', function (e) { if (e.target.id === 'v3-open') { S.open3d = +e.target.value; SL3D.setOpen(S.open3d); } });
+  $('form').addEventListener('change', function (e) { if (e.target.id === 'ph-file') loadPhotoFile(e.target.files[0]); });
+  $('form').addEventListener('input', function (e) {
+    if (e.target.id === 'v3-open') { S.open3d = +e.target.value; SL3D.setOpen(S.open3d); applySunNow(); if (S.view === 'photo' && last) composePhoto(last.geo); }
+    if (e.target.id === 'sun-date' || e.target.id === 'sun-hour' || e.target.id === 'sun-orient') {
+      S.sun = { date: $('sun-date').value, hour: +$('sun-hour').value, orient: +$('sun-orient').value }; save();
+      applySunNow(); if (S.view === 'photo' && last) composePhoto(last.geo);
+    }
+  });
+
 
   /* ================= Onglets ================= */
   var TABS = ['configurer', 'devis', 'prix', 'etude', 'reglages'];
@@ -468,7 +624,7 @@
     document.querySelectorAll('.tabs a').forEach(function (a) { if (a.dataset.tab === t) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     $('mbar').hidden = t !== 'configurer';
     if (t === 'devis') renderQuotes();
-    if (t === 'prix') renderBook();
+    if (t === 'prix') { renderBook(); renderInvoice(); }
     if (t === 'reglages') renderSettings();
     if (h.indexOf('e-') === 0) { var el = $(h); if (el) el.scrollIntoView(); } else window.scrollTo(0, 0);
   }
@@ -523,7 +679,7 @@
     var h = '<div class="cfg-head"><div><h2>' + esc(prod.name) + '</h2><p class="lede">' + esc(prod.blurb) + '</p></div>' +
       '<div class="row">' + (S.editing ? '<span class="pill warn">Modification d’une ligne du devis</span>' : '') +
       '<button class="btn sm ghost" type="button" id="f-reset">Valeurs par défaut</button></div></div>';
-    h += '<div class="plan" id="plan"><div class="plan-bar" id="plan-bar"></div><div id="plan-2d"></div><div id="plan-3d" class="v3d" hidden></div><div class="plan-facts" id="plan-facts"></div></div>';
+    h += '<div class="plan" id="plan"><div class="plan-bar" id="plan-bar"></div><div id="plan-2d"></div><div id="plan-3d" class="v3d" hidden></div><div id="plan-photo" hidden></div><div id="plan-sun" class="sunbar" hidden></div><div class="plan-facts" id="plan-facts"></div></div>';
     var secs = [], bySec = {};
     prod.params.forEach(function (d) {
       if (d.showIf && !d.showIf(p)) return;
@@ -617,7 +773,7 @@
     if (r.stale.length) al.push('<div class="alert info">' + r.stale.length + ' prix de l’étude à confirmer auprès de vos fournisseurs (onglet Prix &amp; sources).</div>');
     if (al.length) h += '<div class="alerts">' + al.join('') + '</div>';
     if (S.editing) h += '<div class="row"><button class="btn pri" type="button" id="r-update" style="flex:1">Mettre à jour la ligne</button><button class="btn" type="button" id="r-cancel">Annuler</button></div>';
-    else h += '<div class="row"><button class="btn pri" type="button" id="r-add" style="flex:1">' + (activeQuote() && !CLOSED[activeQuote().status] ? 'Ajouter au devis ' + esc(activeQuote().no.slice(-3)) : 'Créer un devis') + '</button><button class="btn" type="button" id="r-copy">Copier le prix</button></div>';
+    else h += '<div class="row"><button class="btn pri" type="button" id="r-add" style="flex:1">' + (activeQuote() && !CLOSED[activeQuote().status] ? 'Ajouter au devis ' + esc(activeQuote().no.slice(-3)) : 'Créer un devis') + '</button><button class="btn" type="button" id="r-vers" title="Ajouter trois versions Essentiel, Confort et Premium">3 versions</button><button class="btn ghost" type="button" id="r-copy">Copier</button></div>';
     h += '</div>';
     // détail interne
     var cats = { matiere: 'Matière (avec chutes)', equipement: 'Équipements', pose: 'Pose (coef. accès)' };
@@ -639,6 +795,7 @@
     var tb = e.target.closest('[data-tier]');
     if (tb) { S.current.tier = tb.dataset.tier; save(); renderResult(); return; }
     if (e.target.id === 'r-add' || e.target.id === 'r-update') addOrUpdate();
+    if (e.target.id === 'r-vers') proposeVersions();
     if (e.target.id === 'r-cancel') { S.editing = null; renderForm(); renderResult(); go('devis'); }
     if (e.target.id === 'r-copy' && last) {
       var t = curTier();
@@ -660,17 +817,26 @@
     var entries = (q.lines || []).filter(function (l) { return byId[l.productId]; }).map(function (l) {
       var live = price(l.productId, l.params, site), t = validTier(live, l.tier);
       if (l.frozen != null) { live = Object.assign({}, live); live.sale = Object.assign({}, live.sale); live.sale[t] = l.frozen; }
-      return { uid: l.uid, tier: t, line: live };
+      return { uid: l.uid, tier: t, ver: l.ver || null, line: live };
     });
-    var r = E.priceQuote(entries, S.settings, ctx(site));
-    if (q.frozenTravel != null && r.travel !== q.frozenTravel) {
-      var dt = q.frozenTravel - r.travel, cost = r.costNow + dt;
-      r.travel = q.frozenTravel; r.ht += dt;
-      r.discount = site.discount ? E.roundUp(r.ht * site.discount, S.settings.rounding) : 0;
-      r.htNet = r.ht - r.discount; r.tva = r.htNet * S.settings.tva; r.ttc = r.htNet + r.tva;
-      r.costNow = cost; r.marginIfToday = r.htNet > 0 ? 1 - cost / r.htNet : 0;
+    function calc(list) {
+      var r = E.priceQuote(list, S.settings, ctx(site));
+      if (q.frozenTravel != null && r.travel !== q.frozenTravel) {
+        var dt = q.frozenTravel - r.travel, cost = r.costNow + dt;
+        r.travel = q.frozenTravel; r.ht += dt;
+        r.discount = site.discount ? E.roundUp(r.ht * site.discount, S.settings.rounding) : 0;
+        r.htNet = r.ht - r.discount; r.tva = r.htNet * S.settings.tva; r.ttc = r.htNet + r.tva;
+        r.costNow = cost; r.marginIfToday = r.htNet > 0 ? 1 - cost / r.htNet : 0;
+      }
+      return r;
     }
-    return { entries: entries, q: r };
+    /* Devis à versions : chaque version = lignes communes + lignes de la version. */
+    var vers = ['A', 'B', 'C'].filter(function (v) { return entries.some(function (e) { return e.ver === v; }); });
+    if (!vers.length) return { entries: entries, q: calc(entries), versions: null };
+    var versions = {};
+    vers.forEach(function (v) { var list = entries.filter(function (e) { return !e.ver || e.ver === v; }); versions[v] = { entries: list, q: calc(list) }; });
+    var chosen = !!(q.choice && versions[q.choice]), pick = chosen ? q.choice : versions.B ? 'B' : vers[0];
+    return { entries: entries, q: versions[pick].q, versions: versions, vers: vers, pick: pick, chosen: chosen };
   }
   function freeze(q) {
     var site = q.site || S.site;
@@ -686,7 +852,9 @@
   function unfreeze(q) { (q.lines || []).forEach(function (l) { delete l.frozen; }); delete q.frozenTravel; delete q.frozenAt; }
   function snapOf(q) {
     var d = quoteCalc(q);
-    return { ht: d.q.htNet, ttc: d.q.ttc, costNow: d.q.costNow, laborDays: d.q.laborDays, title: d.entries.map(function (e) { return e.line.productName; }).join(', ') };
+    var names = []; d.entries.forEach(function (e) { if (names.indexOf(e.line.productName) < 0) names.push(e.line.productName); });
+    return { ht: d.q.htNet, ttc: d.q.ttc, costNow: d.q.costNow, laborDays: d.q.laborDays, versions: d.versions ? d.vers.length : 0,
+      title: names.join(', ') + (d.versions ? ' (' + d.vers.length + ' versions)' : '') };
   }
   function newQuote() {
     var now = new Date().toISOString(), id = 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -744,6 +912,24 @@
     entry.uid = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
     q.lines.push(entry); commitQuote(q);
     toast(fresh ? 'Nouveau devis ' + q.no + ' créé' : 'Ajouté au devis ' + q.no + ' (' + q.lines.length + ' lignes)');
+  }
+  /* Trois versions du même projet, mêmes dimensions : le client choisit. */
+  function proposeVersions() {
+    if (!canWrite()) return;
+    var prod = byId[S.current.productId]; if (!prod.versions) return;
+    var base = E.fullParams(prod, S.current.params), v = prod.versions(base), q = activeQuote(), fresh = !q || CLOSED[q.status];
+    if (fresh) q = newQuote();
+    if (q.lines.some(function (l) { return l.ver; })) { toast('Ce devis contient déjà des versions : créez un nouveau devis pour en proposer d’autres.'); return; }
+    // les versions remplacent la ligne simple du même produit
+    var before = q.lines.length;
+    q.lines = q.lines.filter(function (l) { return l.productId !== prod.id || l.ver; });
+    var replaced = before - q.lines.length;
+    var grp = 'g' + Date.now().toString(36);
+    ['A', 'B', 'C'].forEach(function (k) {
+      q.lines.push({ uid: Date.now().toString(36) + k + Math.random().toString(36).slice(2, 5), productId: prod.id, params: Object.assign({}, base, v[k]), tier: curTier(), grp: grp, ver: k });
+    });
+    q.choice = null; commitQuote(q);
+    toast('3 versions ' + (replaced ? 'remplacent la ligne ' + prod.short + ' dans' : 'ajoutées au') + ' devis ' + q.no); go('devis');
   }
   function renderCount() {
     var q = activeQuote(), n = q ? q.lines.length : 0, c = $('cart-count');
@@ -810,16 +996,28 @@
         ? '<div class="alert">Les prix fournisseurs ont monté depuis l’envoi du ' + frDate(Q.frozenAt.slice(0, 10)) + ' : marge réelle ' + pct(q.marginIfToday) + ' au lieu de ' + pct(target) + ' visés. Les prix client restent ceux envoyés.</div>'
         : '<div class="alert info">Prix client figés à l’envoi le ' + frDate(Q.frozenAt.slice(0, 10)) + '. Marge si achat aujourd’hui : ' + pct(q.marginIfToday) + '.</div>';
     }
-    h += '<div>';
-    d.entries.forEach(function (e, i) {
-      var r = e.line, t = e.tier || r.base;
-      h += '<div class="qline"><span class="n">' + String(i + 1).padStart(2, '0') + '</span><div><b>' + esc(r.productName) + '</b><div class="sub">' + esc(r.summary) + '</div>' +
+    if (Q.visualAt) h += '<figure class="doc-visual"><img id="doc-vis" alt="Simulation du projet sur la photo du chantier"><figcaption>Simulation sur la photo du chantier, non contractuelle</figcaption></figure>';
+    var n = 0;
+    function lineHtml(e) {
+      var r = e.line, t = e.tier || r.base; n++;
+      return '<div class="qline"><span class="n">' + String(n).padStart(2, '0') + '</span><div><b>' + esc(r.productName) + '</b><div class="sub">' + esc(r.summary) + '</div>' +
         (r.details.length ? '<ul>' + r.details.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') + '</div>' +
         '<div><div class="amt">' + nf0.format(r.sale[t]) + ' HT</div>' + (locked ? '' : '<div class="tools">' +
-        '<select data-tierline="' + e.uid + '" aria-label="Niveau de prix de la ligne ' + (i + 1) + '">' + tiersFor(r).map(function (k) { return '<option value="' + k + '"' + (k === t ? ' selected' : '') + '>' + TIER[k].l + '</option>'; }).join('') + '</select>' +
-        '<button class="btn sm ghost" type="button" data-edit="' + e.uid + '">Modifier</button><button class="btn sm ghost danger" type="button" data-del="' + e.uid + '" aria-label="Retirer la ligne ' + (i + 1) + '">Retirer</button></div>') + '</div></div>';
-    });
-    h += '</div><div class="totals num">';
+        '<select data-tierline="' + e.uid + '" aria-label="Niveau de prix de la ligne ' + n + '">' + tiersFor(r).map(function (k) { return '<option value="' + k + '"' + (k === t ? ' selected' : '') + '>' + TIER[k].l + '</option>'; }).join('') + '</select>' +
+        '<button class="btn sm ghost" type="button" data-edit="' + e.uid + '">Modifier</button><button class="btn sm ghost danger" type="button" data-del="' + e.uid + '" aria-label="Retirer la ligne ' + n + '">Retirer</button></div>') + '</div></div>';
+    }
+    h += '<div>' + d.entries.filter(function (e) { return !e.ver; }).map(lineHtml).join('') + '</div>';
+    if (d.versions) {
+      h += '<div class="vers"><h3>' + (d.chosen ? 'Version retenue par le client' : 'Trois versions au choix') + '</h3>';
+      d.vers.forEach(function (v) {
+        var V = d.versions[v], on = d.pick === v;
+        h += '<section class="ver' + (on ? ' on' : '') + '"><div class="ver-head"><div><span class="ver-tag">' + v + '</span><b>' + esc(C.VERSION_NAMES[v]) + '</b>' + (!d.chosen && v === 'B' ? ' <span class="pill acc">recommandée</span>' : '') + (d.chosen && on ? ' <span class="pill good">choisie</span>' : '') + '</div>' +
+          '<div class="ver-total"><b class="num">' + nf0.format(V.q.ttc) + '</b> MAD TTC' + (locked ? '' : '<button class="btn sm' + (d.chosen && on ? ' pri' : '') + '" type="button" data-choose="' + v + '">' + (d.chosen && on ? 'Choisie' : 'Le client choisit ' + v) + '</button>') + '</div></div>' +
+          d.entries.filter(function (e) { return e.ver === v; }).map(lineHtml).join('') + '</section>';
+      });
+      h += '</div>';
+    }
+    h += '<div class="totals num">' + (d.versions ? '<div class="sub" style="font-family:var(--f-body)"><span>' + 'Version ' + d.pick + ' · ' + C.VERSION_NAMES[d.pick] + (d.chosen ? ' : choisie' : ' : recommandée') + '</span></div>' : '');
     h += '<div><span>Sous-total</span><span>' + mad(q.ht - q.travel) + '</span></div>';
     if (q.travel) h += '<div><span>Déplacement ' + esc(zone) + (q.nights ? ' (' + q.nights + ' nuit' + (q.nights > 1 ? 's' : '') + ')' : '') + '</span><span>' + mad(q.travel) + '</span></div>';
     if (q.discount) h += '<div><span>Remise</span><span>− ' + mad(q.discount) + '</span></div>';
@@ -827,6 +1025,7 @@
     h += '<div class="big"><span>Total TTC</span><span>' + mad(q.ttc) + '</span></div></div>';
     h += '<div class="cond"><b style="color:var(--ink)">Conditions</b><span>' + esc(S.settings.conditions) + '</span><span>Store Luxe · Entrée 6, Av. 2 Mars, Souk Elhad, Agadir · +212 6 67 62 03 60 · contact@storeluxe.ma</span></div>';
     $('doc').innerHTML = h;
+    if (Q.visualAt) loadVisual(Q).then(function (src) { var im = $('doc-vis'); if (im && src) im.src = src; else if (im) im.closest('figure').hidden = true; });
 
     // panneau latéral
     var st = Q.status || 'brouillon', ro = !STORE.canWrite;
@@ -835,6 +1034,9 @@
       '<button class="btn wide" type="button" id="k-wa">Copier le message WhatsApp</button>' +
       '<button class="btn wide ghost" type="button" id="k-txt">Copier le devis en texte</button>' +
       '<p class="sub" style="margin:0">' + (st === 'brouillon' ? 'Télécharger le PDF ou copier le message marque le devis comme envoyé et fige ses prix.' : 'Le PDF reprend votre logo, chaque ligne, les totaux, les conditions et un cadre « bon pour accord ».') + '</p></div>';
+    side += '<div class="card pad stack"><h3>Simulation sur photo</h3>' + (Q.visualAt
+      ? '<p class="sub" style="margin:0">L’image figure en tête du devis et du PDF.</p><div class="row"><button class="btn sm" type="button" id="k-vis-save">Enregistrer l’image</button>' + (ro ? '' : '<button class="btn sm ghost danger" type="button" id="k-vis-del">Retirer</button>') + '</div>'
+      : '<p class="sub" style="margin:0">Montrez au client son projet sur sa terrasse : Configurer › <b>Sur photo</b>, puis « Joindre au devis ».</p>') + '</div>';
     side += '<div class="card pad stack"><h3>Suivi</h3><div class="status-seg" role="group" aria-label="Statut du devis">' + Object.keys(STATUS).map(function (k) {
       return '<button type="button" data-status="' + k + '" aria-pressed="' + (k === st) + '"' + (ro ? ' disabled' : '') + '>' + STATUS[k].l + '</button>';
     }).join('') + '</div>';
@@ -875,14 +1077,25 @@
     var valid = frDate(E.addDays((Q.createdAt || TODAY).slice(0, 10), S.settings.validityDays));
     var t = whatsapp ? 'Bonjour' + (client ? ' ' + client : '') + ',\n\nVoici l’estimation Store Luxe pour votre projet à ' + zone + ' :\n\n'
       : 'STORE LUXE — Devis estimatif ' + Q.no + '\nDate : ' + frDate((Q.createdAt || TODAY).slice(0, 10)) + ' · Client : ' + (client || 'à préciser') + ' · Chantier : ' + zone + '\n\n';
-    d.entries.forEach(function (e, i) {
-      var r = e.line, k = e.tier || r.base;
-      t += (whatsapp ? '• ' : (i + 1) + '. ') + r.productName + ' — ' + r.summary + (r.details.length ? ' (' + r.details.join(', ') + ')' : '') + ' : ' +
+    var i = 0;
+    function lineTxt(e) {
+      var r = e.line, k = e.tier || r.base; i++;
+      return (whatsapp ? '• ' : i + '. ') + r.productName + ' — ' + r.summary + (r.details.length ? ' (' + r.details.join(', ') + ')' : '') + ' : ' +
         (whatsapp ? mad(r.sale[k] * T) + ' TTC' : mad(r.sale[k]) + ' HT') + '\n';
-    });
+    }
+    d.entries.filter(function (e) { return !e.ver; }).forEach(function (e) { t += lineTxt(e); });
+    if (d.versions && !d.chosen) {
+      t += (t.slice(-2) === ':\n' ? '' : '\n') + 'Nous vous proposons trois versions :\n';
+      d.vers.forEach(function (v) {
+        var V = d.versions[v];
+        t += '\n' + v + ' · ' + C.VERSION_NAMES[v] + (v === 'B' ? ' (notre recommandation)' : '') + ' : ' + mad(V.q.ttc) + ' TTC\n';
+        d.entries.filter(function (e) { return e.ver === v; }).forEach(function (e) { t += '   ' + lineTxt(e); });
+      });
+      t += '\nDites-nous quelle version vous convient.\n';
+    } else if (d.versions) d.entries.filter(function (e) { return e.ver === d.pick; }).forEach(function (e) { t += lineTxt(e); });
     if (q.travel) t += (whatsapp ? '• ' : '') + 'Déplacement ' + zone + ' : ' + (whatsapp ? mad(q.travel * T) + ' TTC' : mad(q.travel) + ' HT') + '\n';
     if (q.discount) t += (whatsapp ? '• ' : '') + 'Remise : − ' + (whatsapp ? mad(q.discount * T) + ' TTC' : mad(q.discount) + ' HT') + '\n';
-    t += '\nTotal : ' + mad(q.ttc) + ' TTC (' + mad(q.htNet) + ' HT + TVA ' + Math.round(S.settings.tva * 100) + ' %)\n';
+    t += '\n' + (d.versions ? 'Total ' + (d.chosen ? 'de la version ' : 'version ') + d.pick + (d.chosen ? '' : ' (recommandée)') : 'Total') + ' : ' + mad(q.ttc) + ' TTC (' + mad(q.htNet) + ' HT + TVA ' + Math.round(S.settings.tva * 100) + ' %)\n';
     t += 'Fourniture et pose comprises. Valable jusqu’au ' + valid + '.\n' + S.settings.conditions + '\n\nStore Luxe · Agadir · +212 6 67 62 03 60';
     return t;
   }
@@ -917,6 +1130,12 @@
     if (b.id === 'k-wa') { copy(quoteText(Q, true), 'Message copié : collez-le dans WhatsApp'); markSent(Q); }
     if (b.id === 'k-pdf') downloadPDF(Q);
     if (b.id === 'k-txt') copy(quoteText(Q, false), 'Devis copié');
+    if (b.dataset.choose) { if (!canWrite()) return; Q.choice = Q.choice === b.dataset.choose ? null : b.dataset.choose; commitQuote(Q); renderQuotes(); toast(Q.choice ? 'Version ' + Q.choice + ' retenue' : 'Choix annulé'); }
+    if (b.id === 'k-vis-save') loadVisual(Q).then(function (src) {
+      if (!src) { toast('Image introuvable.'); return; }
+      fetch(src).then(function (r) { return r.blob(); }).then(function (bl) { saveBlob(pdfText('Projet ' + Q.no + (Q.site && Q.site.client ? ' - ' + Q.site.client : '')).replace(/[\\/:*?"<>|]+/g, ' ') + '.jpg', bl, 'Image enregistrée'); });
+    });
+    if (b.id === 'k-vis-del') { removeVisual(Q); renderQuotes(); }
     if (b.id === 'k-dup') {
       if (!canWrite()) return;
       var lines = clone(Q.lines), site = clone(Q.site);
@@ -925,7 +1144,8 @@
     if (b.id === 'k-del') { confirmDel = true; renderDoc(); }
     if (b.id === 'k-del-no') { confirmDel = false; renderDoc(); }
     if (b.id === 'k-del-yes') {
-      confirmDel = false; delete S.quotes[Q.id]; deleteDoc('quotes/' + Q.id); S.activeId = null; save(); renderCount(); renderQuotes(); toast('Devis supprimé');
+      confirmDel = false; if (Q.visualAt) { if (shared()) deleteDoc('visuals/' + Q.id); else { try { localStorage.removeItem(visualKey(Q.id)); } catch (err) { /* ignoré */ } } }
+      delete S.quotes[Q.id]; deleteDoc('quotes/' + Q.id); S.activeId = null; save(); renderCount(); renderQuotes(); toast('Devis supprimé');
     }
   });
   vd.addEventListener('change', function (e) {
@@ -945,7 +1165,7 @@
       .replace(/[\u2013\u2014]/g, '-').replace(/\u2026/g, '...').replace(/\u20ac/g, 'EUR').replace(/[^\x00-\xff]/g, '');
   }
   function pdfMad(x) { return pdfText(nf0.format(Math.round(x))) + ' MAD'; }
-  function buildPDF(Q) {
+  function buildPDF(Q, vis) {
     var J = window.jspdf.jsPDF, doc = new J({ unit: 'mm', format: 'a4' });
     var W = 210, M = 16, BR = [162, 89, 46], INK = [19, 29, 39], MU = [86, 99, 111], LN = [210, 217, 223];
     var d = quoteCalc(Q), q = d.q, site = Q.site || {}, zone = q.zone.name.split(' (')[0];
@@ -981,6 +1201,16 @@
       doc.setFontSize(10.5); col(INK); doc.text(pdfText(c[1]), x, y + 5.5, { maxWidth: 56 });
     });
     y = 54;
+    if (vis && vis.src) { // simulation sur la photo du chantier
+      var iw = W - 2 * M, ih = iw * vis.h / vis.w;
+      if (ih > 92) { ih = 92; iw = ih * vis.w / vis.h; }
+      try {
+        doc.addImage(vis.src, 'JPEG', (W - iw) / 2, 50, iw, ih);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); col(MU);
+        doc.text(pdfText('Simulation sur la photo du chantier, non contractuelle'), W / 2, 50 + ih + 4, { align: 'center' });
+        y = 50 + ih + 13;
+      } catch (e) { /* image illisible : on continue sans */ }
+    }
     function tableHead() {
       doc.setFillColor(244, 246, 248); doc.rect(M, y - 4.5, W - 2 * M, 7, 'F');
       doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); col(MU);
@@ -988,7 +1218,23 @@
       y += 8;
     }
     tableHead();
-    d.entries.forEach(function (e, i) {
+    var num = 0;
+    function verHead(v, V) {
+      if (y + 18 > 262) { doc.addPage(); head(); y = 44; tableHead(); }
+      var c = tint(BR, 0.12); doc.setFillColor(c[0], c[1], c[2]); doc.rect(M, y - 4.5, W - 2 * M, 7.5, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); col(BR);
+      doc.text(pdfText('VERSION ' + v + ' · ' + C.VERSION_NAMES[v].toUpperCase() + (!d.chosen && v === 'B' ? ' (RECOMMANDÉE)' : '')), M + 2, y);
+      doc.text(pdfMad(V.q.ttc) + ' TTC', W - M - 2, y, { align: 'right' });
+      y += 9;
+    }
+    var list = d.entries.filter(function (e) { return !e.ver; }).map(function (e) { return { e: e }; });
+    if (d.versions) (d.chosen ? [d.pick] : d.vers).forEach(function (v) {
+      list.push({ head: v });
+      d.entries.filter(function (e) { return e.ver === v; }).forEach(function (e) { list.push({ e: e }); });
+    });
+    list.forEach(function (it) {
+      if (it.head) { verHead(it.head, d.versions[it.head]); return; }
+      var e = it.e, i = num++;
       var r = e.line, t = e.tier || r.base;
       doc.setFontSize(9); var sum = doc.splitTextToSize(pdfText(r.summary), 120);
       doc.setFontSize(8.5); var det = r.details.map(function (x) { return doc.splitTextToSize(pdfText('- ' + x), 118); });
@@ -1004,6 +1250,18 @@
       doc.setDrawColor(LN[0], LN[1], LN[2]); doc.setLineWidth(0.2); doc.line(M, y - 1, W - M, y - 1);
       y += 6;
     });
+    if (d.versions && !d.chosen) {
+      if (y + 30 > 262) { doc.addPage(); head(); y = 44; }
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); col(INK); doc.text(pdfText('Version choisie par le client (cochez) :'), M, y); y += 6;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+      d.vers.forEach(function (v, k) {
+        var x = M + k * ((W - 2 * M) / 3);
+        doc.setDrawColor(INK[0], INK[1], INK[2]); doc.setLineWidth(0.3); doc.rect(x, y - 3.5, 4, 4);
+        col(INK); doc.text(pdfText(v + ' · ' + C.VERSION_NAMES[v]), x + 6, y); col(MU); doc.text(pdfMad(d.versions[v].q.ttc) + ' TTC', x + 6, y + 4.5);
+      });
+      y += 13;
+      doc.setFontSize(8); col(MU); doc.text(pdfText('Totaux ci-dessous : version ' + d.pick + ' recommandée.'), M, y); y += 7;
+    }
     var rows = [['Sous-total', q.ht - q.travel]];
     if (q.travel) rows.push(['Déplacement ' + zone + (q.nights ? ' (' + q.nights + ' nuit' + (q.nights > 1 ? 's' : '') + ')' : ''), q.travel]);
     if (q.discount) rows.push(['Remise', -q.discount]);
@@ -1039,8 +1297,14 @@
   }
   function downloadPDF(Q) {
     if (!window.jspdf || !window.jspdf.jsPDF) { toast('Le module PDF n’a pas pu se charger : vérifiez la connexion puis rechargez la page.'); return; }
+    loadVisual(Q).then(function (src) {
+      if (!src) return null;
+      return new Promise(function (ok) { var im = new Image(); im.onload = function () { ok({ src: src, w: im.naturalWidth, h: im.naturalHeight }); }; im.onerror = function () { ok(null); }; im.src = src; });
+    }).then(function (vis) { savePDF(Q, vis); });
+  }
+  function savePDF(Q, vis) {
     var blob;
-    try { blob = buildPDF(Q); } catch (e) { toast('Le PDF n’a pas pu être généré.'); return; }
+    try { blob = buildPDF(Q, vis); } catch (e) { toast('Le PDF n’a pas pu être généré.'); return; }
     var name = pdfText('Devis ' + Q.no + (Q.site && Q.site.client ? ' - ' + Q.site.client : '')).replace(/[\\/:*?"<>|]+/g, ' ').trim() + '.pdf';
     var inClaude = window.claude && typeof window.claude.use === 'function';
     if (!inClaude) {
@@ -1053,6 +1317,45 @@
       return dl.save({ filename: name, data: blob }).then(function () { toast('Devis PDF enregistré'); markSent(Q); }, function (e) {
         if (e && e.code === 'declined') return;
         toast(e && e.code === 'rate_limited' ? 'Une demande d’enregistrement est déjà ouverte.' : 'Le téléchargement n’a pas abouti.');
+      });
+    });
+  }
+
+  /* ---------- Simulation jointe au devis (stockée à part, chargée à la demande) ---------- */
+  var VIS = {};
+  function visualKey(id) { return 'storeluxe-visual-' + id; }
+  function loadVisual(Q) {
+    if (!Q || !Q.visualAt) return Promise.resolve(null);
+    var k = Q.id + '|' + Q.visualAt;
+    if (VIS[k] !== undefined) return Promise.resolve(VIS[k]);
+    var p = shared()
+      ? STORE.db.doc('visuals/' + Q.id).get().then(function (d) { return d.exists ? ((d.data() || {}).img || null) : null; }, function () { return null; })
+      : Promise.resolve((function () { try { return localStorage.getItem(visualKey(Q.id)); } catch (e) { return null; } })());
+    return p.then(function (src) { VIS[k] = src; return src; });
+  }
+  function saveVisual(Q, dataUrl) {
+    var at = new Date().toISOString();
+    if (shared()) writeDoc('visuals/' + Q.id, function () { return { img: dataUrl, at: at, by: STORE.me || null }; });
+    else { try { localStorage.setItem(visualKey(Q.id), dataUrl); } catch (e) { toast('La mémoire du navigateur est pleine : l’image n’a pas pu être gardée.'); return; } }
+    VIS[Q.id + '|' + at] = dataUrl; Q.visualAt = at; commitQuote(Q);
+  }
+  function removeVisual(Q) {
+    if (shared()) deleteDoc('visuals/' + Q.id); else { try { localStorage.removeItem(visualKey(Q.id)); } catch (e) { /* ignoré */ } }
+    delete Q.visualAt; commitQuote(Q);
+  }
+  /* Fichier à enregistrer : capacité « downloads » dans claude.ai, lien classique ailleurs. */
+  function saveBlob(name, blob, okMsg) {
+    var inClaude = window.claude && typeof window.claude.use === 'function';
+    if (!inClaude) {
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+      toast(okMsg); return Promise.resolve(true);
+    }
+    return window.claude.use('downloads').then(function (dl) {
+      if (!dl) { toast('Le téléchargement n’est pas disponible dans cette vue.'); return false; }
+      return dl.save({ filename: name, data: blob }).then(function () { toast(okMsg); return true; }, function (e) {
+        if (!(e && e.code === 'declined')) toast(e && e.code === 'rate_limited' ? 'Une demande d’enregistrement est déjà ouverte.' : 'Le téléchargement n’a pas abouti.');
+        return false;
       });
     });
   }
@@ -1173,8 +1476,8 @@
   }
   var openHist = {};
   /* Un relevé par jour et par article ; il garde qui l'a saisi et quand. */
-  function addPrice(id, v, cur) {
-    var it = S.book[id], st = stamp(), pt = { d: TODAY, v: v, src: 'manuel', by: st.by, at: st.at };
+  function addPrice(id, v, cur, src) {
+    var it = S.book[id], st = stamp(), pt = { d: TODAY, v: v, src: src || 'manuel', by: st.by, at: st.at };
     if (it.type === 'eur' && cur !== 'EUR') pt.cur = 'MAD';
     it.hist = it.hist.filter(function (p) { return p.d !== TODAY; }).concat([pt]);
     persistPrice(id);
@@ -1190,6 +1493,114 @@
     toast(S.book[id].name + ' : ' + nf2.format(v) + (S.book[id].type === 'eur' && cur === 'EUR' ? ' €' : ' MAD') + ' enregistré' +
       (after > before ? ' · ' + after + ' devis envoyé' + (after > 1 ? 's perdent' : ' perd') + ' de la marge' : ''));
   }
+  /* ---------- Lecture d'une facture fournisseur par Claude (validée avant enregistrement) ---------- */
+  var INV = { state: 'idle', rows: [], msg: '', file: null, text: '' };
+  var INV_ERR = {
+    not_granted: 'Claude n’est pas autorisé pour cette page : acceptez la demande, ou vérifiez les autorisations de la page.',
+    sampling_disabled: 'Claude n’est pas disponible pour ce compte.',
+    rate_limited: 'Trop de demandes pour le moment : réessayez dans quelques minutes.',
+    image_rejected: 'Image illisible : essayez une photo plus nette, en JPEG ou PNG.',
+    images_unavailable: 'L’envoi d’images n’est pas possible ici : collez plutôt le texte de la facture.',
+    invalid_json: 'La lecture n’a rien donné d’exploitable : réessayez avec une photo plus nette, ou collez le texte.',
+    refused: 'Claude n’a pas pu traiter ce document : essayez avec un autre extrait.',
+    empty_completion: 'Aucune réponse : essayez avec une photo plus nette ou un extrait plus court.',
+    prompt_too_large: 'Texte trop long : collez seulement les lignes de prix.',
+    session_expired: 'Votre session a expiré : reconnectez-vous à claude.ai.'
+  };
+  function renderInvoice() {
+    var box = $('invoice'); if (!box) return;
+    var h = '<div class="row" style="justify-content:space-between"><h3>Lire une facture fournisseur</h3><span class="pill acc">avec Claude</span></div>';
+    if (!STORE.sample) {
+      box.innerHTML = h + '<p class="sub" style="margin:0">Photographiez une facture ou un tarif : Claude propose les nouveaux prix, vous validez. Disponible quand la page est ouverte depuis claude.ai.</p>';
+      return;
+    }
+    if (!STORE.canWrite) { box.innerHTML = h + '<p class="sub" style="margin:0">Votre accès est en lecture seule : seuls les membres qui peuvent modifier la page mettent à jour les prix.</p>'; return; }
+    if (INV.state === 'review') {
+      h += '<p class="sub" style="margin:0">Vérifiez chaque prix proposé (HT, dans l’unité de l’article), décochez ce qui ne convient pas, puis enregistrez.</p>';
+      h += '<div class="tbl-wrap"><table class="inv-tbl"><thead><tr><th></th><th>Article</th><th class="r">Actuel</th><th>Nouveau prix</th><th>Ligne lue</th></tr></thead><tbody>' + INV.rows.map(function (r, i) {
+        var it = S.book[r.id], uc = E.unitCost(it, S.book, S.settings, TODAY);
+        var cur = it.type === 'eur' ? '<select class="inp" id="inv-u-' + i + '" style="width:64px;height:34px;padding:0 4px" aria-label="Devise"><option value="MAD"' + (r.cur === 'MAD' ? ' selected' : '') + '>MAD</option><option value="EUR"' + (r.cur === 'EUR' ? ' selected' : '') + '>€</option></select>' : '<span class="sub">' + (it.type === 'index' ? esc(it.unit) : 'MAD') + '</span>';
+        var chg = uc.now && r.cur === 'MAD' ? r.v / uc.now - 1 : null;
+        return '<tr><td><input type="checkbox" id="inv-c-' + i + '"' + (r.on ? ' checked' : '') + ' aria-label="Garder ' + esc(it.name) + '"></td>' +
+          '<td class="c-name"><b style="font-weight:600">' + esc(it.name) + '</b><small>par ' + esc(it.unit) + '</small></td>' +
+          '<td class="r num" data-l="Actuel">' + nf2.format(uc.now) + '</td>' +
+          '<td data-l="Nouveau"><div class="upd"><input type="number" step="0.01" id="inv-v-' + i + '" value="' + r.v + '" aria-label="Nouveau prix ' + esc(it.name) + '">' + cur + '</div>' +
+          (chg != null ? '<small class="' + (chg > 0.005 ? 'up' : '') + '">' + (chg > 0 ? '+' : '') + pct(chg) + '</small>' : '') + '</td>' +
+          '<td class="c-src"><small>' + esc(r.line) + (r.note ? '<br><i>' + esc(r.note) + '</i>' : '') + '</small>' + (r.conf < 0.6 ? '<span class="pill warn">à vérifier</span>' : '') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+      h += '<div class="row"><button class="btn pri" type="button" id="inv-save">Enregistrer la sélection</button><button class="btn ghost" type="button" id="inv-cancel">Annuler</button></div>';
+      box.innerHTML = h; return;
+    }
+    var busy = INV.state === 'busy';
+    h += '<p class="sub" style="margin:0">Photo d’une facture, d’un bon de livraison ou d’un tarif, ou texte copié d’un e-mail. Claude repère les articles de votre carnet et propose les prix HT ; rien n’est enregistré sans votre validation.</p>';
+    h += '<div class="inv-in">' + (STORE.sampleImages ? '<label class="btn" for="inv-file">' + (INV.file ? 'Photo : ' + esc(INV.file.name) : 'Choisir ou prendre une photo') + '</label><input type="file" id="inv-file" accept="' + esc(STORE.sampleImages.join(',')) + '" hidden>' : '') +
+      '<textarea class="inp" id="inv-text" placeholder="… ou collez ici les lignes de la facture ou du tarif">' + esc(INV.text) + '</textarea></div>';
+    h += '<div class="row"><button class="btn pri" type="button" id="inv-go"' + (busy ? ' disabled' : '') + '>' + (busy ? 'Lecture en cours…' : 'Analyser') + '</button>' + (busy ? '<button class="btn ghost" type="button" id="inv-stop">Arrêter</button>' : '') + '</div>';
+    if (INV.msg) h += '<div class="alert">' + esc(INV.msg) + '</div>';
+    box.innerHTML = h;
+  }
+  function analyzeInvoice() {
+    var text = $('inv-text') ? $('inv-text').value.trim() : '';
+    INV.text = text;
+    if (!INV.file && !text) { toast('Ajoutez une photo ou collez un texte.'); return; }
+    var ids = Object.keys(S.book).filter(function (id) { var it = S.book[id]; return it.type !== 'alu' && id !== 'usd_mad' && id !== 'eur_mad'; });
+    var list = ids.map(function (id) { var it = S.book[id]; return id + ' | ' + it.name + ' | par ' + (id === 'alu_kg' ? 'kg' : it.unit) + (it.supplier ? ' | ' + it.supplier : ''); }).join('\n');
+    var prompt = 'Tu aides Store Luxe, installateur de pergolas et de stores à Agadir (Maroc), à mettre à jour son carnet de prix fournisseurs.\n' +
+      (INV.file ? 'L’image jointe est une facture, un bon de livraison ou un tarif d’un fournisseur.\n' : '') +
+      (text ? 'Texte fourni par l’utilisateur, entre les lignes ---- :\n----\n' + text.slice(0, 12000) + '\n----\n' : '') +
+      '\nArticles du carnet (id | nom | unité | fournisseur) :\n' + list +
+      '\n\nPour chaque ligne du document qui correspond clairement à un article du carnet, donne le prix unitaire HORS TVA dans l’unité de l’article. ' +
+      'Si le document est TTC, retire la TVA de 20 %. Si l’unité diffère (barre de 6 m au lieu du mètre, rouleau au lieu du m², lot…), convertis et explique la conversion dans "note". ' +
+      'Les profilés aluminium vendus au kilo correspondent à l’id alu_kg. Ignore les lignes sans correspondance claire et n’invente aucun prix.\n' +
+      'Réponds uniquement par un tableau JSON : [{"id": "…", "prix": 123.45, "devise": "MAD", "ligne": "texte lu sur le document", "confiance": 0.9, "note": ""}]. "devise" vaut "MAD" ou "EUR". Tableau vide si rien ne correspond.';
+    INV.state = 'busy'; INV.msg = ''; renderInvoice();
+    INV.ctl = new AbortController();
+    var opts = { signal: INV.ctl.signal };
+    if (INV.file) opts.images = [INV.file];
+    STORE.sample.json(prompt, opts).then(function (res) {
+      var best = {};
+      (Array.isArray(res) ? res : []).forEach(function (r) {
+        if (!r || !S.book[r.id] || ids.indexOf(r.id) < 0) return;
+        var v = parseFloat(String(r.prix).replace(',', '.')); if (!(v > 0)) return;
+        var row = { id: r.id, v: Math.round(v * 100) / 100, cur: r.devise === 'EUR' && S.book[r.id].type === 'eur' ? 'EUR' : 'MAD',
+          line: String(r.ligne || '').slice(0, 200), note: String(r.note || '').slice(0, 200), conf: Math.max(0, Math.min(1, +r.confiance || 0)) };
+        row.on = row.conf >= 0.6;
+        if (!best[r.id] || best[r.id].conf < row.conf) best[r.id] = row;
+      });
+      INV.rows = Object.keys(best).map(function (k) { return best[k]; });
+      INV.state = INV.rows.length ? 'review' : 'idle';
+      INV.msg = INV.rows.length ? '' : 'Aucun article de votre carnet n’a été reconnu dans ce document.';
+      renderInvoice();
+    }, function (e) {
+      INV.state = 'idle';
+      INV.msg = e && e.code === 'cancelled' ? '' : (INV_ERR[e && e.code] || 'La lecture a été interrompue : réessayez dans un instant.');
+      renderInvoice();
+    });
+  }
+  var inv = $('invoice');
+  inv.addEventListener('click', function (e) {
+    var id = e.target.id;
+    if (id === 'inv-go') analyzeInvoice();
+    if (id === 'inv-stop' && INV.ctl) INV.ctl.abort();
+    if (id === 'inv-cancel') { INV = { state: 'idle', rows: [], msg: '', file: null, text: '' }; renderInvoice(); }
+    if (id === 'inv-save') {
+      if (!canWrite()) return;
+      var before = riskyQuotes().length, n = 0;
+      INV.rows.forEach(function (r, i) {
+        if (!$('inv-c-' + i).checked) return;
+        var v = parseFloat(String($('inv-v-' + i).value).replace(',', '.')); if (!(v > 0)) return;
+        var cs = $('inv-u-' + i); addPrice(r.id, v, cs ? cs.value : 'MAD', 'facture'); n++;
+      });
+      INV = { state: 'idle', rows: [], msg: '', file: null, text: '' };
+      save(); renderInvoice(); renderBook(); renderResult(); renderCount();
+      var after = riskyQuotes().length;
+      toast(n + ' prix enregistré' + (n > 1 ? 's' : '') + (shared() ? ' pour toute l’équipe' : '') + (after > before ? ' · ' + after + ' devis perdent de la marge' : ''));
+    }
+  });
+  inv.addEventListener('change', function (e) {
+    if (e.target.id === 'inv-file') { INV.file = e.target.files[0] || null; INV.text = $('inv-text') ? $('inv-text').value : INV.text; renderInvoice(); }
+  });
+
   function renderJournal() {
     var rows = [];
     Object.keys(S.book).forEach(function (id) { (S.book[id].hist || []).forEach(function (p) { if (p.at) rows.push({ id: id, p: p }); }); });

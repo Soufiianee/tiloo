@@ -34,7 +34,9 @@
     banne_fr: { label: 'La Prime Énergie — prix des stores bannes 2026 (France)', url: 'https://www.laprimeenergie.fr/les-travaux/store-banne/prix' },
     alibaba: { label: 'Alibaba — pergola bioclimatique motorisée, prix échantillon', url: 'https://www.alibaba.com/product-detail/Brand-new-high-quality-Motorized-Louver_1601028447957.html' },
     akena: { label: 'Akena — prix pergolas bioclimatiques (Europe)', url: 'https://www.akena.com/en/pergolas/pergolas-price?page=1' },
-    est: { label: 'Estimation de l’étude, à confirmer par votre fournisseur', url: '' }
+    est: { label: 'Estimation de l’étude, à confirmer par votre fournisseur', url: '' },
+    manuel: { label: 'Saisie de l’équipe', url: '' },
+    facture: { label: 'Facture fournisseur lue par Claude, validée par l’équipe', url: '' }
   };
 
   /* Relevé daté. */
@@ -734,7 +736,49 @@
       summary: p.n + ' × ' + p.W + ' × ' + p.H + ' m', geo: { kind: 'front', W: p.W, H: p.H, n: p.n, pattern: pattern, coffre: p.coffre } };
   }
 
-  var api = { SOURCES: SOURCES, BOOK: BOOK, SETTINGS: SETTINGS, PRODUCTS: PRODUCTS };
+  /* Trois versions d'un même projet (mêmes dimensions) : Essentiel, Confort, Premium.
+   * Chaque fonction reçoit la configuration en cours et renvoie les réglages à changer. */
+  var VERSIONS = {
+    'pergola-bioclimatique': function (p) {
+      var sides = p.config === 'autoportante' ? 'trois' : 'avant1';
+      return {
+        A: { spots: 0, led: 'non', chauffage: 0, capteur: false, melody: false, brumi: false, cotes: 'aucun' },
+        B: { spots: Math.max(p.spots, 8), led: 'blanc', capteur: true, cotes: 'aucun' },
+        C: { spots: Math.max(p.spots, 8), led: 'rgb', capteur: true, cotes: sides, ferm: 'zip', zipCmd: 'capteur' }
+      };
+    },
+    'pergola-toile': function (p) {
+      return { A: { spots: 0, capteur: false, cotes: 'aucun' }, B: { spots: Math.max(p.spots, 6), capteur: true, cotes: 'aucun' },
+        C: { spots: Math.max(p.spots, 6), capteur: true, cotes: 'avant', ferm: 'zip', zipCmd: 'capteur' } };
+    },
+    'pergola-aluminium': function (p) {
+      return { A: { couv: 'poly_16', spots: 0, cotes: 'aucun' }, B: { couv: 'poly_compact', spots: Math.max(p.spots, 6), cotes: 'aucun' },
+        C: { couv: 'verre_442', spots: Math.max(p.spots, 8), cotes: 'avant', ferm: 'zip', zipCmd: 'moteur' } };
+    },
+    'veranda': function (p) {
+      return { A: { vitrage: 'vitre_trempe', toit: 'poly_16', spots: 0 }, B: { vitrage: 'double_vitrage', toit: 'sandwich_40', spots: Math.max(p.spots, 4) },
+        C: { vitrage: 'controle_solaire', toit: 'sandwich_40', spots: Math.max(p.spots, 8) } };
+    },
+    'carport': function (p) {
+      return { A: { couv: 'poly_16', spots: 0 }, B: { couv: 'sandwich_40', spots: Math.max(p.spots, 2) }, C: { couv: 'sandwich_40', spots: Math.max(p.spots, 4), ral: 'sable' } };
+    },
+    'voile-ombrage': function () { return { A: { toile: 'toile_hdpe' }, B: { toile: 'toile_pvc' }, C: { toile: 'toile_ferrari' } }; },
+    'store-banne': function () {
+      return { A: { type: 'banne_monobloc', cmd: 'manuel', ledbras: false }, B: { type: 'banne_semicoffre', cmd: 'moteur', ledbras: false },
+        C: { type: 'banne_coffre', cmd: 'capteur', ledbras: true, toile: 'toile_ferrari' } };
+    },
+    'store-zip': function () { return { A: { cmd: 'manuel' }, B: { cmd: 'moteur' }, C: { cmd: 'capteur' } }; },
+    'store-enrouleur': function () { return { A: { cmd: 'chainette', coffre: false }, B: { cmd: 'chainette', coffre: true }, C: { cmd: 'moteur', coffre: true } }; },
+    'store-jour-nuit': function () { return { A: { cmd: 'chainette', coffre: false }, B: { cmd: 'chainette', coffre: true }, C: { cmd: 'moteur', coffre: true } }; },
+    'store-venitien': function () {
+      return { A: { lame: 'venitien_25', guidage: false, cmd: 'manuel' }, B: { lame: 'venitien_50', guidage: false, cmd: 'manuel' }, C: { lame: 'venitien_50', guidage: true, cmd: 'moteur' } };
+    },
+    'moustiquaire': function () { return { A: { sys: 'kit_moust_fixe', laquage: 'standard' }, B: { sys: 'kit_moust_coul', laquage: 'standard' }, C: { sys: 'kit_moust_pli', laquage: 'ral' } }; }
+  };
+  var VERSION_NAMES = { A: 'Essentiel', B: 'Confort', C: 'Premium' };
+  PRODUCTS.forEach(function (p) { p.versions = VERSIONS[p.id]; });
+
+  var api = { SOURCES: SOURCES, BOOK: BOOK, SETTINGS: SETTINGS, PRODUCTS: PRODUCTS, VERSION_NAMES: VERSION_NAMES };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.SLCatalog = api;
 })(this);

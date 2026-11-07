@@ -88,3 +88,34 @@ test('devis : niveau par ligne, déplacement avec nuitées, remise, TVA', () => 
   assert.equal(q.htNet, q.ht - q.discount);
   assert.ok(Math.abs(q.ttc - q.htNet * 1.2) < 1e-6);
 });
+
+const SL3D = require('../app/view3d.js').SL3D;
+
+test('photo : la caméra reconstruite depuis 4 coins reprojette la structure au pixel près', () => {
+  const W = 1600, H = 1200, cross = (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+  const yaw = 0.3, pitch = 0.25, C = [2.2, 1.6, 7], f = 1400;
+  const fwd = [-Math.sin(yaw)*Math.cos(pitch), -Math.sin(pitch), -Math.cos(yaw)*Math.cos(pitch)], right = [Math.cos(yaw), 0, -Math.sin(yaw)];
+  const R = [right, cross(fwd, right), fwd], t = [0, 1, 2].map(i => -(R[i][0]*C[0]+R[i][1]*C[1]+R[i][2]*C[2]));
+  const truth = { f, R, t }, g = { kind: 'plan', L: 5, P: 3 };
+  const img = SL3D.footCorners(g).map(c => SL3D.project(truth, [c[0], 0, c[1]], W, H));
+  const pose = SL3D.solvePose(img, SL3D.footCorners(g), W, H);
+  assert.ok(Math.abs(pose.f - f) < 1);
+  for (const p of [[2.5, 2.6, 1.5], [-2.5, 2.6, -1.5]]) {
+    const a = SL3D.project(truth, p, W, H), b = SL3D.project(pose, p, W, H);
+    assert.ok(Math.hypot(a[0]-b[0], a[1]-b[1]) < 0.5);
+  }
+});
+
+test('soleil : Agadir, été l’après-midi à l’ouest, hiver à midi au sud et plus bas', () => {
+  const ete = SL3D.sunPosition(7, 15, 16, 30.42, -9.6), hiver = SL3D.sunPosition(12, 21, 12.5, 30.42, -9.6);
+  assert.ok(ete.az > 240 && ete.az < 290 && ete.alt > 45, JSON.stringify(ete));
+  assert.ok(hiver.az > 150 && hiver.az < 210 && hiver.alt < 40, JSON.stringify(hiver));
+});
+
+test('trois versions : Essentiel ≤ Confort ≤ Premium pour chaque produit', () => {
+  for (const p of C.PRODUCTS) {
+    const base = E.fullParams(p, {}), v = p.versions(base);
+    const ttc = ['A', 'B', 'C'].map(k => E.priceLine(p, Object.assign({}, base, v[k]), C.BOOK, C.SETTINGS, TODAY, {}).sale.win);
+    assert.ok(ttc[0] <= ttc[1] && ttc[1] <= ttc[2], p.id + ' ' + ttc.join(' / '));
+  }
+});

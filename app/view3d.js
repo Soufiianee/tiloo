@@ -7,7 +7,7 @@
 (function (root) {
   'use strict';
   var URL3 = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-  var V = null, loading = null;
+  var V = null, loading = null, PHOTO = false;
   var RAL = { standard: 0x383E42, sable: 0x6E716C, special: 0x7E5233 };
 
   function load() {
@@ -37,8 +37,8 @@
     var sun = new T.DirectionalLight(0xfff4e6, 0.85);
     sun.position.set(-7, 14, 9); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
     var sc = sun.shadow.camera; sc.left = -16; sc.right = 16; sc.top = 16; sc.bottom = -16; sc.far = 60; sun.shadow.bias = -0.0005;
-    scene.add(sun);
-    V = { T: T, host: host, renderer: renderer, scene: scene, camera: camera, yaw: -0.65, pitch: 0.42, dist: 12, target: new T.Vector3(0, 1.3, 0),
+    scene.add(sun); scene.add(sun.target);
+    V = { T: T, sunLight: sun, sunInfo: null, host: host, renderer: renderer, scene: scene, camera: camera, yaw: -0.65, pitch: 0.42, dist: 12, target: new T.Vector3(0, 1.3, 0),
       group: null, slats: [], open: 0.55, geo: null };
     var drag = null, pinch = null, pts = {};
     host.addEventListener('pointerdown', function (e) {
@@ -109,13 +109,17 @@
   /* ---------- Constructions ---------- */
   function ground(G, M, w, d) {
     var T = V.T;
+    if (PHOTO) { // sur photo : seul un « attrape-ombre » transparent au sol
+      var sc = new T.Mesh(new T.PlaneGeometry(60, 60), new T.ShadowMaterial({ opacity: 0.38 }));
+      sc.rotation.x = -Math.PI / 2; sc.position.y = 0.002; sc.receiveShadow = true; G.add(sc); return;
+    }
     var gr = new T.Mesh(new T.PlaneGeometry(60, 60), M.ground); gr.rotation.x = -Math.PI / 2; gr.receiveShadow = true; G.add(gr);
     G.add(box(w, 0.04, d, M.slab, 0, 0.02, 0, false));
   }
   function buildPlan(G, g, M) {
     var L = g.L, P = g.P, H = g.H || 2.5, x0 = -L / 2, z0 = -P / 2, beamH = g.roof === 'lames' ? 0.24 : 0.16;
     ground(G, M, L + 2.4, P + 2.4);
-    if (g.wall) G.add(box(L + 3, H + 1.4, 0.3, M.wall, 0, (H + 1.4) / 2, z0 - 0.15));
+    if (g.wall && !PHOTO) G.add(box(L + 3, H + 1.4, 0.3, M.wall, 0, (H + 1.4) / 2, z0 - 0.15));
     (g.posts || []).forEach(function (p) {
       var s = g.roof === 'lames' ? 0.15 : 0.1;
       G.add(box(s, H, s, M.alu, x0 + clamp(p[0], s / 2, L - s / 2), H / 2, z0 + clamp(p[1], s / 2, P - s / 2)));
@@ -191,7 +195,7 @@
   function buildBanne(G, g, M) {
     var W = g.W, A = g.A, y0 = 2.6, drop = Math.tan(14 * Math.PI / 180) * A, T = V.T;
     ground(G, M, W + 2, A + 2);
-    G.add(box(W + 3, 3.6, 0.3, M.wall, 0, 1.8, -0.15));
+    if (!PHOTO) G.add(box(W + 3, 3.6, 0.3, M.wall, 0, 1.8, -0.15));
     var cas = g.type === 'banne_monobloc' ? box(W, 0.08, 0.08, M.alu, 0, y0, 0.08) : box(W + 0.1, 0.26, 0.26, M.alu, 0, y0, 0.15);
     G.add(cas);
     var fab = new T.Mesh(new T.PlaneGeometry(W - 0.04, Math.hypot(A, drop)), M.awning);
@@ -235,6 +239,130 @@
     return span * 2.2;
   }
 
+  /* ---------- Soleil : position selon la ville, la date et l'heure ---------- */
+  var D2R = Math.PI / 180;
+  function sunPosition(month, day, hour, lat, lon) {
+    var n = Math.round(30.6 * (month - 1) + day); // jour de l'année, approché
+    var decl = 23.44 * Math.sin(2 * Math.PI * (284 + n) / 365);
+    var B = 2 * Math.PI * (n - 81) / 364;
+    var eot = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B); // minutes
+    var solar = hour + (4 * (lon - 15) + eot) / 60;                            // Maroc : UTC+1
+    var H = 15 * (solar - 12) * D2R, phi = lat * D2R, d = decl * D2R;
+    var alt = Math.asin(Math.sin(phi) * Math.sin(d) + Math.cos(phi) * Math.cos(d) * Math.cos(H));
+    var az = (Math.atan2(Math.sin(H), Math.cos(H) * Math.sin(phi) - Math.tan(d) * Math.cos(phi)) / D2R + 180) % 360;
+    return { alt: alt / D2R, az: az };
+  }
+  /* Direction (dans la scène) d'un cap géographique, la terrasse (+z) étant orientée au cap `o`. */
+  function dirOf(bearing, o) { var a = (bearing - o) * D2R; return { x: -Math.sin(a), z: Math.cos(a) }; }
+  function applySun(light, info, target) {
+    if (!info) { light.position.set(target.x - 7, 14, target.z + 9); light.intensity = 0.85; return; }
+    var alt = Math.max(info.alt, -5) * D2R, d = dirOf(info.az, info.orient), R = 30;
+    light.target.position.copy(target);
+    light.position.set(target.x + d.x * Math.cos(alt) * R, Math.max(0.2, Math.sin(alt) * R), target.z + d.z * Math.cos(alt) * R);
+    light.intensity = info.alt > 0 ? 0.55 + 0.4 * Math.min(1, info.alt / 45) : 0.05;
+  }
+  /* Part de l'emprise au sol à l'ombre : rayons lancés vers le soleil. */
+  function shadeFraction(g) {
+    if (!V || !V.group || !V.sunInfo || V.sunInfo.alt <= 0 || !g) return null;
+    var T = V.T, fp = footprint(g); if (!fp) return null;
+    var occ = []; V.group.traverse(function (o) { if (o.isMesh && o.castShadow) occ.push(o); });
+    var a = V.sunInfo.alt * D2R, d = dirOf(V.sunInfo.az, V.sunInfo.orient);
+    var dir = new T.Vector3(d.x * Math.cos(a), Math.sin(a), d.z * Math.cos(a)).normalize();
+    var rc = new T.Raycaster(), n = 0, hit = 0, NX = 16, NZ = 10;
+    V.group.updateMatrixWorld(true);
+    for (var i = 0; i < NX; i++) for (var j = 0; j < NZ; j++) {
+      var x = fp.x0 + (fp.x1 - fp.x0) * (i + 0.5) / NX, z = fp.z0 + (fp.z1 - fp.z0) * (j + 0.5) / NZ;
+      rc.set(new T.Vector3(x, 0.05, z), dir); n++;
+      if (rc.intersectObjects(occ, false).length) hit++;
+    }
+    return hit / n;
+  }
+  function footprint(g) {
+    if (g.kind === 'plan') return { x0: -g.L / 2, x1: g.L / 2, z0: -g.P / 2, z1: g.P / 2 };
+    if (g.kind === 'banne') return { x0: -g.W / 2, x1: g.W / 2, z0: 0.2, z1: 0.2 + g.A };
+    return null;
+  }
+
+  /* ---------- Pose de la caméra depuis 4 points touchés sur une photo ----------
+   * Homographie sol → image (4 coins d'un rectangle connu), focale estimée par
+   * orthogonalité, puis rotation et translation (caméra : x droite, y bas, z avant). */
+  function solveLinear(A, b) {
+    var n = b.length, M = A.map(function (r, i) { return r.concat([b[i]]); });
+    for (var c = 0; c < n; c++) {
+      var p = c; for (var r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+      if (Math.abs(M[p][c]) < 1e-12) return null;
+      var tmp = M[c]; M[c] = M[p]; M[p] = tmp;
+      for (r = 0; r < n; r++) if (r !== c) { var k = M[r][c] / M[c][c]; for (var q = c; q <= n; q++) M[r][q] -= k * M[c][q]; }
+    }
+    return M.map(function (r, i) { return r[n] / r[i]; });
+  }
+  function solvePose(img, world, W, Hh) {
+    var cx = W / 2, cy = Hh / 2, A = [], b = [];
+    for (var i = 0; i < 4; i++) {
+      var X = world[i][0], Z = world[i][1], u = img[i][0] - cx, v = img[i][1] - cy;
+      A.push([X, Z, 1, 0, 0, 0, -u * X, -u * Z]); b.push(u);
+      A.push([0, 0, 0, X, Z, 1, -v * X, -v * Z]); b.push(v);
+    }
+    var h = solveLinear(A, b); if (!h) return null;
+    var h11 = h[0], h12 = h[1], h13 = h[2], h21 = h[3], h22 = h[4], h23 = h[5], h31 = h[6], h32 = h[7];
+    var cands = [];
+    if (Math.abs(h31 * h32) > 1e-12) cands.push(-(h11 * h12 + h21 * h22) / (h31 * h32));
+    if (Math.abs(h32 * h32 - h31 * h31) > 1e-12) cands.push((h11 * h11 + h21 * h21 - h12 * h12 - h22 * h22) / (h32 * h32 - h31 * h31));
+    var big = Math.max(W, Hh), f = 0;
+    cands.forEach(function (f2) { if (!f && f2 > 0 && isFinite(f2)) { var ff = Math.sqrt(f2); if (ff > 0.3 * big && ff < 6 * big) f = ff; } });
+    if (!f) f = 1.1 * big;
+    var k1 = [h11 / f, h21 / f, h31], k2 = [h12 / f, h22 / f, h32], k3 = [h13 / f, h23 / f, 1];
+    function nrm(a) { return Math.hypot(a[0], a[1], a[2]); }
+    var lam = 2 / (nrm(k1) + nrm(k2));
+    if (k3[2] * lam < 0) lam = -lam;
+    var r1 = k1.map(function (x) { return x * lam; }), r2 = k2.map(function (x) { return x * lam; }), t = k3.map(function (x) { return x * lam; });
+    var n1 = nrm(r1); r1 = r1.map(function (x) { return x / n1; });
+    var dt = r1[0] * r2[0] + r1[1] * r2[1] + r1[2] * r2[2];
+    r2 = r2.map(function (x, i) { return x - dt * r1[i]; }); var n2 = nrm(r2); r2 = r2.map(function (x) { return x / n2; });
+    var ry = [r2[1] * r1[2] - r2[2] * r1[1], r2[2] * r1[0] - r2[0] * r1[2], r2[0] * r1[1] - r2[1] * r1[0]]; // R·e_y = r2 × r1
+    var R = [[r1[0], ry[0], r2[0]], [r1[1], ry[1], r2[1]], [r1[2], ry[2], r2[2]]]; // monde → caméra
+    var C = [0, 1, 2].map(function (j) { return -(R[0][j] * t[0] + R[1][j] * t[1] + R[2][j] * t[2]); });
+    return { f: f, R: R, t: t, C: C };
+  }
+  function project(pose, P, W, Hh) {
+    var R = pose.R, t = pose.t;
+    var c = [0, 1, 2].map(function (i) { return R[i][0] * P[0] + R[i][1] * P[1] + R[i][2] * P[2] + t[i]; });
+    return [W / 2 + pose.f * c[0] / c[2], Hh / 2 + pose.f * c[1] / c[2], c[2]];
+  }
+  function footCorners(g) {
+    var fp = footprint(g); if (!fp) return null;
+    return [[fp.x0, fp.z0], [fp.x1, fp.z0], [fp.x1, fp.z1], [fp.x0, fp.z1]]; // façade gauche, façade droite, avant droit, avant gauche
+  }
+  var PR = null;
+  /* Rend le modèle seul (fond transparent) cadré sur la photo ; renvoie un canvas W×H. */
+  function photoOverlay(g, W, Hh, pts) {
+    var T = V.T, pose = solvePose(pts, footCorners(g), W, Hh);
+    if (!pose) return null;
+    if (!PR) { PR = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); PR.shadowMap.enabled = true; PR.shadowMap.type = T.PCFSoftShadowMap; PR.outputEncoding = T.sRGBEncoding; }
+    PR.setPixelRatio(1); PR.setSize(W, Hh, false); PR.setClearColor(0x000000, 0);
+    var scene = new T.Scene();
+    scene.add(new T.HemisphereLight(0xffffff, 0x8f887b, 0.75));
+    var sun = new T.DirectionalLight(0xfff4e6, 0.85); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+    var sc = sun.shadow.camera; sc.left = -14; sc.right = 14; sc.top = 14; sc.bottom = -14; sc.far = 70; sun.shadow.bias = -0.0005;
+    scene.add(sun); scene.add(sun.target);
+    var keep = { slats: V.slats, target: V.target.clone() };
+    PHOTO = true;
+    var G = new T.Group(); (g.kind === 'plan' ? buildPlan : buildBanne)(G, g, mats(g));
+    PHOTO = false;
+    V.slats.forEach(function (s) { s.rotation.x = V.open * 1.35; });
+    V.slats = keep.slats; V.target.copy(keep.target);
+    scene.add(G);
+    applySun(sun, V.sunInfo, new T.Vector3(0, 0, 0));
+    var cam = new T.PerspectiveCamera(2 * Math.atan(Hh / 2 / pose.f) / D2R, W / Hh, 0.05, 300);
+    var R = pose.R, m = new T.Matrix4();
+    // caméra three.js → monde = Rᵀ · diag(1, −1, −1)
+    m.set(R[0][0], -R[1][0], -R[2][0], 0, R[0][1], -R[1][1], -R[2][1], 0, R[0][2], -R[1][2], -R[2][2], 0, 0, 0, 0, 1);
+    cam.position.set(pose.C[0], pose.C[1], pose.C[2]); cam.quaternion.setFromRotationMatrix(m); cam.updateMatrixWorld(true);
+    PR.render(scene, cam);
+    G.traverse(function (o) { if (o.geometry) o.geometry.dispose(); });
+    return PR.domElement;
+  }
+
   function update(g) {
     if (!V || !g) return;
     var T = V.T;
@@ -243,6 +371,7 @@
     var G = new T.Group(), M = mats(g), size;
     size = g.kind === 'plan' ? buildPlan(G, g, M) : g.kind === 'banne' ? buildBanne(G, g, M) : buildVoile(G, g, M);
     V.scene.add(G); V.group = G;
+    applySun(V.sunLight, V.sunInfo, V.target);
     var kind = g.kind + (g.roof || '');
     if (V.kind !== kind) { V.dist = clamp(size * 1.55 + 3, 5, 45); V.kind = kind; }
     frame();
@@ -261,6 +390,24 @@
     },
     update: function (g) { if (V && V.host.isConnected) update(g); },
     setOpen: function (v) { if (!V) return; V.open = v; V.slats.forEach(function (s) { s.rotation.x = v * 1.35; }); frame(); },
-    reset: function () { if (!V) return; V.yaw = -0.65; V.pitch = 0.42; V.kind = null; if (V.geo) update(V.geo); frame(); }
+    reset: function () { if (!V) return; V.yaw = -0.65; V.pitch = 0.42; V.kind = null; if (V.geo) update(V.geo); frame(); },
+    sunPosition: sunPosition,
+    /* {month, day, hour, lat, lon, orient} → position du soleil, appliquée à la vue. */
+    setSun: function (o) {
+      var sp = sunPosition(o.month, o.day, o.hour, o.lat, o.lon);
+      var info = { alt: sp.alt, az: sp.az, orient: o.orient };
+      if (V) { V.sunInfo = info; applySun(V.sunLight, info, V.target); frame(); }
+      return info;
+    },
+    shade: function () { return V ? shadeFraction(V.geo) : null; },
+    supportsPhoto: function (g) { return !!g && (g.kind === 'plan' || g.kind === 'banne'); },
+    /* Photo : charge three.js puis rend le modèle cadré sur les 4 points. */
+    photo: function (g, W, Hh, pts) {
+      return load().then(function () {
+        if (!V && !init()) return null;
+        try { return photoOverlay(g, W, Hh, pts); } catch (e) { return null; }
+      }, function () { return null; });
+    },
+    solvePose: solvePose, project: project, footCorners: footCorners
   };
 })(this);

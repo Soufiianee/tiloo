@@ -116,6 +116,13 @@ Without claude.ai (for example `app/index.html` opened locally), the tool runs i
 - **Announce price and negotiation range**: a 4th level, "Prix d'annonce", aligned on the bottom of the Moroccan market range when it is known (bioclimatic, veranda), otherwise the prudent level. The price panel shows "announce up to X, don't go below Y".
 - **Market study rewritten in MAD**, with two new sections: what decides the selling price in Morocco, and how to hold a high price.
 
+## 2f. Photo, sun, versions, invoices (since v6)
+
+- **On photo** (Configure › Sur photo): import the client's terrace photo, tap the 4 corners of the area on the ground (façade left, façade right, front right, front left). The quote's 3D model is placed in perspective with its shadow (camera reconstructed from a homography). "Joindre au devis" adds the image to the top of the quote and the PDF; "Enregistrer l'image" saves it to send on WhatsApp. Images are compressed (≤ 190 KB) and stored in a separate `visuals/<quote>` collection.
+- **Sun and shade**: in the 3D view, choose the date, time and the direction the terrace faces; the sun is calculated for the job site's city (Morocco, UTC+1) and the tool shows the share of the terrace in shade. "Plein écran" opens a full-screen view.
+- **3 versions** (Essentiel, Confort, Premium, same dimensions): one button creates them in the quote; each version has its own TTC total; the client's choice is recorded; the PDF shows all three with boxes to tick.
+- **Supplier invoice**: in Prix & sources, a photo or pasted text is read by Claude (`sample` capability with images), which proposes prices per item; each price is checked and validated before being saved (source "facture").
+
 ## 3. Using the tool
 
 - **Configurer** (configure): city, access, client → product → dimensions/options. A dimensioned drawing (top view, profile or front view) updates live. The price excl. and incl. VAT shows instantly, with the bar for cost today / ceiling cushion / margin, technical alerts, and the internal cost breakdown. "Ajouter au devis" adds the line to the quote. A quote can combine products (pergola + ZIP + awning). "Copier pour WhatsApp" copies the message to send.
