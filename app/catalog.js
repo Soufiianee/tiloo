@@ -175,6 +175,8 @@
 
     /* ---------- Fixations et gros œuvre ---------- */
     platine: { name: 'Platine de pied de poteau', unit: 'u', cat: 'matiere', type: 'mad', group: 'Fixations & gros œuvre', hist: [pt('2026-06-15', 165, 'est')], max: 220, maxSrc: 'est' },
+    cheville_meca: { name: 'Cheville métallique / goujon d’ancrage', unit: 'u', cat: 'matiere', type: 'mad', group: 'Fixations & gros œuvre', hist: [pt('2026-06-15', 12, 'est')], max: 16, maxSrc: 'est' },
+    visserie_petit: { name: 'Petite visserie (lot pour un store)', unit: 'lot', cat: 'matiere', type: 'mad', group: 'Fixations & gros œuvre', hist: [pt('2026-06-15', 80, 'est')], max: 110, maxSrc: 'est' },
     cheville_chim: { name: 'Cheville chimique + tige inox', unit: 'u', cat: 'matiere', type: 'mad', group: 'Fixations & gros œuvre', hist: [pt('2026-06-15', 42, 'est')], max: 60, maxSrc: 'est' },
     visserie: { name: 'Visserie, joints, silicone (lot)', unit: 'lot', cat: 'matiere', type: 'mad', group: 'Fixations & gros œuvre', hist: [pt('2026-06-15', 250, 'est')], max: 320, maxSrc: 'est' },
     console_ite: { name: 'Console déportée pour façade isolée', unit: 'u', cat: 'matiere', type: 'mad', group: 'Fixations & gros œuvre', hist: [pt('2026-06-15', 450, 'est')], max: 600, maxSrc: 'est' },
@@ -200,7 +202,7 @@
     toile_tissee_1: { name: 'Toile tissée 1er choix (acrylique teintée masse)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Toiles', hist: [pt('2026-06-15', 180, 'est')], max: 240, maxSrc: 'est' },
     toile_tissee_2: { name: 'Toile tissée 2e choix (polyester)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Toiles', hist: [pt('2026-06-15', 110, 'est')], max: 150, maxSrc: 'est' },
     screen_std: { name: 'Toile screen standard (polyester enduit)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Toiles', hist: [pt('2026-06-15', 110, 'est')], max: 150, maxSrc: 'est' },
-    toile_banne_std: { name: 'Toile store banne standard (polyester / acrylique import)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Toiles', hist: [pt('2026-06-15', 120, 'est')], max: 160, maxSrc: 'est' },
+    toile_banne_std: { name: 'Toile store banne standard (polyester / acrylique import)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Toiles', hist: [pt('2026-06-15', 75, 'est')], max: 100, maxSrc: 'est' },
     poly_16_2: { name: 'Polycarbonate alvéolaire 16 mm, 2e choix', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Couvertures & vitrages', hist: [pt('2026-06-15', 165, 'est')], max: 220, maxSrc: 'est' },
     dalakit: { name: 'Plafond « Dalakit » (à préciser)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Couvertures & vitrages', hist: [pt('2026-06-15', 240, 'est')], max: 320, maxSrc: 'est', note: 'Produit à confirmer par Store Luxe : prix provisoire.' },
 
@@ -211,8 +213,8 @@
     accast_galva: { name: 'Accastillage galvanisé par point', unit: 'point', cat: 'matiere', type: 'mad', group: 'Fixations & gros œuvre', hist: [pt('2026-06-15', 90, 'est')], max: 120, maxSrc: 'est' },
 
     /* ---------- Mécanismes standard (import) face aux marques ---------- */
-    banne_mono_std: { name: 'Mécanisme store banne monobloc standard', unit: 'ml', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 420, 'est')], max: 540, maxSrc: 'est' },
-    banne_coffre_std: { name: 'Mécanisme store banne coffre standard', unit: 'ml', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 850, 'est')], max: 1080, maxSrc: 'est' },
+    banne_mono_std: { name: 'Mécanisme store banne monobloc standard', unit: 'ml', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 250, 'est')], max: 330, maxSrc: 'est', note: 'Kit import (bras, barre, tube, supports), prix installateur estimé : à remplacer par votre facture.' },
+    banne_coffre_std: { name: 'Mécanisme store banne coffre standard', unit: 'ml', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 650, 'est')], max: 850, maxSrc: 'est', note: 'Prix installateur estimé : à remplacer par votre facture.' },
     moteur_std: { name: 'Moteur tubulaire standard + télécommande', unit: 'u', cat: 'equipement', type: 'mad', group: 'Motorisation & éclairage', hist: [pt('2026-06-15', 950, 'est')], max: 1250, maxSrc: 'est' },
     zip_coffre_std: { name: 'Coffre + barre ZIP standard', unit: 'ml', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 320, 'est')], max: 420, maxSrc: 'est' },
     zip_guides_std: { name: 'Coulisse ZIP standard', unit: 'ml', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 55, 'est')], max: 75, maxSrc: 'est' },
@@ -703,7 +705,7 @@
         { id: 'ledbras', sec: 'Options', label: 'LED dans les bras', type: 'toggle', def: false }
       ],
       build: function (p, h) {
-        var W = [], brackets = h.ceil(p.W / 1.5) + 1;
+        var mono = p.type === 'mono', W = [], brackets = mono ? h.ceil(p.W / 2) + 1 : h.ceil(p.W / 1.5) + 1;
         if (p.A > p.W - 0.3) W.push('Avancée trop grande pour la largeur : les bras se croisent (avancée ≤ largeur − 30 cm).');
         if (p.W > 5.5 && p.cmd === 'manuel') W.push('Plus de 5,5 m en manuel : proposer la motorisation.');
         var sys = p.meca === 'gaviota' ? (p.type === 'mono' ? 'banne_monobloc' : 'banne_coffre') : (p.type === 'mono' ? 'banne_mono_std' : 'banne_coffre_std');
@@ -711,8 +713,9 @@
         var L = [
           { item: sys, qty: p.W, note: 'largeur', comp: 'mecanisme' },
           { item: toile, qty: h.r2(p.W * (p.A + 0.35)), note: 'toile + lambrequin', comp: 'toile' },
-          { item: 'cheville_chim', qty: brackets * (p.support === 'brique' ? 4 : 3), note: brackets + ' supports', comp: 'fixation' },
-          { item: 'visserie', qty: 1 }
+          p.support === 'beton' ? { item: 'cheville_meca', qty: brackets * (mono ? 2 : 3), note: brackets + ' supports, goujons d’ancrage', comp: 'fixation' }
+            : { item: 'cheville_chim', qty: brackets * (mono ? 2 : 3), note: brackets + ' supports, scellement chimique', comp: 'fixation' },
+          { item: 'visserie_petit', qty: 1 }
         ];
         if (p.A > 3) L.push({ item: 'banne_bras_renfort', qty: 1, comp: 'mecanisme' });
         if (p.support === 'ite') L.push({ item: 'console_ite', qty: brackets, comp: 'fixation' });
@@ -724,7 +727,8 @@
           L.push({ item: 'electricien', qty: 1 });
           if (p.capteur) L.push({ item: 'somfy_eolis', qty: 1, comp: 'commande' });
         }
-        var days = h.r1(0.5 + p.W / 10);
+        // monobloc : 2 à 3 h à deux ; coffre : une demi-journée et plus
+        var days = h.r2(mono ? 0.15 + p.W / 20 : 0.35 + p.W / 12);
         L.push({ item: 'pose_jour', qty: days, note: 'estimation ' + days + ' j' });
         var cn = { manuel: 'manivelle', moteur: 'moteur standard', somfy: 'moteur Somfy' };
         return { lines: L, warnings: W, laborDays: days, area: p.W * p.A,
@@ -757,7 +761,8 @@
           { item: prem ? 'alu_zip_coffre' : 'zip_coffre_std', qty: h.r2(p.W * n), note: n + ' × ' + p.W + ' m', comp: 'mecanisme' },
           { item: prem ? 'alu_zip_guides' : 'zip_guides_std', qty: h.r2(2 * p.H * n), note: '2 coulisses × ' + p.H + ' m', comp: 'mecanisme' },
           { item: p.toile === 'premium' ? 'toile_ferrari' : 'screen_std', qty: h.r2(p.W * (p.H + 0.3) * n), note: 'chute + 30 cm', comp: 'toile' },
-          { item: 'cheville_chim', qty: n * (p.support === 'facade' ? 8 : 4), comp: 'fixation' }
+          { item: 'cheville_meca', qty: n * (p.support === 'facade' ? 8 : 4), comp: 'fixation' },
+          { item: 'visserie_petit', qty: n }
         ];
         if (p.auto === 'manuel') L.push({ item: 'treuil_zip', qty: n, comp: 'automatisme' });
         else {
@@ -767,7 +772,7 @@
           if (premM && p.capteur) L.push({ item: 'somfy_eolis', qty: 1, comp: 'automatisme' });
           L.push({ item: 'electricien', qty: 1 });
         }
-        var days = h.r1(Math.max(0.5, n * 0.35));
+        var days = h.r2(Math.max(0.3, 0.1 + n * 0.25));
         L.push({ item: 'pose_jour', qty: days, note: 'estimation ' + days + ' j' });
         var an = { manuel: 'manœuvre manuelle', moteur_std: 'moteur standard', moteur_premium: 'moteur Somfy' };
         return { lines: L, warnings: W, laborDays: days, area: p.W * p.H * n,
