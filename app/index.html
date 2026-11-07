@@ -11,339 +11,573 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout : établi d'atelier — catalogue à gauche, configuration au centre, prix collé à droite. Accent = RAL 5010 bleu gentiane. */
+/* Layout : établi de chiffrage — catalogue, plan coté du projet, prix à trois niveaux. Accent = RAL 5010 bleu gentiane, neutres « aluminium anodisé ». */
 :root {
-  --bg: #EDF0F2;
+  --bg: #ECEFF2;
   --surface: #FFFFFF;
-  --surface-2: #F5F7F8;
-  --ink: #15202A;
-  --muted: #586571;
-  --line: #D3DAE0;
+  --surface-2: #F4F6F8;
+  --sunken: #E3E8EC;
+  --ink: #131D27;
+  --muted: #56636F;
+  --faint: #8A96A1;
+  --line: #D2D9DF;
   --accent: #1E4F8F;
   --accent-ink: #FFFFFF;
-  --accent-soft: #E2EAF5;
-  --good: #1D7347;
-  --good-soft: #E1F2E8;
-  --warn: #8F5B00;
-  --warn-soft: #FBF0D9;
+  --accent-soft: #E1EAF6;
+  --glass: #5FA3C9;
+  --good: #1B7346;
+  --good-soft: #DFF1E7;
+  --warn: #8C5900;
+  --warn-soft: #FAEFD7;
   --bad: #B42318;
+  --bad-soft: #FBE4E1;
   --hatch: rgba(30, 79, 143, .28);
+  --shadow: 0 1px 2px rgba(19, 29, 39, .06), 0 4px 16px rgba(19, 29, 39, .05);
   --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
   --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --r: 6px;
+  --r: 8px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0E1317; --surface: #151C22; --surface-2: #1A232A; --ink: #E5EBEF; --muted: #93A0AB; --line: #2A353E;
-    --accent: #77A3DF; --accent-ink: #0B1422; --accent-soft: #1A2A40; --good: #52C48D; --good-soft: #12301F;
-    --warn: #E3AA4A; --warn-soft: #33270F; --bad: #F2786C; --hatch: rgba(119, 163, 223, .32); color-scheme: dark;
+    --bg: #0D1216; --surface: #141B21; --surface-2: #19222A; --sunken: #10161B; --ink: #E4EAEF; --muted: #95A2AD; --faint: #66737E; --line: #27323B;
+    --accent: #7BA6E0; --accent-ink: #0A1320; --accent-soft: #19283C; --glass: #6FB6DA;
+    --good: #54C690; --good-soft: #112D1E; --warn: #E4AC4C; --warn-soft: #30250F; --bad: #F2796D; --bad-soft: #3A1A17;
+    --hatch: rgba(123, 166, 224, .32); --shadow: 0 1px 2px rgba(0, 0, 0, .3); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0E1317; --surface: #151C22; --surface-2: #1A232A; --ink: #E5EBEF; --muted: #93A0AB; --line: #2A353E;
-  --accent: #77A3DF; --accent-ink: #0B1422; --accent-soft: #1A2A40; --good: #52C48D; --good-soft: #12301F;
-  --warn: #E3AA4A; --warn-soft: #33270F; --bad: #F2786C; --hatch: rgba(119, 163, 223, .32); color-scheme: dark;
+  --bg: #0D1216; --surface: #141B21; --surface-2: #19222A; --sunken: #10161B; --ink: #E4EAEF; --muted: #95A2AD; --faint: #66737E; --line: #27323B;
+  --accent: #7BA6E0; --accent-ink: #0A1320; --accent-soft: #19283C; --glass: #6FB6DA;
+  --good: #54C690; --good-soft: #112D1E; --warn: #E4AC4C; --warn-soft: #30250F; --bad: #F2796D; --bad-soft: #3A1A17;
+  --hatch: rgba(123, 166, 224, .32); --shadow: 0 1px 2px rgba(0, 0, 0, .3); color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { background: var(--bg); }
-body { color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.45; }
+body { color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
 button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+a { color: var(--accent); }
 
 /* ---------- En-tête ---------- */
-.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
-.top-in { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; padding-block: 10px;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); max-width: 1480px; margin: 0 auto; }
-.brand { display: flex; align-items: baseline; gap: 10px; }
-.brand b { font-family: var(--f-display); font-stretch: 112%; font-weight: 800; font-size: 19px; letter-spacing: .01em; }
-.brand span { font-family: var(--f-display); font-stretch: 75%; font-weight: 600; font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-.tabs { display: flex; gap: 2px; margin-left: auto; overflow-x: auto; }
-.tabs a { padding: 7px 12px; border-radius: var(--r); color: var(--muted); text-decoration: none; font-weight: 500; white-space: nowrap; }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 6; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top-in { display: flex; align-items: center; gap: 24px; padding-block: 10px; max-width: 1520px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.brand { display: flex; align-items: center; gap: 10px; flex: none; }
+.brand svg { width: 30px; height: 30px; }
+.brand b { font-family: var(--f-display); font-stretch: 112%; font-weight: 800; font-size: 18px; letter-spacing: .01em; display: block; line-height: 1.05; }
+.brand span { font-family: var(--f-display); font-stretch: 75%; font-weight: 600; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.tabs { display: flex; gap: 2px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
+.tabs a { padding: 8px 12px; border-radius: var(--r); color: var(--muted); text-decoration: none; font-weight: 500; white-space: nowrap; display: flex; gap: 7px; align-items: center; }
 .tabs a:hover { color: var(--ink); background: var(--surface-2); }
 .tabs a[aria-current="page"] { color: var(--accent); background: var(--accent-soft); }
+.badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 600; display: inline-grid; place-items: center; }
 
-.wrap { max-width: 1480px; margin: 0 auto; padding-block: 18px 48px;
+.wrap { max-width: 1520px; margin: 0 auto; padding-block: 18px 96px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.view { display: grid; gap: 18px; }
+.view { display: grid; gap: 16px; }
 h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
-h2 { font-size: 20px; font-weight: 700; font-stretch: 100%; }
-h3 { font-size: 13px; font-stretch: 80%; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-.lede { color: var(--muted); margin: 4px 0 0; max-width: 68ch; }
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
-.pad { padding: 16px; }
-.sample { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--warn); background: var(--warn-soft); padding: 2px 7px; border-radius: 3px; }
-
-/* ---------- Chantier ---------- */
-.site { display: grid; grid-template-columns: 2fr 2fr 1.4fr 1fr; gap: 12px; align-items: end; }
-.fld { display: grid; gap: 5px; min-width: 0; }
-.fld > label, .lbl { font-size: 12px; font-weight: 600; color: var(--muted); }
-.inp { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
-select.inp { padding-right: 6px; }
-.inp:hover { border-color: var(--muted); }
-
-/* ---------- Atelier : catalogue / formulaire / prix ---------- */
-.bench { display: grid; grid-template-columns: 230px minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
-.cat { padding: 8px; display: grid; gap: 2px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 70px); }
-.cat h3 { padding: 10px 8px 4px; }
-.cat button { text-align: left; border: 0; background: none; padding: 8px 10px; border-radius: var(--r); cursor: pointer; display: grid; gap: 1px; }
-.cat button:hover { background: var(--surface-2); }
-.cat button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
-.cat button[aria-pressed="true"] small { color: inherit; opacity: .85; }
-.cat button b { font-weight: 600; }
-.cat small { color: var(--muted); font-size: 12px; line-height: 1.3; }
-
-.form { padding: 18px; display: grid; gap: 18px; }
-.form-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
-.grid2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px 16px; }
-.full { grid-column: 1 / -1; }
-.numbox { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); height: 38px; }
-.numbox:focus-within { border-color: var(--accent); }
-.numbox input { flex: 1; min-width: 0; border: 0; background: none; padding: 0 10px; font-family: var(--f-mono); font-size: 15px; outline: none; }
-.numbox .u { display: grid; place-items: center; padding: 0 10px; color: var(--muted); font-size: 12px; border-left: 1px solid var(--line); }
-.numbox button { width: 34px; border: 0; background: var(--surface-2); cursor: pointer; font-size: 16px; }
-.numbox button:first-child { border-right: 1px solid var(--line); border-radius: var(--r) 0 0 var(--r); }
-.numbox button:last-child { border-left: 1px solid var(--line); border-radius: 0 var(--r) var(--r) 0; }
-.seg { display: flex; flex-wrap: wrap; gap: 4px; }
-.seg button { border: 1px solid var(--line); background: var(--surface); padding: 7px 11px; border-radius: var(--r); cursor: pointer; }
-.seg button:hover { border-color: var(--muted); }
-.seg button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
-.sw button { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 9px; text-align: left; cursor: pointer; display: grid; gap: 6px; }
-.sw button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-.chips { display: flex; gap: 4px; }
-.chips i { width: 22px; height: 22px; border-radius: 3px; border: 1px solid rgba(0,0,0,.18); }
-.sw small { color: var(--muted); font-size: 12px; }
-.tog { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 0; }
-.tog input { appearance: none; width: 36px; height: 20px; border-radius: 10px; background: var(--line); position: relative; cursor: pointer; flex: none; margin: 0; transition: background .15s; }
-.tog input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); transition: transform .15s; }
-.tog input:checked { background: var(--accent); }
-.tog input:checked::after { transform: translateX(16px); }
-
-/* ---------- Résultat ---------- */
-.res { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 70px); display: grid; gap: 14px; }
-.price { padding: 18px; display: grid; gap: 14px; }
-.ttc { font-family: var(--f-display); font-stretch: 88%; font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
-.ttc small { font-size: 16px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+h2 { font-size: 22px; font-weight: 700; }
+h3 { font-size: 12px; font-stretch: 80%; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.lede { color: var(--muted); margin: 4px 0 0; max-width: 72ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+.pad { padding: 18px; }
+.stack { display: grid; gap: 14px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .sub { color: var(--muted); font-size: 13px; }
-.bar { display: flex; height: 14px; border-radius: 3px; overflow: hidden; background: var(--surface-2); border: 1px solid var(--line); }
-.bar i { display: block; height: 100%; }
-.bar .b-now { background: var(--accent); }
-.bar .b-cush { background: repeating-linear-gradient(135deg, var(--hatch) 0 4px, transparent 4px 8px); border-left: 1px solid var(--accent); }
-.bar .b-mar { background: var(--good-soft); }
-.legend { display: grid; gap: 4px; font-size: 13px; }
-.legend div { display: flex; justify-content: space-between; gap: 10px; }
-.legend span:first-child { display: flex; align-items: center; gap: 7px; color: var(--muted); }
-.legend em { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
-.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.kpi { background: var(--surface-2); border-radius: var(--r); padding: 9px 10px; display: grid; gap: 2px; }
-.kpi span { font-size: 12px; color: var(--muted); }
-.kpi b { font-family: var(--f-mono); font-size: 17px; font-weight: 500; }
-.kpi.good b { color: var(--good); }
-.alerts { display: grid; gap: 6px; }
-.alert { font-size: 13px; padding: 8px 10px; border-radius: var(--r); background: var(--warn-soft); color: var(--warn); }
-.alert.info { background: var(--surface-2); color: var(--muted); }
-.row { display: flex; gap: 8px; flex-wrap: wrap; }
-.btn { border: 1px solid var(--line); background: var(--surface); padding: 9px 14px; border-radius: var(--r); cursor: pointer; font-weight: 600; }
-.btn:hover { border-color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }
+.pill.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.pill.good { background: var(--good-soft); color: var(--good); border-color: transparent; }
+.pill.acc { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+
+/* ---------- Boutons et champs ---------- */
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 9px 14px; border-radius: var(--r); font-weight: 600; display: inline-flex; align-items: center; gap: 8px; justify-content: center; text-decoration: none; color: var(--ink); }
+.btn:hover { border-color: var(--faint); }
 .btn.pri { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .btn.pri:hover { filter: brightness(1.08); }
 .btn.sm { padding: 5px 10px; font-size: 13px; }
 .btn.ghost { border-color: transparent; background: none; color: var(--muted); }
+.btn.ghost:hover { background: var(--surface-2); color: var(--ink); }
 .btn.danger { color: var(--bad); }
+.btn.wide { width: 100%; }
+.btn svg { width: 16px; height: 16px; flex: none; }
+.fld { display: grid; gap: 6px; min-width: 0; align-content: start; }
+.fld > label, .lbl { font-size: 12px; font-weight: 600; color: var(--muted); }
+.inp { width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.inp:hover { border-color: var(--faint); }
+.inp:focus { border-color: var(--accent); outline: none; }
+textarea.inp { height: auto; min-height: 96px; padding: 10px; resize: vertical; line-height: 1.5; }
+textarea.code { font-family: var(--f-mono); font-size: 12px; min-height: 120px; }
+
+/* ---------- Chantier ---------- */
+.site { display: grid; grid-template-columns: 1.6fr 1.6fr 1.3fr 1fr; gap: 12px; align-items: end; padding: 14px 18px; }
+
+/* ---------- Atelier ---------- */
+.bench { display: grid; grid-template-columns: 236px minmax(0, 1fr) 380px; gap: 16px; align-items: start; }
+.rail { padding: 8px; display: grid; gap: 1px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); max-height: calc(100vh - 90px); overflow-y: auto; }
+.rail h3 { padding: 12px 10px 6px; }
+.rail button { text-align: left; border: 0; background: none; padding: 8px 10px; border-radius: var(--r); display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: center; color: var(--ink); }
+.rail button:hover { background: var(--surface-2); }
+.rail button svg { width: 30px; height: 30px; color: var(--muted); }
+.rail button b { font-weight: 600; display: block; font-size: 14px; }
+.rail button small { color: var(--muted); font-size: 12px; line-height: 1.3; display: block; }
+.rail button[aria-pressed="true"] { background: var(--accent-soft); }
+.rail button[aria-pressed="true"] svg, .rail button[aria-pressed="true"] b { color: var(--accent); }
+
+.cfg { display: grid; gap: 0; overflow: hidden; }
+.cfg-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; padding: 18px 20px 14px; flex-wrap: wrap; }
+.cfg-head h2 { font-size: 24px; }
+.plan { background: var(--sunken); border-block: 1px solid var(--line); padding: 14px 16px 10px; display: grid; gap: 8px; }
+.plan svg { width: 100%; max-width: 100%; height: auto; max-height: 300px; display: block; }
+.plan-facts { display: flex; flex-wrap: wrap; gap: 6px; }
+.sec { padding: 16px 20px; display: grid; gap: 12px; border-bottom: 1px solid var(--line); }
+.sec:last-child { border-bottom: 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px 16px; }
+.full { grid-column: 1 / -1; }
+
+.numbox { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); height: 40px; }
+.numbox:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.numbox input { flex: 1; min-width: 0; border: 0; background: none; padding: 0 10px; font-family: var(--f-mono); font-size: 15px; outline: none; text-align: center; }
+.numbox .u { display: grid; place-items: center; padding: 0 8px; color: var(--muted); font-size: 12px; }
+.numbox button { width: 36px; border: 0; background: var(--surface-2); font-size: 17px; color: var(--muted); }
+.numbox button:hover { color: var(--accent); }
+.numbox button:first-child { border-right: 1px solid var(--line); border-radius: var(--r) 0 0 var(--r); }
+.numbox button:last-child { border-left: 1px solid var(--line); border-radius: 0 var(--r) var(--r) 0; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { border: 1px solid var(--line); background: var(--surface); padding: 8px 12px; border-radius: var(--r); }
+.seg button:hover { border-color: var(--faint); }
+.seg button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; box-shadow: inset 0 0 0 1px var(--accent); }
+.sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.sw button { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 10px; text-align: left; display: grid; gap: 6px; }
+.sw button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+.chips { display: flex; gap: 4px; }
+.chips i { width: 24px; height: 24px; border-radius: 4px; border: 1px solid rgba(0,0,0,.18); }
+.sw small { color: var(--muted); font-size: 12px; }
+.tog { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); min-height: 40px; }
+.tog:hover { border-color: var(--faint); }
+.tog.plain { border: 0; padding: 4px 0; background: none; min-height: 0; }
+.tog input { appearance: none; width: 34px; height: 20px; border-radius: 10px; background: var(--line); position: relative; flex: none; margin: 0; transition: background .15s; cursor: pointer; }
+.tog input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.tog input:checked { background: var(--accent); }
+.tog input:checked::after { transform: translateX(14px); }
+
+/* ---------- Plan SVG ---------- */
+.sv-wall { fill: url(#hatch); stroke: var(--muted); stroke-width: 1; }
+.sv-roof { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+.sv-roof-glass { fill: var(--accent-soft); stroke: var(--ink); stroke-width: 1.5; }
+.sv-thin { stroke: var(--faint); stroke-width: 1; fill: none; }
+.sv-beam { stroke: var(--muted); stroke-width: 2; fill: none; }
+.sv-post { fill: var(--ink); }
+.sv-zip { stroke: var(--accent); stroke-width: 5; stroke-linecap: round; fill: none; }
+.sv-verre { stroke: var(--glass); stroke-width: 5; stroke-linecap: round; fill: none; }
+.sv-dim { stroke: var(--muted); stroke-width: 1; fill: none; }
+.sv-txt { fill: var(--muted); font-family: var(--f-mono); font-size: 12px; }
+.sv-lab { fill: var(--faint); font-family: var(--f-display); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
+.sv-fabric { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.sv-fabric-2 { fill: var(--accent); opacity: .22; }
+.sv-car { fill: none; stroke: var(--faint); stroke-width: 1.2; stroke-dasharray: 4 3; }
+.sv-mast { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+.sv-anchor { fill: var(--ink); }
+.sv-ground { stroke: var(--muted); stroke-width: 1.5; }
+
+/* ---------- Prix ---------- */
+.price-col { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); display: grid; gap: 14px; }
+.price { padding: 18px; display: grid; gap: 14px; }
+.ttc { font-family: var(--f-display); font-stretch: 86%; font-weight: 800; font-size: 44px; line-height: 1; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.ttc small { font-size: 15px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+.tiers { display: grid; gap: 6px; }
+.tier { display: grid; grid-template-columns: 18px 1fr auto; gap: 10px; align-items: center; border: 1px solid var(--line); border-radius: var(--r); padding: 9px 12px; background: var(--surface); text-align: left; }
+.tier:hover { border-color: var(--faint); }
+.tier i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--faint); display: block; }
+.tier[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.tier[aria-pressed="true"] i { border: 5px solid var(--accent); }
+.tier b { font-weight: 600; display: block; }
+.tier small { font-size: 12px; color: var(--muted); display: block; }
+.tier .num { font-size: 14px; font-weight: 500; }
+.bar { display: flex; height: 12px; border-radius: 3px; overflow: hidden; background: var(--surface-2); border: 1px solid var(--line); }
+.bar i { display: block; height: 100%; }
+.b-now { background: var(--accent); }
+.b-cush { background: repeating-linear-gradient(135deg, var(--hatch) 0 4px, transparent 4px 8px); border-left: 1px solid var(--accent); }
+.b-mar { background: var(--good-soft); }
+.legend { display: grid; gap: 5px; font-size: 13px; }
+.legend div { display: flex; justify-content: space-between; gap: 10px; }
+.legend span:first-child { display: flex; align-items: center; gap: 7px; color: var(--muted); }
+.legend em { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.kpi { background: var(--surface-2); border-radius: var(--r); padding: 10px 12px; display: grid; gap: 2px; }
+.kpi span { font-size: 12px; color: var(--muted); }
+.kpi b { font-family: var(--f-mono); font-size: 17px; font-weight: 500; }
+.kpi.good b { color: var(--good); }
+.mkt { display: grid; gap: 6px; }
+.mkt-row { display: grid; gap: 4px; }
+.mkt-row .sub { display: flex; justify-content: space-between; gap: 8px; }
+.mkt-track { position: relative; height: 18px; }
+.mkt-track .rail-line { position: absolute; left: 0; right: 0; top: 8px; height: 2px; background: var(--line); border-radius: 1px; }
+.mkt-track .band { position: absolute; top: 4px; height: 10px; background: var(--surface-2); border: 1px solid var(--faint); border-radius: 3px; }
+.mkt-track .dot { position: absolute; top: 2px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--accent); }
+.alerts { display: grid; gap: 6px; }
+.alert { font-size: 13px; padding: 8px 11px; border-radius: var(--r); background: var(--warn-soft); color: var(--warn); }
+.alert.info { background: var(--surface-2); color: var(--muted); }
 details.det { border-top: 1px solid var(--line); }
-details.det summary { cursor: pointer; padding: 12px 18px; font-weight: 600; list-style-position: inside; }
+details.det > summary { cursor: pointer; padding: 13px 18px; font-weight: 600; list-style: none; display: flex; justify-content: space-between; }
+details.det > summary::after { content: "+"; color: var(--muted); font-weight: 400; }
+details.det[open] > summary::after { content: "−"; }
+
+/* ---------- Tableaux ---------- */
 .tbl-wrap { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
-th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; background: var(--surface); }
+td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 td.r, th.r { text-align: right; white-space: nowrap; }
 tr.grp td { background: var(--surface-2); font-weight: 600; font-size: 12px; letter-spacing: .04em; color: var(--muted); }
 td small { color: var(--muted); display: block; font-size: 12px; }
-.flag { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 3px; background: var(--warn-soft); color: var(--warn); white-space: nowrap; }
-.flag.ok { background: var(--good-soft); color: var(--good); }
+.up { color: var(--bad); }
 
-/* ---------- Devis en cours ---------- */
-.cart { padding: 18px; display: grid; gap: 12px; }
-.cart-line { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
-.cart-line b { font-weight: 600; }
-.cart-line small { display: block; color: var(--muted); }
-.tot { display: grid; gap: 4px; }
-.tot div { display: flex; justify-content: space-between; }
-.tot .big { font-family: var(--f-display); font-weight: 800; font-size: 22px; font-stretch: 90%; padding-top: 6px; border-top: 1px solid var(--line); }
-.empty { color: var(--muted); font-size: 13px; padding: 6px 0; }
-textarea.inp { height: auto; min-height: 120px; padding: 10px; font-family: var(--f-mono); font-size: 12px; resize: vertical; }
+/* ---------- Devis ---------- */
+.quote-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+.doc { padding: clamp(18px, 4vw, 44px); display: grid; gap: 22px; }
+.doc-head { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; align-items: flex-start; padding-bottom: 18px; border-bottom: 2px solid var(--ink); }
+.doc-head .brand b { font-size: 22px; }
+.doc-meta { display: grid; gap: 2px; text-align: right; font-size: 13px; }
+.doc-meta b { font-family: var(--f-display); font-size: 18px; font-weight: 700; }
+.doc-to { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.doc-to div { display: grid; gap: 2px; }
+.doc-to span { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.qline { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); align-items: start; }
+.qline .n { font-family: var(--f-mono); color: var(--faint); padding-top: 2px; }
+.qline b { font-weight: 600; font-size: 15px; }
+.qline ul { margin: 4px 0 0; padding-left: 16px; color: var(--muted); font-size: 13px; }
+.qline .amt { text-align: right; font-family: var(--f-mono); font-size: 15px; white-space: nowrap; }
+.qline .tools { display: flex; gap: 4px; justify-content: flex-end; margin-top: 6px; flex-wrap: wrap; }
+.qline select { height: 28px; font-size: 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 0 4px; }
+.totals { display: grid; gap: 6px; margin-left: auto; width: min(100%, 360px); }
+.totals div { display: flex; justify-content: space-between; gap: 12px; }
+.totals .big { font-family: var(--f-display); font-weight: 800; font-size: 26px; font-stretch: 88%; padding-top: 10px; border-top: 2px solid var(--ink); }
+.cond { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 6px; }
+.empty-state { display: grid; justify-items: center; gap: 10px; text-align: center; padding: 48px 16px; color: var(--muted); }
+.empty-state svg { width: 64px; height: 64px; color: var(--faint); }
 
 /* ---------- Prix fournisseurs ---------- */
-.idx { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.idx-card { padding: 16px; display: grid; gap: 10px; }
+.idx { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.idx-card { padding: 18px; display: grid; gap: 12px; }
 .idx-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
-.idx-val { font-family: var(--f-display); font-weight: 800; font-size: 30px; font-stretch: 88%; font-variant-numeric: tabular-nums; }
-.idx-val small { font-size: 13px; color: var(--muted); font-weight: 600; }
-.spark { display: block; width: 100%; max-width: 100%; height: 48px; }
-.mini { width: 90px; height: 22px; display: block; }
-.upd { display: flex; gap: 6px; align-items: center; }
-.upd input { width: 96px; height: 32px; border: 1px solid var(--line); border-radius: var(--r); padding: 0 8px; background: var(--surface); font-family: var(--f-mono); }
-.tools { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-.tools .inp { max-width: 320px; }
-.up { color: var(--bad); } .down { color: var(--good); }
-.hist { display: flex; gap: 6px; flex-wrap: wrap; padding: 4px 0; }
-.hist span { font-family: var(--f-mono); font-size: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 2px 4px 2px 7px; display: inline-flex; gap: 6px; align-items: center; }
-.hist button { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 3px; }
+.idx-vals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.idx-vals div { background: var(--surface-2); border-radius: var(--r); padding: 8px 10px; display: grid; gap: 1px; }
+.idx-vals span { font-size: 11px; color: var(--muted); }
+.idx-vals b { font-family: var(--f-display); font-stretch: 88%; font-weight: 800; font-size: 22px; font-variant-numeric: tabular-nums; }
+.idx-vals small { font-size: 11px; color: var(--faint); }
+.spark { display: block; width: 100%; max-width: 100%; height: 56px; }
+.mini { width: 84px; height: 22px; display: block; }
+.upd { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.upd input { width: 100px; height: 32px; border: 1px solid var(--line); border-radius: 6px; padding: 0 8px; background: var(--surface); font-family: var(--f-mono); }
+.calc { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-items: end; background: var(--surface-2); padding: 12px; border-radius: var(--r); }
+.calc .inp { height: 32px; font-family: var(--f-mono); }
+.calc .res { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center; }
+.tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.tools .inp { max-width: 300px; }
+.hist { display: flex; gap: 6px; flex-wrap: wrap; padding: 2px 0; }
+.hist span { font-family: var(--f-mono); font-size: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 2px 4px 2px 8px; display: inline-flex; gap: 6px; align-items: center; }
+.hist button { border: 0; background: none; color: var(--muted); padding: 0 3px; }
+.src { font-size: 12px; color: var(--muted); }
+.src a { color: var(--muted); text-decoration: underline; text-decoration-color: var(--line); }
+.src a:hover { color: var(--accent); }
 
-/* ---------- Réglages / méthode ---------- */
-.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; align-items: start; }
-.prose { max-width: 72ch; display: grid; gap: 12px; }
+/* ---------- Étude / méthode ---------- */
+.prose { max-width: 78ch; display: grid; gap: 14px; }
 .prose p, .prose li { margin: 0; }
-.prose ol, .prose ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
-.formula { font-family: var(--f-mono); font-size: 13px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; overflow-x: auto; white-space: pre; line-height: 1.6; }
-.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: var(--r); font-weight: 500; z-index: 20; }
+.prose ul, .prose ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.prose h2 { margin-top: 10px; }
+.formula { font-family: var(--f-mono); font-size: 13px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; overflow-x: auto; white-space: pre; line-height: 1.65; }
+.study { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); display: grid; gap: 2px; padding: 12px; }
+.toc a { text-decoration: none; color: var(--muted); padding: 6px 8px; border-radius: 6px; }
+.toc a:hover { background: var(--surface-2); color: var(--ink); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.fact { background: var(--surface-2); border-radius: var(--r); padding: 12px; display: grid; gap: 2px; }
+.fact b { font-family: var(--f-display); font-stretch: 88%; font-weight: 800; font-size: 24px; }
+.fact span { font-size: 12px; color: var(--muted); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start; }
 
-@media (max-width: 1180px) {
-  .bench { grid-template-columns: minmax(0, 1fr) 340px; }
-  .cat { grid-column: 1 / -1; position: static; display: flex; overflow-x: auto; gap: 4px; }
-  .cat h3 { display: none; }
-  .cat button { flex: none; white-space: nowrap; }
-  .cat small { display: none; }
+/* ---------- Barre mobile & toast ---------- */
+.mbar { display: none; }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: var(--r); font-weight: 500; z-index: 30; box-shadow: var(--shadow); max-width: calc(100% - 32px); }
+
+@media (max-width: 1240px) {
+  .bench { grid-template-columns: minmax(0, 1fr) 360px; }
+  .rail { grid-column: 1 / -1; position: static; display: flex; overflow-x: auto; gap: 4px; max-height: none; }
+  .rail h3, .rail button small { display: none; }
+  .rail button { flex: none; grid-template-columns: 24px auto; white-space: nowrap; }
+  .rail button svg { width: 24px; height: 24px; }
+  .study { grid-template-columns: minmax(0, 1fr); }
+  .toc { display: none; }
 }
-@media (max-width: 820px) {
-  .bench { grid-template-columns: minmax(0, 1fr); }
-  .res { position: static; }
+@media (max-width: 900px) {
+  .bench, .quote-grid { grid-template-columns: minmax(0, 1fr); }
+  .price-col { position: static; }
   .site { grid-template-columns: 1fr 1fr; }
-  .idx { grid-template-columns: 1fr; }
-  .ttc { font-size: 34px; }
+  .ttc { font-size: 36px; }
+  .mbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; background: var(--surface); border-top: 1px solid var(--line); gap: 12px; align-items: center; justify-content: space-between;
+    padding-block: 10px calc(10px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .mbar b { font-family: var(--f-display); font-stretch: 88%; font-weight: 800; font-size: 22px; }
+  .calc { grid-template-columns: 1fr 1fr; }
 }
-@media (max-width: 460px) { .site { grid-template-columns: 1fr; } .tabs { margin-left: 0; width: 100%; } }
+@media (max-width: 520px) {
+  .site { grid-template-columns: 1fr; }
+  .top-in { gap: 10px; flex-wrap: wrap; }
+  .tabs { margin-left: 0; width: 100%; }
+  .brand span { display: none; }
+  .idx-vals b { font-size: 18px; }
+}
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" style="fill:var(--surface-2)"></rect><line x1="0" y1="0" x2="0" y2="6" style="stroke:var(--faint);stroke-width:1.2"></line></pattern>
+    <pattern id="mesh" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" style="fill:var(--surface)"></rect><path d="M5 0H0V5" style="fill:none;stroke:var(--faint);stroke-width:.6"></path></pattern>
+  </defs>
+</svg>
+
 <header class="top">
   <div class="top-in">
-    <div class="brand"><b>Store Luxe</b><span>Chiffrage rapide</span></div>
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="5" width="28" height="4" rx="1" style="fill:var(--ink)"></rect><path d="M4 9 L28 9 L24 19 L8 19 Z" style="fill:var(--accent)"></path><path d="M8 19 L24 19" style="stroke:var(--ink);stroke-width:2"></path><path d="M10 9 L8 19 M16 9 L16 19 M22 9 L24 19" style="stroke:var(--surface);stroke-width:1.2;opacity:.7"></path><rect x="6" y="19" width="2" height="9" style="fill:var(--ink)"></rect><rect x="24" y="19" width="2" height="9" style="fill:var(--ink)"></rect></svg>
+      <div><b>Store Luxe</b><span>Chiffrage</span></div>
+    </div>
     <nav class="tabs" aria-label="Sections">
-      <a href="#devis" data-tab="devis">Devis</a>
-      <a href="#prix" data-tab="prix">Prix fournisseurs</a>
+      <a href="#configurer" data-tab="configurer">Configurer</a>
+      <a href="#devis" data-tab="devis">Devis <span class="badge" id="cart-count" hidden>0</span></a>
+      <a href="#prix" data-tab="prix">Prix &amp; sources</a>
+      <a href="#etude" data-tab="etude">Étude de marché</a>
       <a href="#reglages" data-tab="reglages">Réglages</a>
-      <a href="#methode" data-tab="methode">Méthode</a>
     </nav>
   </div>
 </header>
 
 <main class="wrap">
-  <!-- ================= DEVIS ================= -->
-  <section class="view" id="v-devis">
-    <div class="panel pad site">
-      <div class="fld"><label for="c-client">Client</label><input class="inp" id="c-client" placeholder="Nom du client"></div>
+  <!-- ================= CONFIGURER ================= -->
+  <section class="view" id="v-configurer">
+    <div class="card site">
+      <div class="fld"><label for="c-client">Client</label><input class="inp" id="c-client" placeholder="Nom du client ou du projet" autocomplete="off"></div>
       <div class="fld"><label for="c-zone">Ville du chantier</label><select class="inp" id="c-zone"></select></div>
       <div class="fld"><label for="c-access">Accès chantier</label>
         <select class="inp" id="c-access">
-          <option value="facile">Facile (rez-de-chaussée)</option>
+          <option value="facile">Facile, rez-de-chaussée</option>
           <option value="normal">Normal</option>
-          <option value="difficile">Difficile (étage, passage étroit)</option>
-          <option value="hauteur">Travail en hauteur (nacelle)</option>
+          <option value="difficile">Difficile, étage ou passage étroit</option>
+          <option value="hauteur">Travail en hauteur, nacelle</option>
         </select></div>
       <div class="fld"><label for="c-disc">Remise</label>
         <select class="inp" id="c-disc"><option value="0">Aucune</option><option value="0.03">3 %</option><option value="0.05">5 %</option><option value="0.08">8 %</option><option value="0.1">10 %</option></select></div>
     </div>
-
     <div class="bench">
-      <nav class="panel cat" id="catalog" aria-label="Produits"></nav>
-      <div class="panel form" id="form"></div>
-      <aside class="res">
-        <div class="panel" id="result"></div>
-        <div class="panel cart" id="cart"></div>
-      </aside>
+      <nav class="card rail" id="catalog" aria-label="Produits"></nav>
+      <div class="card cfg" id="form"></div>
+      <aside class="price-col"><div class="card" id="result"></div></aside>
+    </div>
+  </section>
+
+  <!-- ================= DEVIS ================= -->
+  <section class="view" id="v-devis" hidden>
+    <div class="quote-grid">
+      <article class="card doc" id="doc"></article>
+      <aside class="stack" id="doc-side"></aside>
     </div>
   </section>
 
   <!-- ================= PRIX ================= -->
   <section class="view" id="v-prix" hidden>
     <div>
-      <h2>Prix fournisseurs</h2>
-      <p class="lede">Saisissez un nouveau prix dès qu’un fournisseur vous l’annonce : il s’ajoute à l’historique et les devis se recalculent. Le chiffrage utilise le <b>plafond</b>, le plus haut prix des <span id="p-window">180</span> derniers jours, majoré du tampon.</p>
+      <h2>Prix &amp; sources</h2>
+      <p class="lede">Chaque article garde l’historique de ses prix. Le devis utilise le prix du jour (plancher), le plus haut des 12 derniers mois (conseillé) ou le plus haut jamais relevé (prudent). Saisissez un nouveau prix dès qu’un fournisseur l’annonce.</p>
     </div>
     <div class="idx" id="indices"></div>
-    <div class="tools">
-      <input class="inp" id="p-search" type="search" placeholder="Rechercher un article">
-      <label class="tog"><input type="checkbox" id="p-stale"> Seulement les prix à vérifier</label>
-      <span class="sample">Prix d’exemple</span>
+    <div class="card pad stack">
+      <div class="tools">
+        <input class="inp" id="p-search" type="search" placeholder="Rechercher un article ou un fournisseur" autocomplete="off">
+        <select class="inp" id="p-group" style="max-width:240px" aria-label="Famille"></select>
+        <label class="tog plain"><input type="checkbox" id="p-stale"> Prix à confirmer seulement</label>
+        <span class="sub" id="p-count"></span>
+      </div>
+      <div class="tbl-wrap"><table id="book"></table></div>
     </div>
-    <div class="panel tbl-wrap"><table id="book"></table></div>
+  </section>
+
+  <!-- ================= ÉTUDE ================= -->
+  <section class="view" id="v-etude" hidden>
+    <div class="study">
+      <article class="card pad prose">
+        <div>
+          <span class="pill acc">Étude réalisée le 7 novembre 2026</span>
+          <h2 style="margin-top:10px">Prix fournisseurs et marché : jusqu’où peuvent-ils monter ?</h2>
+          <p class="lede">Synthèse de la recherche qui a servi à remplir le carnet de prix. Elle montre le prix d’aujourd’hui de chaque composant et le plus haut niveau connu. Le niveau « prudent » de l’outil s’appuie sur ce plus haut.</p>
+        </div>
+        <div class="facts">
+          <div class="fact"><b class="num">3 065 $</b><span>Aluminium LME, la tonne, 7/11/2026</span></div>
+          <div class="fact"><b class="num">4 073 $</b><span>Record LME, mars 2022</span></div>
+          <div class="fact"><b class="num">10,96</b><span>Plus haut EUR/MAD 2026 (7 avril)</span></div>
+          <div class="fact"><b class="num">5 500–8 500</b><span>DH/m², pergola bioclimatique posée au Maroc</span></div>
+        </div>
+
+        <h2 id="e-moteurs">1. Ce qui fait bouger vos prix</h2>
+        <p>Trois familles de coûts représentent l’essentiel d’un devis Store Luxe. Chacune a sa propre volatilité.</p>
+        <ul>
+          <li><b>L’aluminium</b> : structures, lames, poteaux, coffres, coulisses. C’est 40 à 60 % du coût d’une pergola. Il suit la cote LME en dollars, plus une prime régionale, plus le filage et le thermolaquage.</li>
+          <li><b>Les composants importés payés en euros</b> : moteurs Somfy, toiles Sauleda et Serge Ferrari, mécanismes Gaviota, Llaza et Siplan. Ils suivent le prix catalogue du fabricant (révisé une à deux fois par an) et le cours EUR/MAD.</li>
+          <li><b>Les fournitures locales et la pose</b> : verre, polycarbonate, panneau sandwich, béton, main-d’œuvre. Elles sont plus stables, en hausse lente.</li>
+        </ul>
+
+        <h2 id="e-alu">2. Aluminium</h2>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Repère</th><th class="r">LME $/t</th><th class="r">Profilé laqué estimé</th></tr></thead>
+          <tbody>
+            <tr><td>Aujourd’hui (7/11/2026)</td><td class="r num">3 065</td><td class="r num">≈ 53,6 MAD/kg</td></tr>
+            <tr><td>Plus haut 2026 (début juin, déficit mondial)</td><td class="r num">≈ 3 750</td><td class="r num">≈ 57,5 MAD/kg</td></tr>
+            <tr><td>Moyenne 2023-2024</td><td class="r num">&lt; 2 500</td><td class="r num">≈ 48 MAD/kg</td></tr>
+            <tr><td>Record historique (7 mars 2022)</td><td class="r num">4 073</td><td class="r num">≈ 65,7 MAD/kg</td></tr>
+          </tbody></table></div>
+        <p>Calcul : (LME + prime ≈ 500 $/t + filage et laquage ≈ 1 900 $/t) × cours USD/MAD ÷ 1 000. La prime et la transformation sont des hypothèses. Remplacez-les par l’écart réel entre la facture de votre extrudeur et la cote LME du jour, dans l’onglet Prix &amp; sources. Le thermolaquage ajoute 15 à 20 % au profilé brut ; les teintes texturées ou bois coûtent plus.</p>
+        <p class="src">Sources : <a href="https://metalcharts.org/aluminum-price-history" target="_blank" rel="noopener">MetalCharts</a>, <a href="https://alum.ma/prix-de-laluminium-au-m2-au-maroc/" target="_blank" rel="noopener">alum.ma</a>.</p>
+
+        <h2 id="e-devises">3. Devises</h2>
+        <ul>
+          <li><b>EUR/MAD</b> : moyenne 10,76 en 2024 et 10,54 en 2025. En 2026 : 10,90 fin janvier, plus haut 10,96 le 7 avril, environ 10,68 fin juillet. Le dirham est arrimé à un panier euro/dollar, ce qui limite les écarts à quelques pour cent par an.</li>
+          <li><b>USD/MAD</b> : 9,31 fin juillet 2026, environ 9,8 début novembre. Il compte pour l’aluminium, coté en dollars.</li>
+        </ul>
+        <p class="src">Sources : <a href="https://tradersunion.com/currencies/price-history/eur-mad/" target="_blank" rel="noopener">TradersUnion</a>, <a href="https://www.valutafx.com/history/eur-mad" target="_blank" rel="noopener">ValutaFX</a>, <a href="https://moneyexchangerate.org/currencyexchange/mad/usd/50000" target="_blank" rel="noopener">MoneyExchangeRate</a>.</p>
+
+        <h2 id="e-import">4. Composants importés</h2>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Composant</th><th class="r">Prix relevé</th><th class="r">Plus haut retenu</th></tr></thead>
+          <tbody>
+            <tr><td>Moteur store banne Somfy Sunilus io</td><td class="r num">202 € HT</td><td class="r num">355 € (Altus 50 RTS 40 Nm)</td></tr>
+            <tr><td>Moteur intérieur Somfy Altus 40 RTS</td><td class="r num">138 € HT</td><td class="r num">230 € (Altus 50)</td></tr>
+            <tr><td>Capteur vent Somfy Eolis 3D Wirefree</td><td class="r num">99 € HT</td><td class="r num">116 € (version io)</td></tr>
+            <tr><td>Toile Serge Ferrari Soltis 86</td><td class="r num">33,90 € TTC/m²</td><td class="r num">28 € HT/m²</td></tr>
+            <tr><td>Toile acrylique (Sauleda, Dickson)</td><td class="r num">18 à 40 € TTC/m²</td><td class="r num">24 € HT/m² (pro)</td></tr>
+            <tr><td>Store banne coffre intégral motorisé, hors pose (France)</td><td class="r num">700 à 3 400 €</td><td class="r num">240 €/ml (système)</td></tr>
+            <tr><td>Pergola bioclimatique motorisée, usine Chine</td><td class="r num">180 à 466 $/m²</td><td class="r num">échantillon</td></tr>
+          </tbody></table></div>
+        <p>À ces prix s’ajoutent les frais d’approche, réglés par défaut à 25 % : droits de douane, transport, transit. Les prix professionnels de vos distributeurs sont en général 20 à 40 % sous les prix publics.</p>
+        <p class="src">Sources : <a href="https://www.batiproduits.com/amp/fiche/produits/motorisation-radio-pour-stores-bannes-sunilus-io-p68905443.html" target="_blank" rel="noopener">Batiproduits (Sunilus)</a>, <a href="https://www.batiproduits.com/amp/fiche/produits/capteur-de-vent-sans-fil-pour-stores-bannes-eoli-p68905428.html" target="_blank" rel="noopener">Batiproduits (Eolis)</a>, <a href="https://dieffematic.com/en/products/motor-somfy-altus-40-rts-9-16-1023316-automation-automatisms-original-new" target="_blank" rel="noopener">Dieffematic</a>, <a href="https://www.kaufland.fr/product/467265193/" target="_blank" rel="noopener">Kaufland</a>, <a href="https://bootsshop.at/en/products/das-ideale-gewebe-zwischen-sonnenschutz-und-erforderlicher-beleuchtung" target="_blank" rel="noopener">Bootsshop</a>, <a href="https://www.laprimeenergie.fr/les-travaux/store-banne/prix" target="_blank" rel="noopener">La Prime Énergie</a>, <a href="https://www.alibaba.com/product-detail/Brand-new-high-quality-Motorized-Louver_1601028447957.html" target="_blank" rel="noopener">Alibaba</a>.</p>
+
+        <h2 id="e-local">5. Fournitures locales et main-d’œuvre (Maroc, juin 2026)</h2>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Poste</th><th class="r">Fourchette</th></tr></thead>
+          <tbody>
+            <tr><td>Verre feuilleté 44.2</td><td class="r num">450–750 DH/m²</td></tr>
+            <tr><td>Verre trempé clair 6 mm / 8 mm</td><td class="r num">280–450 / 380–650 DH/m²</td></tr>
+            <tr><td>Double vitrage 4/16/4 trempé</td><td class="r num">650–1 100 DH/m²</td></tr>
+            <tr><td>Toiture polycarbonate posée</td><td class="r num">350–650 DH/m²</td></tr>
+            <tr><td>Panneau sandwich 40 mm PUR</td><td class="r num">180–240 DH/m²</td></tr>
+            <tr><td>Bac acier prélaqué 0,5 / 0,7 mm</td><td class="r num">110–160 / 140–190 DH/m²</td></tr>
+            <tr><td>Béton B25</td><td class="r num">950–1 100 DH/m³</td></tr>
+            <tr><td>Ouvrier / électricien / maçon (jour)</td><td class="r num">150–250 / 300–550 / 280–450 DH</td></tr>
+            <tr><td>Pose menuiserie aluminium</td><td class="r num">120–240 DH/m²</td></tr>
+          </tbody></table></div>
+        <p class="src">Source : relevés <a href="https://lechantier.ma/fr/prix/verre-trempe" target="_blank" rel="noopener">lechantier.ma</a> du 15 juin 2026 (<a href="https://lechantier.ma/fr/prix/bac-acier" target="_blank" rel="noopener">bac acier</a>, <a href="https://lechantier.ma/fr/prix/main-doeuvre" target="_blank" rel="noopener">main-d’œuvre</a>, <a href="https://lechantier.ma/fr/prix/beton" target="_blank" rel="noopener">béton</a>).</p>
+
+        <h2 id="e-marche">6. Prix de vente du marché</h2>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Produit</th><th class="r">Prix constaté</th></tr></thead>
+          <tbody>
+            <tr><td>Pergola bioclimatique posée (Maroc)</td><td class="r num">5 500–8 500 DH/m²</td></tr>
+            <tr><td>Perlago ATLAS 5×3 / 5×4 / 6×4, TTC hors pose</td><td class="r num">63 163 / 77 050 / 91 685 DH</td></tr>
+            <tr><td>Perlago : pose, 8 spots, LED 16 ml blanc / RGB</td><td class="r num">5 000 / 5 008 / 6 548 / 8 346 DH</td></tr>
+            <tr><td>Véranda alu + polycarbonate / + verre feuilleté</td><td class="r num">4 500–6 500 / 6 500–9 000 DH/m²</td></tr>
+            <tr><td>Véranda thermique, triple vitrage</td><td class="r num">9 000–12 000 DH/m²</td></tr>
+            <tr><td>Baie coulissante alu 2 rails, posée</td><td class="r num">2 800–4 500 DH/m²</td></tr>
+            <tr><td>Volet roulant motorisé Somfy</td><td class="r num">3 500–5 500 DH/m²</td></tr>
+            <tr><td>Store banne coffre motorisé posé (France)</td><td class="r num">1 500–5 000 €</td></tr>
+          </tbody></table></div>
+        <p>Avec les prix de l’étude, l’outil sort une pergola bioclimatique 5 × 3 m à environ 69 000 DH TTC pose comprise au niveau conseillé. C’est le prix de Perlago pose comprise, et environ 4 600 DH/m², sous la fourchette du marché marocain. Store Luxe a donc de la marge pour se positionner plus haut s’il le souhaite.</p>
+        <p class="src">Sources : <a href="https://lechantier.ma/fr/prix/veranda" target="_blank" rel="noopener">lechantier.ma vérandas</a>, <a href="https://lechantier.ma/en/prix/menuiserie-aluminium" target="_blank" rel="noopener">lechantier.ma menuiserie</a>, <a href="https://www.perlago.ma/4-mod%C3%A8le-atlas-" target="_blank" rel="noopener">Perlago</a>, <a href="https://www.akena.com/en/pergolas/pergolas-price?page=1" target="_blank" rel="noopener">Akena</a>.</p>
+
+        <h2 id="e-methode">7. La méthode de chiffrage</h2>
+<div class="formula">Coût d’un article, 3 niveaux
+  plancher  = dernier prix connu
+  conseillé = plus haut des 12 derniers mois × (1 + tampon 2 %)
+  prudent   = plus haut jamais relevé ou recherché × (1 + tampon 2 %)
+    profilé alu : kg/ml × indice alu + façonnage
+    import (€)  : prix € × cours EUR/MAD × (1 + frais d’approche 25 %)
+
+Coût produit = Σ matière × (1 + chutes) + Σ équipement + Σ pose × coef. accès
+Prix HT      = Coût ÷ (1 − marge cible), arrondi aux 50 MAD supérieurs
+Devis        = Σ lignes + déplacement (+ nuitées hors zone) − remise ; TTC = HT × 1,20</div>
+        <ul>
+          <li><b>Plancher</b> : le prix minimum pour tenir la marge cible si vous achetez aujourd’hui. En dessous, vous perdez de la marge.</li>
+          <li><b>Conseillé</b> : protège contre une remontée des prix pendant la validité du devis, sans vous rendre trop cher. C’est le niveau par défaut.</li>
+          <li><b>Prudent</b> : couvre le pire scénario connu, comme l’aluminium au record de 2022. À utiliser pour les gros chantiers livrés dans plusieurs mois, ou les devis à longue validité.</li>
+        </ul>
+        <h2 id="e-limites">8. Limites</h2>
+        <ul>
+          <li>Les prix de l’étude sont des prix publics et des fourchettes de marché, pas vos prix d’achat. Remplacez-les en priorité pour les indices (aluminium, EUR/MAD), puis les toiles et moteurs.</li>
+          <li>Les sites marocains de petites annonces (Avito, Jumia) bloquent la consultation automatique : aucun prix n’en vient.</li>
+          <li>Les règles de métré (entraxe des poteaux, jours de pose…) sont des valeurs de départ, à recaler sur 5 ou 6 chantiers réels.</li>
+        </ul>
+      </article>
+      <nav class="card toc" aria-label="Sommaire">
+        <h3 style="padding:4px 8px 8px">Sommaire</h3>
+        <a href="#e-moteurs">1. Ce qui fait bouger vos prix</a>
+        <a href="#e-alu">2. Aluminium</a>
+        <a href="#e-devises">3. Devises</a>
+        <a href="#e-import">4. Composants importés</a>
+        <a href="#e-local">5. Fournitures locales et pose</a>
+        <a href="#e-marche">6. Prix du marché</a>
+        <a href="#e-methode">7. Méthode</a>
+        <a href="#e-limites">8. Limites</a>
+      </nav>
+    </div>
   </section>
 
   <!-- ================= RÉGLAGES ================= -->
   <section class="view" id="v-reglages" hidden>
-    <div><h2>Réglages</h2><p class="lede">Politique de prix, marges par produit, zones de déplacement. Les réglages sont enregistrés dans ce navigateur.</p></div>
+    <div><h2>Réglages</h2><p class="lede">Politique de prix, marges, zones et conditions. Tout est enregistré dans ce navigateur ; utilisez la sauvegarde pour le partager avec l’équipe.</p></div>
     <div class="cols">
-      <div class="panel pad" style="display:grid;gap:14px">
+      <div class="card pad stack">
         <h3>Politique de prix</h3>
-        <div class="fld"><label for="s-mode">Coût retenu pour chiffrer</label>
-          <select class="inp" id="s-mode">
-            <option value="window">Plus haut prix sur une période (recommandé)</option>
-            <option value="alltime">Plus haut prix de tout l’historique</option>
-            <option value="latest">Dernier prix connu</option>
-          </select></div>
-        <div class="fld"><label for="s-window">Période observée (jours)</label><input class="inp num" id="s-window" type="number" min="7" step="1"></div>
-        <div class="fld"><label for="s-buffer">Tampon de volatilité ajouté au plafond (%)</label><input class="inp num" id="s-buffer" type="number" min="0" step="0.5"></div>
+        <div class="fld"><span class="lbl">Niveau de prix par défaut des devis</span>
+          <div class="seg" id="s-base">
+            <button type="button" data-v="now">Plancher</button><button type="button" data-v="win">Conseillé</button><button type="button" data-v="max">Prudent</button>
+          </div></div>
+        <div class="fld"><label for="s-window">Période du niveau conseillé (jours)</label><input class="inp num" id="s-window" type="number" min="7" step="1"></div>
+        <div class="fld"><label for="s-buffer">Tampon de volatilité (%)</label><input class="inp num" id="s-buffer" type="number" min="0" step="0.5"></div>
         <div class="fld"><label for="s-landed">Frais d’approche sur achats en euros (%)</label><input class="inp num" id="s-landed" type="number" min="0" step="1"></div>
         <div class="fld"><label for="s-valid">Validité du devis (jours)</label><input class="inp num" id="s-valid" type="number" min="1" step="1"></div>
-        <div class="fld"><label for="s-stale">Signaler un prix non mis à jour depuis (jours)</label><input class="inp num" id="s-stale" type="number" min="1" step="1"></div>
+        <div class="fld"><label for="s-stale">Prix à confirmer après (jours sans mise à jour)</label><input class="inp num" id="s-stale" type="number" min="1" step="1"></div>
         <div class="fld"><label for="s-round">Arrondi du prix de vente HT (MAD)</label><input class="inp num" id="s-round" type="number" min="0" step="10"></div>
         <div class="fld"><label for="s-tva">TVA (%)</label><input class="inp num" id="s-tva" type="number" min="0" step="1"></div>
-        <div class="fld"><label for="s-lodge">Hébergement équipe hors zone (MAD / nuit)</label><input class="inp num" id="s-lodge" type="number" min="0" step="50"></div>
+        <div class="fld"><label for="s-lodge">Hébergement de l’équipe hors zone (MAD / nuit)</label><input class="inp num" id="s-lodge" type="number" min="0" step="50"></div>
       </div>
-      <div class="panel pad" style="display:grid;gap:14px">
+      <div class="card pad stack">
         <h3>Marge cible par produit</h3>
-        <p class="lede" style="margin:0">Taux de marque : part du prix de vente HT qui reste après le coût plafond.</p>
+        <p class="sub" style="margin:0">Part du prix de vente HT qui reste après le coût.</p>
         <div class="tbl-wrap"><table id="s-margins"></table></div>
-        <h3>Coefficient main-d’œuvre selon l’accès</h3>
+        <h3>Coefficient de pose selon l’accès</h3>
         <div class="tbl-wrap"><table id="s-access"></table></div>
       </div>
-      <div class="panel pad" style="display:grid;gap:14px">
+      <div class="card pad stack">
         <h3>Zones de déplacement</h3>
         <div class="tbl-wrap"><table id="s-zones"></table></div>
+        <h3>Conditions imprimées sur le devis</h3>
+        <textarea class="inp" id="s-cond" aria-label="Conditions du devis"></textarea>
         <h3>Sauvegarde</h3>
-        <p class="lede" style="margin:0">Copiez la sauvegarde pour la partager avec l’équipe ou la recharger sur un autre poste.</p>
-        <div class="row"><button class="btn sm" id="x-export">Copier la sauvegarde</button><label class="btn sm" for="x-file">Ouvrir un fichier…</label><input type="file" id="x-file" accept="application/json,.json" hidden></div>
-        <textarea class="inp" id="x-text" placeholder="Collez ici une sauvegarde puis cliquez sur Importer"></textarea>
-        <div class="row"><button class="btn sm" id="x-import">Importer</button><button class="btn sm danger" id="x-reset">Revenir aux prix d’exemple</button></div>
-        <div id="x-confirm" hidden class="alert">Tous vos prix et réglages seront remplacés par les exemples. <div class="row" style="margin-top:8px"><button class="btn sm danger" id="x-reset-yes">Oui, réinitialiser</button><button class="btn sm" id="x-reset-no">Annuler</button></div></div>
+        <div class="row"><button class="btn sm" id="x-export" type="button">Copier la sauvegarde</button><label class="btn sm" for="x-file">Ouvrir un fichier…</label><input type="file" id="x-file" accept="application/json,.json" hidden></div>
+        <textarea class="inp code" id="x-text" placeholder="Collez ici une sauvegarde, puis Importer"></textarea>
+        <div class="row"><button class="btn sm" id="x-import" type="button">Importer</button><button class="btn sm danger" id="x-reset" type="button">Revenir aux prix de l’étude</button></div>
+        <div id="x-confirm" hidden class="alert">Vos prix et réglages seront remplacés par ceux de l’étude.<div class="row" style="margin-top:8px"><button class="btn sm danger" id="x-reset-yes" type="button">Oui, réinitialiser</button><button class="btn sm" id="x-reset-no" type="button">Annuler</button></div></div>
       </div>
-    </div>
-  </section>
-
-  <!-- ================= MÉTHODE ================= -->
-  <section class="view" id="v-methode" hidden>
-    <div class="panel pad prose">
-      <h2>Comment le prix est calculé</h2>
-      <p>Chaque produit est décomposé en postes réels : profilés, couverture, toile, moteur, fixations, pose. Chaque poste vient du carnet de prix fournisseurs. Vous mettez à jour un prix une fois, et tous les produits qui l’utilisent suivent.</p>
-      <div class="formula">Coût plafond d’un article = plus haut prix sur 180 j × (1 + tampon 2 %)
-  · profilé alu   = kg/ml × cours alu plafond + façonnage
-  · import (€)    = prix € plafond × EUR/MAD plafond × (1 + frais d’approche 25 %)
-
-Coût produit    = Σ matière × (1 + chutes) + Σ équipement + Σ pose × coef. accès
-Prix HT         = Coût produit ÷ (1 − marge cible), arrondi au 50 MAD supérieur
-Devis           = Σ prix HT + déplacement (+ nuits si hors zone) − remise
-TTC             = HT × (1 + TVA 20 %)</div>
-      <h3>Pourquoi le plafond et pas le dernier prix</h3>
-      <p>Les prix de l’aluminium, des toiles et des moteurs importés bougent d’une semaine à l’autre. Si vous chiffrez au dernier prix, une hausse entre le devis et la commande fournisseur mange votre marge. En chiffrant au plus haut de la période, vous êtes couvert. Quand le fournisseur baisse, l’écart devient de la marge en plus. Le tableau de bord montre ce coussin pour chaque devis : <i>marge si achat aujourd’hui</i>.</p>
-      <h3>Trois garde-fous</h3>
-      <ul>
-        <li><b>Période glissante.</b> 180 jours par défaut. Un pic très ancien ne vous rend pas trop cher indéfiniment. Choisissez « tout l’historique » pour être plus prudent, ou une période courte pour être plus compétitif.</li>
-        <li><b>Validité du devis.</b> 15 jours par défaut. Elle borne la durée pendant laquelle vous portez le risque de hausse.</li>
-        <li><b>Prix à vérifier.</b> Un article non mis à jour depuis 30 jours est signalé sur le devis.</li>
-      </ul>
-      <h3>Repère concurrent</h3>
-      <p>Perlago (Casablanca) publie un configurateur pour sa pergola bioclimatique ATLAS. Ce sont des combinaisons figées, sans prise en compte du chantier : 63 163 MAD TTC en 5 × 3 m, 77 050 en 5 × 4 m, 91 685 en 6 × 4 m, pose facturée 5 000 MAD en plus. Spots : 8 unités pour +5 008 MAD. Ruban LED 16 ml : +6 548 MAD en blanc, +8 346 en RGB. Les prix d’exemple de cet outil ont été calés sur ces ordres de grandeur.</p>
-      <p class="sub">Tous les prix fournis au départ sont des exemples. Remplacez-les par vos prix d’achat réels avant d’envoyer un devis.</p>
     </div>
   </section>
 </main>
-<div class="toast" id="toast" hidden></div>
+
+<div class="mbar" id="mbar"><div><span class="sub" id="mbar-l">Prix conseillé TTC</span><br><b class="num" id="mbar-p">—</b></div><button class="btn pri" type="button" id="mbar-add">Ajouter au devis</button></div>
+<div class="toast" id="toast" hidden role="status"></div>
 
 <script src="catalog.js"></script>
 <script src="engine.js"></script>
