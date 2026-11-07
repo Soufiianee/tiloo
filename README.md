@@ -109,6 +109,13 @@ Without claude.ai (for example `app/index.html` opened locally), the tool runs i
 - **PDF quote**: Store Luxe logo, client, lines and details, totals, conditions, "bon pour accord" (client acceptance) and stamp boxes, footer with contact details. Downloading the PDF (or copying the WhatsApp message) marks the quote as sent and locks its prices.
 - **Alerts**: when a supplier price goes up, every sent or accepted quote whose real margin drops below target is flagged ("Marge ↓" in the list, "!" on the Devis tab, a notice, and a dedicated filter). The toast says how many quotes are affected when the price is entered.
 
+## 2e. Logo, 3D view and price leverage (since v5)
+
+- **Logo**: the Store Luxe mark (supplied file, original colours #A2592E / #B8845C / #D6C0A8) in the header, on the quote and in the PDF.
+- **3D view** (`app/view3d.js`, three.js r128 loaded on demand): a parametric model of pergolas, carports, verandas, awnings and shade sails, rebuilt from the same data as the 2D plan. Drag to rotate, scroll or pinch to zoom; a slider opens the slats of the bioclimatic pergola; RAL colour and ZIP or glass sides are shown.
+- **Announce price and negotiation range**: a 4th level, "Prix d'annonce", aligned on the bottom of the Moroccan market range when it is known (bioclimatic, veranda), otherwise the prudent level. The price panel shows "announce up to X, don't go below Y".
+- **Market study rewritten in MAD**, with two new sections: what decides the selling price in Morocco, and how to hold a high price.
+
 ## 3. Using the tool
 
 - **Configurer** (configure): city, access, client → product → dimensions/options. A dimensioned drawing (top view, profile or front view) updates live. The price excl. and incl. VAT shows instantly, with the bar for cost today / ceiling cushion / margin, technical alerts, and the internal cost breakdown. "Ajouter au devis" adds the line to the quote. A quote can combine products (pergola + ZIP + awning). "Copier pour WhatsApp" copies the message to send.

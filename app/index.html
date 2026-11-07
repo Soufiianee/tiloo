@@ -32,7 +32,7 @@
   --bad: #B42318;
   --bad-soft: #FBE4E1;
   --hatch: rgba(30, 79, 143, .28);
-  --brand: #B45309;
+  --brand: #A2592E;
   --shadow: 0 1px 2px rgba(19, 29, 39, .06), 0 4px 16px rgba(19, 29, 39, .05);
   --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
   --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -44,14 +44,14 @@
     --bg: #0D1216; --surface: #141B21; --surface-2: #19222A; --sunken: #10161B; --ink: #E4EAEF; --muted: #95A2AD; --faint: #66737E; --line: #27323B;
     --accent: #7BA6E0; --accent-ink: #0A1320; --accent-soft: #19283C; --glass: #6FB6DA;
     --good: #54C690; --good-soft: #112D1E; --warn: #E4AC4C; --warn-soft: #30250F; --bad: #F2796D; --bad-soft: #3A1A17;
-    --hatch: rgba(123, 166, 224, .32); --shadow: 0 1px 2px rgba(0, 0, 0, .3); --brand: #E39A4E; color-scheme: dark;
+    --hatch: rgba(123, 166, 224, .32); --shadow: 0 1px 2px rgba(0, 0, 0, .3); --brand: #D9925F; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0D1216; --surface: #141B21; --surface-2: #19222A; --sunken: #10161B; --ink: #E4EAEF; --muted: #95A2AD; --faint: #66737E; --line: #27323B;
   --accent: #7BA6E0; --accent-ink: #0A1320; --accent-soft: #19283C; --glass: #6FB6DA;
   --good: #54C690; --good-soft: #112D1E; --warn: #E4AC4C; --warn-soft: #30250F; --bad: #F2796D; --bad-soft: #3A1A17;
-  --hatch: rgba(123, 166, 224, .32); --shadow: 0 1px 2px rgba(0, 0, 0, .3); --brand: #E39A4E; color-scheme: dark;
+  --hatch: rgba(123, 166, 224, .32); --shadow: 0 1px 2px rgba(0, 0, 0, .3); --brand: #D9925F; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { background: var(--bg); }
@@ -69,7 +69,6 @@ a { color: var(--accent); }
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .brand { display: flex; align-items: center; gap: 10px; flex: none; }
 .brand svg { width: 30px; height: 30px; }
-.brand svg.mark { fill: var(--brand); }
 .brand b em { font-style: normal; color: var(--brand); }
 .brand b { font-family: var(--f-display); font-stretch: 112%; font-weight: 800; font-size: 18px; letter-spacing: .01em; display: block; line-height: 1.05; }
 .brand span { font-family: var(--f-display); font-stretch: 75%; font-weight: 600; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
@@ -135,7 +134,20 @@ textarea.code { font-family: var(--f-mono); font-size: 12px; min-height: 120px; 
 .cfg-head h2 { font-size: 24px; }
 .plan { background: var(--sunken); border-block: 1px solid var(--line); padding: 14px 16px 10px; display: grid; gap: 8px; }
 .plan svg { width: 100%; max-width: 100%; height: auto; max-height: 300px; display: block; }
-.plan-facts { display: flex; flex-wrap: wrap; gap: 6px; }
+.plan-facts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.plan-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.plan-bar .seg button { padding: 6px 12px; font-size: 13px; }
+.v3d { height: 340px; border-radius: var(--r); overflow: hidden; background: linear-gradient(180deg, var(--surface-2), var(--sunken)); border: 1px solid var(--line); touch-action: pan-y; cursor: grab; }
+.v3d:active { cursor: grabbing; }
+.v3d-host { width: 100%; height: 100%; }
+.v3d-host canvas { display: block; }
+.v3-range { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.v3-range input { width: 110px; accent-color: var(--accent); }
+.lever { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 10px 12px; border-radius: var(--r); background: var(--surface-2); border: 1px dashed var(--line); font-size: 13px; }
+.lever div { display: grid; gap: 2px; }
+.lever div > span { color: var(--muted); }
+.lever > span { font-family: var(--f-display); font-stretch: 88%; font-weight: 800; font-size: 20px; text-align: right; display: grid; }
+.lever > span small { font-family: var(--f-mono); font-size: 11px; font-weight: 500; color: var(--good); }
 .sec { padding: 16px 20px; display: grid; gap: 12px; border-bottom: 1px solid var(--line); }
 .sec:last-child { border-bottom: 0; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px 16px; }
@@ -392,7 +404,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 <header class="top">
   <div class="top-in">
     <div class="brand">
-      <svg viewBox="0 0 36 36" aria-hidden="true" class="mark"><rect x="4" y="18" width="4" height="14" rx="1.5"></rect><rect x="28" y="18" width="4" height="14" rx="1.5"></rect><rect x="3" y="4" width="30" height="4" rx="2"></rect><rect x="6" y="10" width="24" height="2.5" rx="1.25" opacity=".7"></rect><rect x="6" y="14" width="24" height="2" rx="1" opacity=".35"></rect></svg>
+      <svg viewBox="305 170 675 632" aria-hidden="true" class="mark"><rect x="315" y="180" width="655" height="87" rx="43.5" fill="#A2592E"></rect><rect x="380" y="312" width="525" height="54" rx="27" fill="#B8845C"></rect><rect x="380" y="398" width="525" height="43" rx="21.5" fill="#D6C0A8"></rect><rect x="337" y="487" width="87" height="305" rx="40" fill="#A2592E"></rect><rect x="862" y="487" width="87" height="305" rx="40" fill="#A2592E"></rect></svg>
       <div><b>Store <em>Luxe</em></b><span>Chiffrage</span></div>
     </div>
     <span class="sync" id="sync" role="status"><i></i><span>Chargement…</span></span>
@@ -463,124 +475,147 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
     <div class="study">
       <article class="card pad prose">
         <div>
-          <span class="pill acc">Étude réalisée le 7 novembre 2026</span>
-          <h2 style="margin-top:10px">Prix fournisseurs et marché : jusqu’où peuvent-ils monter ?</h2>
-          <p class="lede">Synthèse de la recherche qui a servi à remplir le carnet de prix. Elle montre le prix d’aujourd’hui de chaque composant et le plus haut niveau connu. Le niveau « prudent » de l’outil s’appuie sur ce plus haut.</p>
+          <span class="pill acc">Étude réalisée le 7 novembre 2026 · tous les montants en MAD HT sauf mention</span>
+          <h2 style="margin-top:10px">Ce qui fixe vos prix, et comment les tenir hauts</h2>
+          <p class="lede">Deux questions : jusqu’où vos coûts fournisseurs peuvent-ils monter, et qu’est-ce qui décide du prix qu’un client marocain accepte de payer ? La première protège votre marge. La seconde vous donne du levier.</p>
         </div>
         <div class="facts">
-          <div class="fact"><b class="num">3 065 $</b><span>Aluminium LME, la tonne, 7/11/2026</span></div>
-          <div class="fact"><b class="num">4 073 $</b><span>Record LME, mars 2022</span></div>
-          <div class="fact"><b class="num">10,96</b><span>Plus haut EUR/MAD 2026 (7 avril)</span></div>
-          <div class="fact"><b class="num">5 500–8 500</b><span>DH/m², pergola bioclimatique posée au Maroc</span></div>
+          <div class="fact"><b class="num">5 500–8 500</b><span>MAD/m² : pergola bioclimatique posée au Maroc</span></div>
+          <div class="fact"><b class="num">≈ 4 600</b><span>MAD/m² : votre prix conseillé (5 × 3 m, posée)</span></div>
+          <div class="fact"><b class="num">53,6 → 65,7</b><span>MAD/kg : aluminium laqué aujourd’hui → au record de 2022</span></div>
+          <div class="fact"><b class="num">10,96</b><span>MAD pour 1 € : plus haut de 2026</span></div>
         </div>
 
-        <h2 id="e-moteurs">1. Ce qui fait bouger vos prix</h2>
-        <p>Trois familles de coûts représentent l’essentiel d’un devis Store Luxe. Chacune a sa propre volatilité.</p>
+        <h2 id="e-prix">1. Ce qui décide du prix sur le marché marocain</h2>
+        <p>Le client ne voit pas votre coût. Il compare, il imagine la qualité et il juge le risque. Sept facteurs fixent ce qu’il accepte de payer :</p>
+        <ol>
+          <li><b>Les prix de référence qu’il a déjà vus.</b> Perlago affiche environ 4 200 MAD/m² TTC hors pose pour une bioclimatique. Les installateurs haut de gamme annoncent 5 500 à 8 500 MAD/m² posée. Le premier chiffre entendu sert d’ancre à toute la négociation.</li>
+          <li><b>Les marques nommées dans le devis.</b> Somfy, Serge Ferrari, Sauleda ou des profilés européens rassurent et justifient 15 à 30 % de plus qu’un « moteur » ou une « toile » sans nom. Le client paie la marque qu’il peut vérifier.</li>
+          <li><b>Le service autour du produit.</b> Relevé sur place, étude, délai annoncé et tenu, garantie écrite, SAV joignable. C’est ce qui sépare un artisan d’un « posé par n’importe qui ». Store Luxe, installé depuis 1999, peut le faire valoir.</li>
+          <li><b>Le type de client.</b> Une villa haut de gamme achète du confort et de l’image, et négocie peu. Un hôtel ou un restaurant regarde le délai et la durabilité. Un promoteur achète du volume et négocie dur. Un architecte prescrit : il faut le convaincre, pas lui faire une remise.</li>
+          <li><b>La saison et l’urgence.</b> De mars à juin, la demande d’ombrage explose à Agadir, Marrakech et Taghazout : moins de remises, délais plus longs. En hiver, une petite remise remplit le planning. Un client pressé paie le délai.</li>
+          <li><b>Les options à forte valeur perçue.</b> Éclairage LED, motorisation, capteur vent ou pluie, stores ZIP, chauffage. Elles coûtent peu par rapport à ce qu’elles apportent au client, et c’est là que se fait une bonne part de la marge.</li>
+          <li><b>La ville et le chantier.</b> Les villas des quartiers et stations touristiques acceptent des prix plus hauts. Un accès difficile, une pose en étage ou un toit-terrasse se paient, et le client le comprend s’il le voit écrit.</li>
+        </ol>
+
+        <h2 id="e-levier">2. Votre levier : annoncer haut, négocier sans perdre</h2>
         <ul>
-          <li><b>L’aluminium</b> : structures, lames, poteaux, coffres, coulisses. C’est 40 à 60 % du coût d’une pergola. Il suit la cote LME en dollars, plus une prime régionale, plus le filage et le thermolaquage.</li>
-          <li><b>Les composants importés payés en euros</b> : moteurs Somfy, toiles Sauleda et Serge Ferrari, mécanismes Gaviota, Llaza et Siplan. Ils suivent le prix catalogue du fabricant (révisé une à deux fois par an) et le cours EUR/MAD.</li>
-          <li><b>Les fournitures locales et la pose</b> : verre, polycarbonate, panneau sandwich, béton, main-d’œuvre. Elles sont plus stables, en hausse lente.</li>
+          <li><b>Annoncez au prix d’annonce, négociez vers le conseillé, jamais sous le plancher.</b> L’outil affiche ces trois chiffres et la « marge de négociation » entre les deux extrêmes. Le prix d’annonce s’aligne sur l’entrée de la fourchette du marché marocain quand elle est connue, sinon sur le niveau prudent.</li>
+          <li><b>Proposez trois versions.</b> Par exemple : bioclimatique seule, avec LED, avec LED et stores ZIP. Le client choisit rarement la moins chère, et la plus complète rend la version du milieu raisonnable.</li>
+          <li><b>Écrivez les marques et le service dans le devis.</b> Le PDF reprend les options détaillées : nommez Somfy, Serge Ferrari, la garantie et le délai.</li>
+          <li><b>Ne donnez jamais une remise sans contrepartie.</b> Un acompte plus élevé, une date de pose qui vous arrange, l’autorisation de photographier le chantier, ou un avis client.</li>
+          <li><b>Gardez une validité courte</b>, 15 jours par défaut. Elle crée une échéance pour le client et limite votre risque sur les prix fournisseurs.</li>
+          <li><b>Chiffrez les options à part.</b> Une remise se négocie sur une option, pas sur la structure.</li>
+        </ul>
+        <p>Avec les prix de l’étude, une pergola bioclimatique 5 × 3 m posée sort à environ 69 000 MAD TTC au niveau conseillé, soit 4 600 MAD/m². C’est le prix de Perlago pose comprise, et sous la fourchette du marché marocain (5 500 à 8 500 MAD/m²). Le prix d’annonce de l’outil, environ 82 500 MAD TTC, reste dans le bas de cette fourchette. Vous avez donc près de 17 000 MAD de marge de manœuvre avant le plancher.</p>
+
+        <h2 id="e-couts">3. Ce qui fait bouger vos coûts</h2>
+        <ul>
+          <li><b>L’aluminium</b> : structures, lames, poteaux, coffres, coulisses. C’est 40 à 60 % du coût d’une pergola. Son prix suit le cours mondial du métal, plus le filage et le thermolaquage.</li>
+          <li><b>Les composants importés</b> : moteurs Somfy, toiles Sauleda et Serge Ferrari, mécanismes Gaviota, Llaza et Siplan. Ils suivent les catalogues des fabricants (révisés une à deux fois par an) et le cours de l’euro, même quand votre distributeur vous facture en dirhams.</li>
+          <li><b>Les fournitures locales et la pose</b> : verre, polycarbonate, panneau sandwich, béton, main-d’œuvre. Plus stables, en hausse lente.</li>
         </ul>
 
-        <h2 id="e-alu">2. Aluminium</h2>
+        <h2 id="e-alu">4. Aluminium</h2>
         <div class="tbl-wrap"><table>
-          <thead><tr><th>Repère</th><th class="r">LME $/t</th><th class="r">Profilé laqué estimé</th></tr></thead>
+          <thead><tr><th>Repère</th><th class="r">Profilé thermolaqué estimé</th></tr></thead>
           <tbody>
-            <tr><td>Aujourd’hui (7/11/2026)</td><td class="r num">3 065</td><td class="r num">≈ 53,6 MAD/kg</td></tr>
-            <tr><td>Plus haut 2026 (début juin, déficit mondial)</td><td class="r num">≈ 3 750</td><td class="r num">≈ 57,5 MAD/kg</td></tr>
-            <tr><td>Moyenne 2023-2024</td><td class="r num">&lt; 2 500</td><td class="r num">≈ 48 MAD/kg</td></tr>
-            <tr><td>Record historique (7 mars 2022)</td><td class="r num">4 073</td><td class="r num">≈ 65,7 MAD/kg</td></tr>
+            <tr><td>Aujourd’hui (7/11/2026)</td><td class="r num">≈ 53,6 MAD/kg</td></tr>
+            <tr><td>Plus haut 2026 (début juin, déficit mondial)</td><td class="r num">≈ 57,5 MAD/kg</td></tr>
+            <tr><td>Moyenne 2023-2024</td><td class="r num">≈ 48 MAD/kg</td></tr>
+            <tr><td>Record historique (mars 2022)</td><td class="r num">≈ 65,7 MAD/kg</td></tr>
           </tbody></table></div>
-        <p>Calcul : (LME + prime ≈ 500 $/t + filage et laquage ≈ 1 900 $/t) × cours USD/MAD ÷ 1 000. La prime et la transformation sont des hypothèses. Remplacez-les par l’écart réel entre la facture de votre extrudeur et la cote LME du jour, dans l’onglet Prix &amp; sources. Le thermolaquage ajoute 15 à 20 % au profilé brut ; les teintes texturées ou bois coûtent plus.</p>
+        <p>Ces valeurs sont reconstituées depuis le cours mondial du métal, avec une prime et un coût de filage-laquage supposés. Remplacez-les par le prix au kilo facturé par votre extrudeur. Le thermolaquage ajoute 15 à 20 % au profilé brut ; les teintes texturées ou bois coûtent plus.</p>
         <p class="src">Sources : <a href="https://metalcharts.org/aluminum-price-history" target="_blank" rel="noopener">MetalCharts</a>, <a href="https://alum.ma/prix-de-laluminium-au-m2-au-maroc/" target="_blank" rel="noopener">alum.ma</a>.</p>
 
-        <h2 id="e-devises">3. Devises</h2>
-        <ul>
-          <li><b>EUR/MAD</b> : moyenne 10,76 en 2024 et 10,54 en 2025. En 2026 : 10,90 fin janvier, plus haut 10,96 le 7 avril, environ 10,68 fin juillet. Le dirham est arrimé à un panier euro/dollar, ce qui limite les écarts à quelques pour cent par an.</li>
-          <li><b>USD/MAD</b> : 9,31 fin juillet 2026, environ 9,8 début novembre. Il compte pour l’aluminium, coté en dollars.</li>
-        </ul>
-        <p class="src">Sources : <a href="https://tradersunion.com/currencies/price-history/eur-mad/" target="_blank" rel="noopener">TradersUnion</a>, <a href="https://www.valutafx.com/history/eur-mad" target="_blank" rel="noopener">ValutaFX</a>, <a href="https://moneyexchangerate.org/currencyexchange/mad/usd/50000" target="_blank" rel="noopener">MoneyExchangeRate</a>.</p>
+        <h2 id="e-devises">5. L’euro, même quand vous payez en dirhams</h2>
+        <p>Votre distributeur marocain achète en euros : quand l’euro monte, ses tarifs suivent avec quelques semaines de retard. Moyenne de 10,76 MAD pour 1 € en 2024, 10,54 en 2025, puis 10,90 fin janvier 2026, plus haut à 10,96 le 7 avril et environ 10,68 fin juillet. Le dirham étant arrimé à un panier euro-dollar, les écarts restent de quelques pour cent par an.</p>
+        <p class="src">Sources : <a href="https://tradersunion.com/currencies/price-history/eur-mad/" target="_blank" rel="noopener">TradersUnion</a>, <a href="https://www.valutafx.com/history/eur-mad" target="_blank" rel="noopener">ValutaFX</a>.</p>
 
-        <h2 id="e-import">4. Composants importés</h2>
+        <h2 id="e-import">6. Composants importés, convertis en dirhams</h2>
         <div class="tbl-wrap"><table>
-          <thead><tr><th>Composant</th><th class="r">Prix relevé</th><th class="r">Plus haut retenu</th></tr></thead>
+          <thead><tr><th>Composant</th><th class="r">Prix public relevé</th><th class="r">Plus haut retenu</th></tr></thead>
           <tbody>
-            <tr><td>Moteur store banne Somfy Sunilus io</td><td class="r num">202 € HT</td><td class="r num">355 € (Altus 50 RTS 40 Nm)</td></tr>
-            <tr><td>Moteur intérieur Somfy Altus 40 RTS</td><td class="r num">138 € HT</td><td class="r num">230 € (Altus 50)</td></tr>
-            <tr><td>Capteur vent Somfy Eolis 3D Wirefree</td><td class="r num">99 € HT</td><td class="r num">116 € (version io)</td></tr>
-            <tr><td>Toile Serge Ferrari Soltis 86</td><td class="r num">33,90 € TTC/m²</td><td class="r num">28 € HT/m²</td></tr>
-            <tr><td>Toile acrylique (Sauleda, Dickson)</td><td class="r num">18 à 40 € TTC/m²</td><td class="r num">24 € HT/m² (pro)</td></tr>
-            <tr><td>Store banne coffre intégral motorisé, hors pose (France)</td><td class="r num">700 à 3 400 €</td><td class="r num">240 €/ml (système)</td></tr>
-            <tr><td>Pergola bioclimatique motorisée, usine Chine</td><td class="r num">180 à 466 $/m²</td><td class="r num">échantillon</td></tr>
+            <tr><td>Moteur store banne Somfy Sunilus io</td><td class="r num">≈ 2 190</td><td class="r num">≈ 3 850 (Altus 50 RTS 40 Nm)</td></tr>
+            <tr><td>Moteur intérieur Somfy Altus 40 RTS</td><td class="r num">≈ 1 495</td><td class="r num">≈ 2 490 (Altus 50)</td></tr>
+            <tr><td>Capteur vent Somfy Eolis 3D Wirefree</td><td class="r num">≈ 1 070</td><td class="r num">≈ 1 255 (version io)</td></tr>
+            <tr><td>Toile Serge Ferrari Soltis 86, au m²</td><td class="r num">≈ 305</td><td class="r num">≈ 305</td></tr>
+            <tr><td>Toile acrylique (Sauleda, Dickson), au m²</td><td class="r num">≈ 160 à 360 TTC</td><td class="r num">≈ 260 (prix pro)</td></tr>
+            <tr><td>Store banne coffre intégral motorisé, hors pose (Europe)</td><td class="r num">≈ 7 600 à 36 800</td><td class="r num">≈ 2 600 / ml (système)</td></tr>
+            <tr><td>Pergola bioclimatique motorisée, usine en Chine, au m²</td><td class="r num">≈ 1 760 à 4 570</td><td class="r num">prix échantillon</td></tr>
           </tbody></table></div>
-        <p>À ces prix s’ajoutent les frais d’approche, réglés par défaut à 25 % : droits de douane, transport, transit. Les prix professionnels de vos distributeurs sont en général 20 à 40 % sous les prix publics.</p>
+        <p>Conversion au cours de novembre 2026 (≈ 10,83 MAD pour 1 €). Quand vous achetez à un distributeur marocain, saisissez directement son prix en MAD dans l’onglet Prix &amp; sources : il intègre déjà douane et transport. Les prix professionnels sont en général 20 à 40 % sous ces prix publics.</p>
         <p class="src">Sources : <a href="https://www.batiproduits.com/amp/fiche/produits/motorisation-radio-pour-stores-bannes-sunilus-io-p68905443.html" target="_blank" rel="noopener">Batiproduits (Sunilus)</a>, <a href="https://www.batiproduits.com/amp/fiche/produits/capteur-de-vent-sans-fil-pour-stores-bannes-eoli-p68905428.html" target="_blank" rel="noopener">Batiproduits (Eolis)</a>, <a href="https://dieffematic.com/en/products/motor-somfy-altus-40-rts-9-16-1023316-automation-automatisms-original-new" target="_blank" rel="noopener">Dieffematic</a>, <a href="https://www.kaufland.fr/product/467265193/" target="_blank" rel="noopener">Kaufland</a>, <a href="https://bootsshop.at/en/products/das-ideale-gewebe-zwischen-sonnenschutz-und-erforderlicher-beleuchtung" target="_blank" rel="noopener">Bootsshop</a>, <a href="https://www.laprimeenergie.fr/les-travaux/store-banne/prix" target="_blank" rel="noopener">La Prime Énergie</a>, <a href="https://www.alibaba.com/product-detail/Brand-new-high-quality-Motorized-Louver_1601028447957.html" target="_blank" rel="noopener">Alibaba</a>.</p>
 
-        <h2 id="e-local">5. Fournitures locales et main-d’œuvre (Maroc, juin 2026)</h2>
+        <h2 id="e-local">7. Fournitures locales et main-d’œuvre (Maroc, juin 2026)</h2>
         <div class="tbl-wrap"><table>
           <thead><tr><th>Poste</th><th class="r">Fourchette</th></tr></thead>
           <tbody>
-            <tr><td>Verre feuilleté 44.2</td><td class="r num">450–750 DH/m²</td></tr>
-            <tr><td>Verre trempé clair 6 mm / 8 mm</td><td class="r num">280–450 / 380–650 DH/m²</td></tr>
-            <tr><td>Double vitrage 4/16/4 trempé</td><td class="r num">650–1 100 DH/m²</td></tr>
-            <tr><td>Toiture polycarbonate posée</td><td class="r num">350–650 DH/m²</td></tr>
-            <tr><td>Panneau sandwich 40 mm PUR</td><td class="r num">180–240 DH/m²</td></tr>
-            <tr><td>Bac acier prélaqué 0,5 / 0,7 mm</td><td class="r num">110–160 / 140–190 DH/m²</td></tr>
-            <tr><td>Béton B25</td><td class="r num">950–1 100 DH/m³</td></tr>
-            <tr><td>Ouvrier / électricien / maçon (jour)</td><td class="r num">150–250 / 300–550 / 280–450 DH</td></tr>
-            <tr><td>Pose menuiserie aluminium</td><td class="r num">120–240 DH/m²</td></tr>
+            <tr><td>Verre feuilleté 44.2</td><td class="r num">450–750 MAD/m²</td></tr>
+            <tr><td>Verre trempé clair 6 mm / 8 mm</td><td class="r num">280–450 / 380–650 MAD/m²</td></tr>
+            <tr><td>Double vitrage 4/16/4 trempé</td><td class="r num">650–1 100 MAD/m²</td></tr>
+            <tr><td>Toiture polycarbonate posée</td><td class="r num">350–650 MAD/m²</td></tr>
+            <tr><td>Panneau sandwich 40 mm PUR</td><td class="r num">180–240 MAD/m²</td></tr>
+            <tr><td>Bac acier prélaqué 0,5 / 0,7 mm</td><td class="r num">110–160 / 140–190 MAD/m²</td></tr>
+            <tr><td>Béton B25</td><td class="r num">950–1 100 MAD/m³</td></tr>
+            <tr><td>Ouvrier / électricien / maçon (jour)</td><td class="r num">150–250 / 300–550 / 280–450 MAD</td></tr>
+            <tr><td>Pose menuiserie aluminium</td><td class="r num">120–240 MAD/m²</td></tr>
           </tbody></table></div>
         <p class="src">Source : relevés <a href="https://lechantier.ma/fr/prix/verre-trempe" target="_blank" rel="noopener">lechantier.ma</a> du 15 juin 2026 (<a href="https://lechantier.ma/fr/prix/bac-acier" target="_blank" rel="noopener">bac acier</a>, <a href="https://lechantier.ma/fr/prix/main-doeuvre" target="_blank" rel="noopener">main-d’œuvre</a>, <a href="https://lechantier.ma/fr/prix/beton" target="_blank" rel="noopener">béton</a>).</p>
 
-        <h2 id="e-marche">6. Prix de vente du marché</h2>
+        <h2 id="e-marche">8. Prix de vente constatés</h2>
         <div class="tbl-wrap"><table>
-          <thead><tr><th>Produit</th><th class="r">Prix constaté</th></tr></thead>
+          <thead><tr><th>Produit</th><th class="r">Prix constaté (TTC)</th></tr></thead>
           <tbody>
-            <tr><td>Pergola bioclimatique posée (Maroc)</td><td class="r num">5 500–8 500 DH/m²</td></tr>
-            <tr><td>Perlago ATLAS 5×3 / 5×4 / 6×4, TTC hors pose</td><td class="r num">63 163 / 77 050 / 91 685 DH</td></tr>
-            <tr><td>Perlago : pose, 8 spots, LED 16 ml blanc / RGB</td><td class="r num">5 000 / 5 008 / 6 548 / 8 346 DH</td></tr>
-            <tr><td>Véranda alu + polycarbonate / + verre feuilleté</td><td class="r num">4 500–6 500 / 6 500–9 000 DH/m²</td></tr>
-            <tr><td>Véranda thermique, triple vitrage</td><td class="r num">9 000–12 000 DH/m²</td></tr>
-            <tr><td>Baie coulissante alu 2 rails, posée</td><td class="r num">2 800–4 500 DH/m²</td></tr>
-            <tr><td>Volet roulant motorisé Somfy</td><td class="r num">3 500–5 500 DH/m²</td></tr>
-            <tr><td>Store banne coffre motorisé posé (France)</td><td class="r num">1 500–5 000 €</td></tr>
+            <tr><td>Pergola bioclimatique posée (Maroc)</td><td class="r num">5 500–8 500 MAD/m²</td></tr>
+            <tr><td>Perlago ATLAS 5×3 / 5×4 / 6×4, hors pose</td><td class="r num">63 163 / 77 050 / 91 685 MAD</td></tr>
+            <tr><td>Perlago : pose, 8 spots, LED 16 ml blanc / RGB</td><td class="r num">5 000 / 5 008 / 6 548 / 8 346 MAD</td></tr>
+            <tr><td>Véranda alu + polycarbonate / + verre feuilleté</td><td class="r num">4 500–6 500 / 6 500–9 000 MAD/m²</td></tr>
+            <tr><td>Véranda thermique, triple vitrage</td><td class="r num">9 000–12 000 MAD/m²</td></tr>
+            <tr><td>Baie coulissante alu 2 rails, posée</td><td class="r num">2 800–4 500 MAD/m²</td></tr>
+            <tr><td>Volet roulant motorisé Somfy</td><td class="r num">3 500–5 500 MAD/m²</td></tr>
+            <tr><td>Store banne coffre motorisé posé (France, pour repère)</td><td class="r num">≈ 16 200–54 000 MAD</td></tr>
           </tbody></table></div>
-        <p>Avec les prix de l’étude, l’outil sort une pergola bioclimatique 5 × 3 m à environ 69 000 DH TTC pose comprise au niveau conseillé. C’est le prix de Perlago pose comprise, et environ 4 600 DH/m², sous la fourchette du marché marocain. Store Luxe a donc de la marge pour se positionner plus haut s’il le souhaite.</p>
         <p class="src">Sources : <a href="https://lechantier.ma/fr/prix/veranda" target="_blank" rel="noopener">lechantier.ma vérandas</a>, <a href="https://lechantier.ma/en/prix/menuiserie-aluminium" target="_blank" rel="noopener">lechantier.ma menuiserie</a>, <a href="https://www.perlago.ma/4-mod%C3%A8le-atlas-" target="_blank" rel="noopener">Perlago</a>, <a href="https://www.akena.com/en/pergolas/pergolas-price?page=1" target="_blank" rel="noopener">Akena</a>.</p>
 
-        <h2 id="e-methode">7. La méthode de chiffrage</h2>
-<div class="formula">Coût d’un article, 3 niveaux
+        <h2 id="e-methode">9. La méthode de chiffrage</h2>
+<div class="formula">Coût d’un article
   plancher  = dernier prix connu
   conseillé = plus haut des 12 derniers mois × (1 + tampon 2 %)
   prudent   = plus haut jamais relevé ou recherché × (1 + tampon 2 %)
-    profilé alu : kg/ml × indice alu + façonnage
-    import (€)  : prix € × cours EUR/MAD × (1 + frais d’approche 25 %)
+    profilé alu : kg/ml × prix alu au kg + façonnage
+    article saisi en MAD : pris tel quel
 
 Coût produit = Σ matière × (1 + chutes) + Σ équipement + Σ pose × coef. accès
 Prix HT      = Coût ÷ (1 − marge cible), arrondi aux 50 MAD supérieurs
+Prix d’annonce = max(prudent, entrée de la fourchette du marché marocain)
 Devis        = Σ lignes + déplacement (+ nuitées hors zone) − remise ; TTC = HT × 1,20</div>
         <ul>
-          <li><b>Plancher</b> : le prix minimum pour tenir la marge cible si vous achetez aujourd’hui. En dessous, vous perdez de la marge.</li>
-          <li><b>Conseillé</b> : protège contre une remontée des prix pendant la validité du devis, sans vous rendre trop cher. C’est le niveau par défaut.</li>
-          <li><b>Prudent</b> : couvre le pire scénario connu, comme l’aluminium au record de 2022. À utiliser pour les gros chantiers livrés dans plusieurs mois, ou les devis à longue validité.</li>
+          <li><b>Plancher</b> : le prix minimum pour tenir la marge cible si vous achetez aujourd’hui.</li>
+          <li><b>Conseillé</b> : protège contre une remontée des prix pendant la validité du devis. C’est le niveau par défaut.</li>
+          <li><b>Prudent</b> : couvre le pire scénario connu, comme l’aluminium au record de 2022.</li>
+          <li><b>Prix d’annonce</b> : le prix que le marché accepte, d’où l’on négocie. Il est disponible quand une fourchette du marché marocain est connue (bioclimatique, véranda).</li>
         </ul>
-        <h2 id="e-limites">8. Limites</h2>
+        <h2 id="e-limites">10. Limites</h2>
         <ul>
-          <li>Les prix de l’étude sont des prix publics et des fourchettes de marché, pas vos prix d’achat. Remplacez-les en priorité pour les indices (aluminium, EUR/MAD), puis les toiles et moteurs.</li>
+          <li>Les prix de l’étude sont des prix publics et des fourchettes de marché, pas vos prix d’achat. Remplacez-les en priorité pour l’aluminium et l’euro, puis les toiles et moteurs.</li>
+          <li>Les fourchettes du marché marocain manquent pour les stores, carports et voiles : notez les prix que vous entendez chez vos clients, ils deviendront vos repères.</li>
           <li>Les sites marocains de petites annonces (Avito, Jumia) bloquent la consultation automatique : aucun prix n’en vient.</li>
-          <li>Les règles de métré (entraxe des poteaux, jours de pose…) sont des valeurs de départ, à recaler sur 5 ou 6 chantiers réels.</li>
+          <li>Les règles de métré (entraxe des poteaux, jours de pose…) sont à recaler sur 5 ou 6 chantiers réels.</li>
         </ul>
       </article>
       <nav class="card toc" aria-label="Sommaire">
         <h3 style="padding:4px 8px 8px">Sommaire</h3>
-        <a href="#e-moteurs">1. Ce qui fait bouger vos prix</a>
-        <a href="#e-alu">2. Aluminium</a>
-        <a href="#e-devises">3. Devises</a>
-        <a href="#e-import">4. Composants importés</a>
-        <a href="#e-local">5. Fournitures locales et pose</a>
-        <a href="#e-marche">6. Prix du marché</a>
-        <a href="#e-methode">7. Méthode</a>
-        <a href="#e-limites">8. Limites</a>
+        <a href="#e-prix">1. Ce qui décide du prix</a>
+        <a href="#e-levier">2. Votre levier</a>
+        <a href="#e-couts">3. Ce qui fait bouger vos coûts</a>
+        <a href="#e-alu">4. Aluminium</a>
+        <a href="#e-devises">5. L’euro</a>
+        <a href="#e-import">6. Composants importés</a>
+        <a href="#e-local">7. Fournitures locales et pose</a>
+        <a href="#e-marche">8. Prix constatés</a>
+        <a href="#e-methode">9. Méthode</a>
+        <a href="#e-limites">10. Limites</a>
       </nav>
     </div>
   </section>
@@ -632,6 +667,7 @@ Devis        = Σ lignes + déplacement (+ nuitées hors zone) − remise ; TTC 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="catalog.js"></script>
+<script src="view3d.js"></script>
 <script src="engine.js"></script>
 <script src="app.js"></script>
 </body>

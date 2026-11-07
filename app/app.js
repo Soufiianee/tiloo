@@ -8,8 +8,11 @@
   var TIER = {
     now: { l: 'Plancher', s: 'au prix du jour' },
     win: { l: 'Conseillé', s: 'plus haut des 12 derniers mois' },
-    max: { l: 'Prudent', s: 'plus haut jamais relevé' }
+    max: { l: 'Prudent', s: 'plus haut jamais relevé' },
+    mkt: { l: 'Prix d’annonce', s: 'entrée de la fourchette du marché marocain' }
   };
+  function tiersFor(r) { return E.TIERS.concat(r.sale.mkt ? ['mkt'] : []); }
+  function validTier(r, t) { return t && r.sale[t] != null ? t : r.base; }
 
   /* ================= État =================
    * Deux niveaux :
@@ -78,6 +81,7 @@
       if (me.current && byId[me.current.productId]) s.current = Object.assign({ params: {}, tier: null }, me.current);
       if (me.aluCalc) Object.assign(s.aluCalc, me.aluCalc);
       s.activeId = me.activeId || null;
+      s.view = me.view || '2d'; s.open3d = me.open3d;
     }
     if (local) {
       s.settings = mergeSettings(local.settings);
@@ -93,7 +97,7 @@
   function shared() { return STORE.mode === 'shared'; }
   /* Préférences de la personne (toujours dans ce navigateur). */
   function save() {
-    writeJSON(KEY, { site: S.site, current: S.current, activeId: S.activeId, aluCalc: S.aluCalc });
+    writeJSON(KEY, { site: S.site, current: S.current, activeId: S.activeId, aluCalc: S.aluCalc, view: S.view, open3d: S.open3d });
     if (!shared()) writeJSON(LOCAL_KEY, { settings: S.settings, book: overridesOf(S.book), quotes: S.quotes });
   }
   function onWriteError(e) {
@@ -245,7 +249,18 @@
     try { navigator.clipboard.writeText(text).then(function () { toast(okMsg); }, fallback); } catch (e) { fallback(); }
   }
   function ctx(site) { site = site || S.site; return { access: site.access, zone: site.zone, discount: +site.discount || 0 }; }
-  function price(productId, params, site) { return E.priceLine(byId[productId], params, S.book, S.settings, TODAY, ctx(site)); }
+  function price(productId, params, site) { return addMarketTier(E.priceLine(byId[productId], params, S.book, S.settings, TODAY, ctx(site))); }
+  /* Prix d'annonce : le bas de la fourchette du marché marocain (jamais sous le niveau prudent).
+   * Il donne la marge de manœuvre pour négocier vers le conseillé sans passer sous le plancher. */
+  function addMarketTier(r) {
+    var refs = (byId[r.productId].market || []).filter(function (m) { return m.ma && m.unit === 'm²'; });
+    if (!refs.length || !r.area) return r;
+    var low = Math.min.apply(null, refs.map(function (m) { return m.low; }));
+    r.sale.mkt = E.roundUp(Math.max(low * r.area / (1 + S.settings.tva), r.sale.max), S.settings.rounding);
+    r.cost.mkt = r.cost.max; r.byCat.mkt = r.byCat.max;
+    r.lines.forEach(function (l) { l.mkt = l.max; l.pu_mkt = l.pu_max; });
+    return r;
+  }
   function curTier() { return S.current.tier || S.settings.policy.base; }
   function srcLink(key, short) {
     var s = SOURCES[key]; if (!s) return '';
@@ -418,6 +433,31 @@
     return out;
   }
 
+  /* ================= Plan 2D / vue 3D ================= */
+  function renderPlan(r) {
+    if (!$('plan')) return;
+    var can3d = window.SL3D && SL3D.supports(r.geo), v3 = can3d && S.view === '3d';
+    $('plan-bar').innerHTML = can3d ? '<div class="seg" role="group" aria-label="Type de vue"><button type="button" data-view="2d" aria-pressed="' + !v3 + '">Plan coté</button><button type="button" data-view="3d" aria-pressed="' + v3 + '">Vue 3D</button></div>' +
+      (v3 ? '<div class="row">' + (r.geo.roof === 'lames' ? '<label class="v3-range" for="v3-open">Lames <input type="range" id="v3-open" min="0" max="1" step="0.01" value="' + (S.open3d != null ? S.open3d : 0.55) + '"></label>' : '') +
+        '<button class="btn sm ghost" type="button" id="v3-reset">Recentrer</button></div>' : '<span class="sub">Vue de dessus, cotes en mètres</span>') : '';
+    $('plan-2d').hidden = v3;
+    $('plan-3d').hidden = !v3;
+    if (!v3) $('plan-2d').innerHTML = draw(r.geo);
+    $('plan-facts').innerHTML = legendFor(r.geo).join('') + (r.area ? '<span class="pill">' + m2(r.area) + ' m²</span>' : '') + '<span class="pill">' + nf2.format(r.laborDays) + ' j de pose</span>' + (v3 ? '<span class="sub">Glissez pour tourner · molette ou pincement pour zoomer</span>' : '');
+    if (v3) {
+      SL3D.show($('plan-3d'), r.geo).then(function (ok) {
+        if (!ok) { S.view = '2d'; save(); toast('La vue 3D n’a pas pu se charger sur cet appareil.'); renderPlan(r); return; }
+        if (S.open3d != null) SL3D.setOpen(S.open3d);
+      });
+    }
+  }
+  $('form').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-view]');
+    if (b) { S.view = b.dataset.view; save(); renderPlan(last || price(S.current.productId, S.current.params)); return; }
+    if (e.target.id === 'v3-reset' && window.SL3D) SL3D.reset();
+  });
+  $('form').addEventListener('input', function (e) { if (e.target.id === 'v3-open') { S.open3d = +e.target.value; SL3D.setOpen(S.open3d); } });
+
   /* ================= Onglets ================= */
   var TABS = ['configurer', 'devis', 'prix', 'etude', 'reglages'];
   function route() {
@@ -483,7 +523,7 @@
     var h = '<div class="cfg-head"><div><h2>' + esc(prod.name) + '</h2><p class="lede">' + esc(prod.blurb) + '</p></div>' +
       '<div class="row">' + (S.editing ? '<span class="pill warn">Modification d’une ligne du devis</span>' : '') +
       '<button class="btn sm ghost" type="button" id="f-reset">Valeurs par défaut</button></div></div>';
-    h += '<div class="plan" id="plan"></div>';
+    h += '<div class="plan" id="plan"><div class="plan-bar" id="plan-bar"></div><div id="plan-2d"></div><div id="plan-3d" class="v3d" hidden></div><div class="plan-facts" id="plan-facts"></div></div>';
     var secs = [], bySec = {};
     prod.params.forEach(function (d) {
       if (d.showIf && !d.showIf(p)) return;
@@ -553,18 +593,19 @@
   }
   function renderResult() {
     var prod = byId[S.current.productId];
-    var r = last = price(S.current.productId, S.current.params), t = curTier();
+    var r = last = price(S.current.productId, S.current.params), t = validTier(r, curTier());
     var sale = r.sale[t], cost = r.cost[t];
     var cushion = cost - r.cost.now, marginAmt = sale - cost;
     // plan
-    var plan = $('plan');
-    if (plan) plan.innerHTML = draw(r.geo) + '<div class="plan-facts">' + legendFor(r.geo).join('') + (r.area ? '<span class="pill">' + m2(r.area) + ' m²</span>' : '') + '<span class="pill">' + nf2.format(r.laborDays) + ' j de pose</span></div>';
+    renderPlan(r);
     var h = '<div class="price">';
     h += '<div><h3>' + esc(r.productName) + '</h3><div class="sub">' + esc(r.summary) + '</div></div>';
     h += '<div><div class="ttc">' + nf0.format(sale * tva()) + ' <small>MAD TTC</small></div><div class="sub num">' + mad(sale) + ' HT · fourniture et pose · hors déplacement</div></div>';
-    h += '<div class="tiers" role="group" aria-label="Niveau de prix">' + E.TIERS.map(function (k) {
+    h += '<div class="tiers" role="group" aria-label="Niveau de prix">' + tiersFor(r).map(function (k) {
       return '<button type="button" class="tier" data-tier="' + k + '" aria-pressed="' + (k === t) + '"><i></i><span><b>' + TIER[k].l + (k === S.settings.policy.base ? ' <span class="pill">par défaut</span>' : '') + '</b><small>' + TIER[k].s + '</small></span><span class="num">' + nf0.format(r.sale[k] * tva()) + '</span></button>';
     }).join('') + '</div>';
+    var top = r.sale.mkt || r.sale.max, room = top - r.sale.now;
+    h += '<div class="lever"><div><b>Marge de négociation</b><span>Annoncez jusqu’à <b class="num">' + nf0.format(top * tva()) + '</b>, ne descendez pas sous <b class="num">' + nf0.format(r.sale.now * tva()) + '</b> TTC.</span></div><span class="num">' + nf0.format(room * tva()) + '<small>' + pct(top ? room / top : 0) + '</small></span></div>';
     h += '<div class="bar" role="img" aria-label="Coût du jour, coussin et marge"><i class="b-now" style="width:' + (r.cost.now / sale * 100).toFixed(1) + '%"></i><i class="b-cush" style="width:' + (Math.max(0, cushion) / sale * 100).toFixed(1) + '%"></i><i class="b-mar" style="flex:1"></i></div>';
     h += '<div class="legend">' +
       '<div><span><em style="background:var(--accent)"></em>Coût au prix du jour</span><b class="num">' + mad(r.cost.now) + '</b></div>' +
@@ -617,9 +658,9 @@
   function quoteCalc(q) {
     var site = q.site || S.site;
     var entries = (q.lines || []).filter(function (l) { return byId[l.productId]; }).map(function (l) {
-      var live = price(l.productId, l.params, site), t = l.tier || live.base;
+      var live = price(l.productId, l.params, site), t = validTier(live, l.tier);
       if (l.frozen != null) { live = Object.assign({}, live); live.sale = Object.assign({}, live.sale); live.sale[t] = l.frozen; }
-      return { uid: l.uid, tier: l.tier, line: live };
+      return { uid: l.uid, tier: t, line: live };
     });
     var r = E.priceQuote(entries, S.settings, ctx(site));
     if (q.frozenTravel != null && r.travel !== q.frozenTravel) {
@@ -634,7 +675,7 @@
   function freeze(q) {
     var site = q.site || S.site;
     (q.lines || []).forEach(function (l) {
-      if (l.frozen == null && byId[l.productId]) { var r = price(l.productId, l.params, site); l.frozen = r.sale[l.tier || r.base]; }
+      if (l.frozen == null && byId[l.productId]) { var r = price(l.productId, l.params, site); l.frozen = r.sale[validTier(r, l.tier)]; }
     });
     if (q.frozenTravel == null) {
       var tmp = clone(q); tmp.frozenTravel = null; tmp.lines = (q.lines || []).map(function (l) { var c = clone(l); delete c.frozen; return c; });
@@ -767,7 +808,7 @@
       h += '<div class="qline"><span class="n">' + String(i + 1).padStart(2, '0') + '</span><div><b>' + esc(r.productName) + '</b><div class="sub">' + esc(r.summary) + '</div>' +
         (r.details.length ? '<ul>' + r.details.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') + '</div>' +
         '<div><div class="amt">' + nf0.format(r.sale[t]) + ' HT</div>' + (locked ? '' : '<div class="tools">' +
-        '<select data-tierline="' + e.uid + '" aria-label="Niveau de prix de la ligne ' + (i + 1) + '">' + E.TIERS.map(function (k) { return '<option value="' + k + '"' + (k === t ? ' selected' : '') + '>' + TIER[k].l + '</option>'; }).join('') + '</select>' +
+        '<select data-tierline="' + e.uid + '" aria-label="Niveau de prix de la ligne ' + (i + 1) + '">' + tiersFor(r).map(function (k) { return '<option value="' + k + '"' + (k === t ? ' selected' : '') + '>' + TIER[k].l + '</option>'; }).join('') + '</select>' +
         '<button class="btn sm ghost" type="button" data-edit="' + e.uid + '">Modifier</button><button class="btn sm ghost danger" type="button" data-del="' + e.uid + '" aria-label="Retirer la ligne ' + (i + 1) + '">Retirer</button></div>') + '</div></div>';
     });
     h += '</div><div class="totals num">';
@@ -897,15 +938,19 @@
   function pdfMad(x) { return pdfText(nf0.format(Math.round(x))) + ' MAD'; }
   function buildPDF(Q) {
     var J = window.jspdf.jsPDF, doc = new J({ unit: 'mm', format: 'a4' });
-    var W = 210, M = 16, BR = [180, 83, 9], INK = [19, 29, 39], MU = [86, 99, 111], LN = [210, 217, 223];
+    var W = 210, M = 16, BR = [162, 89, 46], INK = [19, 29, 39], MU = [86, 99, 111], LN = [210, 217, 223];
     var d = quoteCalc(Q), q = d.q, site = Q.site || {}, zone = q.zone.name.split(' (')[0];
     var date = (Q.createdAt || TODAY).slice(0, 10);
     function col(c) { doc.setTextColor(c[0], c[1], c[2]); }
     function tint(c, o) { return c.map(function (v) { return Math.round(v * o + 255 * (1 - o)); }); }
+    /* Logo Store Luxe, d'après le fichier fourni (coordonnées et couleurs d'origine). */
     function mark(x, y, size) {
-      var k = size / 36;
-      [[4, 18, 4, 14, 1], [28, 18, 4, 14, 1], [3, 4, 30, 4, 1], [6, 10, 24, 2.5, 0.7], [6, 14, 24, 2, 0.35]].forEach(function (r) {
-        var c = tint(BR, r[4]); doc.setFillColor(c[0], c[1], c[2]); doc.roundedRect(x + r[0] * k, y + r[1] * k, r[2] * k, r[3] * k, 0.5, 0.5, 'F');
+      var k = size / 655;
+      [[315, 180, 655, 87, [162, 89, 46]], [380, 312, 525, 54, [184, 132, 92]], [380, 398, 525, 43, [214, 192, 168]],
+        [337, 487, 87, 305, [162, 89, 46]], [862, 487, 87, 305, [162, 89, 46]]].forEach(function (r) {
+        doc.setFillColor(r[4][0], r[4][1], r[4][2]);
+        var w = r[2] * k, h = r[3] * k, rad = Math.min(w, h) / 2;
+        doc.roundedRect(x + (r[0] - 315) * k, y + (r[1] - 180) * k, w, h, rad, rad, 'F');
       });
     }
     function head() {

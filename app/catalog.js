@@ -282,7 +282,7 @@
       id: 'pergola-bioclimatique', name: 'Pergola bioclimatique', short: 'Bioclimatique', family: 'Pergolas & structures', icon: 'bioclim', margin: 0.30, waste: 0.05,
       blurb: 'Lames orientables motorisées, adossée ou autoportante.',
       market: [
-        { label: 'Marché marocain, posée', unit: 'm²', low: 5500, high: 8500, src: 'lc_veranda' },
+        { label: 'Marché marocain, posée', unit: 'm²', low: 5500, high: 8500, src: 'lc_veranda', ma: true },
         { label: 'Perlago ATLAS, TTC hors pose', unit: 'm²', low: 3820, high: 4211, src: 'perlago' }
       ],
       params: [
@@ -341,7 +341,7 @@
         return {
           lines: L, warnings: W, laborDays: days, aluSurcharge: ralSurcharge(p.ral), area: area, details: det,
           summary: p.L + ' × ' + p.P + ' m, ' + (auto ? 'autoportante' : 'adossée'),
-          geo: { kind: 'plan', L: p.L, P: p.P, wall: !auto, posts: posts(p.L, p.P, modules, auto), roof: 'lames', modules: modules, sides: cl.geo }
+          geo: { kind: 'plan', L: p.L, P: p.P, H: p.H, ral: p.ral, wall: !auto, posts: posts(p.L, p.P, modules, auto), roof: 'lames', modules: modules, sides: cl.geo, spots: p.spots, led: p.led }
         };
       }
     },
@@ -387,7 +387,7 @@
         if (cl.count) det.push(cl.geo.length + ' côté(s) ' + (p.ferm === 'verre' ? 'vitrés' : 'en stores ZIP'));
         return { lines: L, warnings: W, laborDays: days, aluSurcharge: ralSurcharge(p.ral), area: area, details: det,
           summary: p.L + ' × ' + p.P + ' m, ' + (auto ? 'autoportante' : 'adossée'),
-          geo: { kind: 'plan', L: p.L, P: p.P, wall: !auto, posts: posts(p.L, p.P, modules, auto), roof: 'toile', modules: modules, sides: cl.geo } };
+          geo: { kind: 'plan', L: p.L, P: p.P, H: p.H, ral: p.ral, wall: !auto, posts: posts(p.L, p.P, modules, auto), roof: 'toile', modules: modules, sides: cl.geo, spots: p.spots } };
       }
     },
     {
@@ -434,14 +434,14 @@
         if (cl.count) det.push(cl.geo.length + ' côté(s) ' + (p.ferm === 'verre' ? 'vitrés' : 'en stores ZIP'));
         return { lines: L, warnings: W, laborDays: days, aluSurcharge: ralSurcharge(p.ral), area: area, details: det,
           summary: p.L + ' × ' + p.P + ' m, ' + (auto ? 'autoportante' : 'adossée'),
-          geo: { kind: 'plan', L: p.L, P: p.P, wall: !auto, posts: posts(p.L, p.P, spans, auto), roof: 'chevrons', pitch: pitch, sides: cl.geo } };
+          geo: { kind: 'plan', L: p.L, P: p.P, H: p.H, ral: p.ral, wall: !auto, posts: posts(p.L, p.P, spans, auto), roof: 'chevrons', pitch: pitch, couv: p.couv, sides: cl.geo, spots: p.spots } };
       }
     },
     {
       id: 'veranda', name: 'Véranda aluminium', short: 'Véranda', family: 'Pergolas & structures', icon: 'veranda', margin: 0.30, waste: 0.06,
       blurb: 'Pièce vitrée sur terrasse, jardin ou toit-terrasse.',
       market: [
-        { label: 'Alu + polycarbonate, posée', unit: 'm²', low: 4500, high: 6500, src: 'lc_veranda' },
+        { label: 'Alu + polycarbonate, posée', unit: 'm²', low: 4500, high: 6500, src: 'lc_veranda', ma: true },
         { label: 'Alu + verre feuilleté, posée', unit: 'm²', low: 6500, high: 9000, src: 'lc_veranda' }
       ],
       params: [
@@ -483,7 +483,7 @@
         return { lines: L, warnings: W, laborDays: days, aluSurcharge: ralSurcharge(p.ral), area: area,
           details: [vn[p.vitrage], tn[p.toit]].concat(p.spots ? [p.spots + ' spots LED'] : []),
           summary: p.L + ' × ' + p.P + ' m, h ' + p.H + ' m, ' + f + ' face(s) vitrée(s)',
-          geo: { kind: 'plan', L: p.L, P: p.P, wall: true, posts: [[0, p.P], [p.L, p.P]], roof: 'plein', sides: sides } };
+          geo: { kind: 'plan', L: p.L, P: p.P, H: p.H, ral: p.ral, wall: true, posts: [[0, p.P], [p.L, p.P]], roof: 'plein', couv: p.toit, sides: sides, spots: p.spots } };
       }
     },
     {
@@ -525,7 +525,7 @@
         return { lines: L, warnings: W, laborDays: days, aluSurcharge: ralSurcharge(p.ral), area: area,
           details: [cn[p.couv]].concat(p.sol === 'terre' ? ['massifs béton'] : []).concat(p.spots ? [p.spots + ' spots LED'] : []),
           summary: n + ' place(s), ' + h.r2(Wd) + ' × ' + p.P + ' m, ' + (auto ? 'autoportant' : 'adossé'),
-          geo: { kind: 'plan', L: Wd, P: p.P, wall: !auto, posts: posts(Wd, p.P, spans, auto), roof: 'chevrons', pitch: 0.9, sides: [], cars: n } };
+          geo: { kind: 'plan', L: Wd, P: p.P, H: p.H, ral: p.ral, wall: !auto, posts: posts(Wd, p.P, spans, auto), roof: 'chevrons', pitch: 0.9, couv: p.couv, sides: [], cars: n, spots: p.spots } };
       }
     },
     {
@@ -570,7 +570,7 @@
         var tn = { toile_hdpe: 'toile HDPE respirante', toile_pvc: 'toile PVC imperméable', toile_ferrari: 'toile Serge Ferrari' };
         return { lines: L, warnings: W, laborDays: days, area: area, details: [tn[p.toile], mats + ' mât(s), ' + (points - mats) + ' ancrage(s) façade'],
           summary: (tri ? 'Triangle ' + p.A + ' / ' + p.B + ' / ' + p.C : 'Rectangle ' + p.A + ' × ' + p.B) + ' m',
-          geo: { kind: 'voile', pts: pts, mats: mats } };
+          geo: { kind: 'voile', pts: pts, mats: mats, Hm: p.Hm } };
       }
     },
     {
