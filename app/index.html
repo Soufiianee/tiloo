@@ -148,6 +148,13 @@ textarea.code { font-family: var(--f-mono); font-size: 12px; min-height: 120px; 
 .rail button .pill { font-size: 10px; padding: 0 6px; vertical-align: 1px; }
 /* Prix d'un produit : saisie guidée */
 .pp { overflow: hidden; scroll-margin-top: 84px; }
+#v-prix.focus > :not(#pp):not(#p-more-btn):not(#p-banner) { display: none; }
+#v-prix:not(.focus) #p-more-btn { display: none; }
+.more { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center; text-align: left; padding: 14px 20px; border: 1px dashed var(--line); background: var(--surface); color: var(--ink); cursor: pointer; width: 100%; }
+.more:hover { border-color: var(--accent); }
+.more b { font-weight: 600; font-size: 14px; }
+.more small { grid-column: 1; color: var(--muted); font-size: 12px; }
+.more i { grid-column: 2; grid-row: 1 / span 2; font-style: normal; font-size: 22px; color: var(--muted); }
 .pp-head { padding: 18px 20px 14px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
 .pp-top { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
 .pp-top h3 { font-size: 18px; text-transform: none; letter-spacing: 0; color: var(--ink); margin: 0; }
@@ -684,6 +691,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
     </div>
     <div id="p-banner"></div>
     <div class="card pp" id="pp" hidden></div>
+    <button type="button" class="card more" id="p-more-btn"><b>Autres outils de prix</b><small>Lecteur de factures, indices aluminium et euro, journal, carnet complet de tous les produits</small><i aria-hidden="true">›</i></button>
     <div class="card pad stack" id="invoice"></div>
     <div class="idx" id="indices"></div>
     <div class="card pad stack" id="journal"></div>

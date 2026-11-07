@@ -628,7 +628,11 @@
     document.querySelectorAll('.tabs a').forEach(function (a) { if (a.dataset.tab === t) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     $('mbar').hidden = t !== 'configurer';
     if (t === 'devis') renderQuotes();
-    if (t === 'prix') { renderPP(); renderBook(); renderInvoice(); }
+    if (t === 'prix') {
+      var pr = byId[S.current.productId];
+      setPriceFocus(wantFocus && !!(pr && pr.priceGroup)); wantFocus = false;
+      renderPP(); renderBook(); renderInvoice();
+    }
     if (t === 'reglages') renderSettings();
     if (h.indexOf('e-') === 0 || h === 'etude') { var el = h === 'etude' ? $('study-d') : $(h); if (el) setTimeout(function () { el.scrollIntoView(); }); } else window.scrollTo(0, 0);
   }
@@ -972,10 +976,15 @@
     $('mbar-add').textContent = 'Saisir les prix';
   }
   var ppFilter = 'config';
+  /* Mode concentré : venu du configurateur, l'onglet Prix ne montre que les prix du produit ;
+   * le reste (factures, indices, journal, carnet complet) est replié dans « Autres outils de prix ». */
+  var wantFocus = false;
   function goPrices(filter) {
-    ppFilter = filter || 'config';
+    ppFilter = filter || 'config'; wantFocus = true;
     go('prix');
-    setTimeout(function () { renderPP(); var el = $('pp'); if (el && !el.hidden) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30);
+  }
+  function setPriceFocus(on) {
+    $('v-prix').classList.toggle('focus', on);
   }
   function renderPP() {
     var box = $('pp'), prod = byId[S.current.productId];
@@ -986,7 +995,7 @@
     var info = {};
     ids.forEach(function (id) { info[id] = E.unitCost(S.book[id], S.book, S.settings, TODAY); });
     var todo = ids.filter(function (id) { return info[id].unpriced; }).length, cfgTodo = ids.filter(function (id) { return used[id] && info[id].unpriced; }).length;
-    var h = '<div class="pp-head"><div class="pp-top"><div><h3>Prix du ' + esc(prod.short.toLowerCase()) + '</h3><p>Prix d’achat HT de chaque article, en MAD. Les articles marqués d’un trait bleu servent à la configuration en cours (' + esc(r.summary) + ').</p></div>' +
+    var h = '<div class="pp-head"><div class="pp-top"><div><h3>Prix du ' + esc(prod.short.toLowerCase()) + '</h3><p>' + (ppFilter === 'config' ? 'Seulement les prix utiles à votre configuration : ' + esc(r.summary) + '. Les autres options s’affichent dès que vous les choisissez, ou avec « Tous les articles ».' : 'Prix d’achat HT en MAD. Un trait bleu marque les articles de la configuration en cours (' + esc(r.summary) + ').') + '</p></div>' +
       '<button class="btn" type="button" id="pp-back">← Retour au ' + esc(prod.short.toLowerCase()) + '</button></div>' + progHTML(prod) +
       '<div class="pp-filter" role="group" aria-label="Articles affichés">' +
       [['config', 'Configuration en cours', cfgTodo], ['todo', 'À renseigner', todo], ['all', 'Tous les articles', 0]].map(function (f) {
@@ -1028,6 +1037,7 @@
     var b = e.target.closest('[data-ppsave]'); if (b) { ppSave(b.dataset.ppsave, b.dataset.src); return; }
     var f = e.target.closest('[data-ppf]'); if (f) { ppFilter = f.dataset.ppf; renderPP(); return; }
     var g = e.target.closest('[data-goprix]'); if (g) { goPrices(g.dataset.goprix); return; }
+    if (e.target.closest('#p-more-btn')) { setPriceFocus(false); setTimeout(function () { $('invoice').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30); return; }
     if (e.target.id === 'pp-back') { go('configurer'); setTimeout(function () { $('result').scrollIntoView({ block: 'start' }); }, 30); }
   });
   document.addEventListener('keydown', function (e) {
