@@ -14,6 +14,10 @@ tests/           `npm test`
 
 Open `app/index.html` in a browser. Nothing to install, and no server needed.
 
+**Two ways to use it:**
+- **claude.ai link** (full version): shared team prices and quotes, invoice reading by Claude, downloads.
+- **GitHub Pages** (standalone version, address `https://soufiianee.github.io/tiloo/`): works without claude.ai, can be added to the iPhone home screen (Store Luxe icon). Data stays on each device (local mode); move it with Réglages › Sauvegarde. To enable it: repo Settings › Pages › Source "Deploy from a branch" › branch `claude/storeluxe-pricing-tool-2cu074`, folder `/ (root)`.
+
 ---
 
 ## 1. What the research found
