@@ -79,12 +79,15 @@
       c = { now: s.now, win: s.win, max: s.max };
       lastDate = s.lastDate;
     }
+    /* Article sans aucun relevé ni maximum : prix inconnu, à renseigner (pas « périmé »). */
+    var unpriced = item.type !== 'alu' && item.type !== 'index' && !(item.hist && item.hist.length) && item.max == null;
     c.win *= 1 + buffer;
     c.max *= 1 + buffer;
     var age = lastDate ? daysBetween(lastDate, today) : Infinity;
     c.lastDate = lastDate;
     c.age = age;
-    c.stale = !item.noStale && age > settings.staleDays;
+    c.unpriced = unpriced;
+    c.stale = !unpriced && !item.noStale && age > settings.staleDays;
     return c;
   }
 
@@ -112,7 +115,7 @@
 
     var cost = {}, byCat = {};
     TIERS.forEach(function (t) { cost[t] = 0; byCat[t] = { matiere: 0, equipement: 0, pose: 0 }; });
-    var lines = [], stale = [], missing = [];
+    var lines = [], stale = [], missing = [], unpriced = [];
 
     b.lines.forEach(function (l) {
       if (!l.qty) return;
@@ -120,7 +123,8 @@
       if (!item) { missing.push(l.item); return; }
       var uc = unitCost(item, book, settings, today);
       var mult = (item.type === 'alu' ? aluAdj : 1) * (item.cat === 'pose' ? accessMult : item.cat === 'matiere' ? 1 + waste : 1);
-      var line = { item: l.item, name: item.name, unit: item.unit, cat: item.cat, group: item.group || '', comp: l.comp || null, qty: l.qty, note: l.note || '', stale: uc.stale };
+      var line = { item: l.item, name: item.name, unit: item.unit, cat: item.cat, group: item.group || '', comp: l.comp || null, qty: l.qty, note: l.note || '', stale: uc.stale, unpriced: uc.unpriced };
+      if (uc.unpriced && unpriced.indexOf(l.item) < 0) unpriced.push(l.item);
       TIERS.forEach(function (t) {
         var v = l.qty * uc[t] * mult;
         line[t] = v; line['pu_' + t] = uc[t] * mult;
@@ -131,14 +135,14 @@
     });
 
     var sale = {};
-    TIERS.forEach(function (t) { sale[t] = roundUp(cost[t] / (1 - margin), settings.rounding); });
+    TIERS.forEach(function (t) { sale[t] = roundUp(cost[t] / (1 - margin), settings.rounding) || 0; });
     var base = settings.policy.base || 'win';
     return {
       productId: product.id, productName: product.name,
       params: p, summary: b.summary || '', details: b.details || [], area: b.area || 0, geo: b.geo || null,
       lines: lines, byCat: byCat,
       warnings: (b.warnings || []).concat(missing.map(function (m) { return 'Article introuvable dans le carnet : ' + m; })),
-      stale: stale, laborDays: b.laborDays || 0,
+      stale: stale, unpriced: unpriced, laborDays: b.laborDays || 0,
       margin: margin, base: base,
       cost: cost, sale: sale,
       saleHT: sale[base],

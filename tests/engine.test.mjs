@@ -52,9 +52,17 @@ test('tampon appliqué aux plafonds, pas au prix du jour', () => {
   assert.ok(Math.abs(u.win - 110) < 1e-9);
 });
 
+/* Carnet où les articles sans prix ont reçu un prix saisi à la main (comme dans l'onglet Prix). */
+function filledBook() {
+  const book = clone(C.BOOK);
+  Object.values(book).forEach((it) => { if (it.type === 'mad' && !it.hist.length && it.max == null) it.hist = [{ d: '2026-11-01', v: 100 }, { d: TODAY, v: 90 }]; });
+  return book;
+}
+
 test('plancher ≤ conseillé ≤ prudent, et marge réelle ≥ cible', () => {
+  const book = filledBook();
   for (const p of C.PRODUCTS) {
-    const r = E.priceLine(p, {}, C.BOOK, C.SETTINGS, TODAY, { access: 'normal' });
+    const r = E.priceLine(p, {}, book, C.SETTINGS, TODAY, { access: 'normal' });
     assert.ok(r.sale.now <= r.sale.win && r.sale.win <= r.sale.max, p.id);
     assert.ok(r.marginIfToday >= r.margin - 1e-9, p.id);
     assert.equal(r.saleHT % C.SETTINGS.rounding, 0, p.id);
@@ -117,4 +125,42 @@ test('trois versions : Essentiel ≤ Confort ≤ Premium pour chaque produit', (
     const ttc = ['A', 'B', 'C'].map(k => E.priceLine(p, Object.assign({}, base, v[k]), C.BOOK, C.SETTINGS, TODAY, {}).sale.win);
     assert.ok(ttc[0] <= ttc[1] && ttc[1] <= ttc[2], p.id + ' ' + ttc.join(' / '));
   }
+});
+
+test('carport en configuration : articles sans prix signalés, prix nul tant qu’ils ne sont pas saisis', () => {
+  const p = C.PRODUCTS.find((x) => x.id === 'abri-voiture');
+  assert.ok(!p.archived);
+  assert.ok(C.PRODUCTS.filter((x) => x.id !== 'abri-voiture').every((x) => x.archived));
+  const r = E.priceLine(p, {}, C.BOOK, C.SETTINGS, TODAY, {});
+  assert.ok(r.unpriced.length > 0);
+  assert.equal(r.sale.win, 0);
+  assert.equal(r.stale.length, 0, 'un article sans prix n’est pas « périmé »');
+  const f = E.priceLine(p, {}, filledBook(), C.SETTINGS, TODAY, {});
+  assert.equal(f.unpriced.length, 0);
+  assert.ok(f.sale.win > 0);
+});
+
+test('carport : toutes les options produisent des lignes valides', () => {
+  const p = C.PRODUCTS.find((x) => x.id === 'abri-voiture'), book = filledBook();
+  const opts = (id) => p.params.find((d) => d.id === id).options.map((o) => o.v);
+  for (const mat of opts('mat')) for (const profil of opts('profil')) for (const couv of opts('couv')) for (const sol of opts('sol'))
+    for (const config of opts('config')) for (const forme of opts('forme')) {
+      const params = { mat, profil, couv, sol, config, forme, mur: 'creux', cotes: 'trois', gout: true, lamb: true, spots: 2, expo: 'mer' };
+      const r = E.priceLine(p, params, book, C.SETTINGS, TODAY, {});
+      const label = JSON.stringify(params);
+      assert.ok(!r.warnings.some((w) => w.includes('introuvable')), label + ' ' + r.warnings.join(' | '));
+      assert.ok(r.lines.every((l) => l.qty > 0 && Number.isFinite(l.qty)), label);
+      assert.ok(r.sale.win > 0, label);
+    }
+});
+
+test('carport : plus de places = plus de poteaux ; adossé sur mur creux = chevilles chimiques', () => {
+  const p = C.PRODUCTS.find((x) => x.id === 'abri-voiture');
+  const one = E.priceLine(p, { places: 1 }, C.BOOK, C.SETTINGS, TODAY, {}), three = E.priceLine(p, { places: 3 }, C.BOOK, C.SETTINGS, TODAY, {});
+  const q = (r, id) => r.lines.filter((l) => l.item === id).reduce((a, l) => a + l.qty, 0);
+  assert.ok(q(three, 'cp_platine') > q(one, 'cp_platine'));
+  const wall = E.priceLine(p, { config: 'adossee', mur: 'creux' }, C.BOOK, C.SETTINGS, TODAY, {});
+  assert.ok(q(wall, 'cp_chimique') > 0);
+  const paves = E.priceLine(p, { sol: 'paves' }, C.BOOK, C.SETTINGS, TODAY, {});
+  assert.equal(q(paves, 'cp_plot'), q(paves, 'cp_paves'));
 });

@@ -11,6 +11,9 @@
     max: { l: 'Prudent', s: 'plus haut jamais relevé' },
     mkt: { l: 'Prix d’annonce', s: 'entrée de la fourchette du marché marocain' }
   };
+  /* Produit archivé : retiré du catalogue (réactivable dans Réglages), toujours lisible dans les anciens devis. */
+  function isArchived(p) { var a = (S && S.settings && S.settings.archived) || {}; return a[p.id] != null ? !!a[p.id] : !!p.archived; }
+  function activeProducts() { return PRODUCTS.filter(function (p) { return !isArchived(p); }); }
   function tiersFor(r) { return E.TIERS.concat(r.sale.mkt ? ['mkt'] : []); }
   function validTier(r, t) { return t && r.sale[t] != null ? t : r.base; }
 
@@ -634,11 +637,17 @@
 
   /* ================= Catalogue ================= */
   function renderCatalog() {
-    var fam = null, h = '';
-    PRODUCTS.forEach(function (p) {
+    var fam = null, h = '', arch = PRODUCTS.filter(isArchived);
+    function btn(p, tag) { return '<button type="button" data-p="' + p.id + '" aria-pressed="' + (p.id === S.current.productId) + '">' + icon(p.icon) + '<span><b>' + esc(p.short) + (tag ? ' <span class="pill">' + tag + '</span>' : '') + '</b><small>' + esc(p.blurb) + '</small></span></button>'; }
+    activeProducts().forEach(function (p) {
       if (p.family !== fam) { fam = p.family; h += '<h3>' + esc(fam) + '</h3>'; }
-      h += '<button type="button" data-p="' + p.id + '" aria-pressed="' + (p.id === S.current.productId) + '">' + icon(p.icon) + '<span><b>' + esc(p.short) + '</b><small>' + esc(p.blurb) + '</small></span></button>';
+      h += btn(p);
     });
+    if (arch.length) {
+      var open = arch.some(function (p) { return p.id === S.current.productId; });
+      h += '<details class="arch"' + (open ? ' open' : '') + '><summary>Produits archivés (' + arch.length + ')</summary><p class="sub">Consultables, mais retirés du catalogue. Réactivation dans Réglages › Marges.</p>' +
+        arch.map(function (p) { return btn(p, 'archivé'); }).join('') + '</details>';
+    }
     $('catalog').innerHTML = h;
   }
   $('catalog').addEventListener('click', function (e) {
@@ -714,8 +723,9 @@
       if (d.comp) secComp[s] = d.comp;
       bySec[s].push(field(d, p[d.id], d.comp && !isPicked(prod, d.comp)));
     });
-    if (mode === 'composer' && prod.comps) {
-      var sh = shares(price(prod.id, S.current.params), curTier(), prod), rank = {};
+    var pr0 = mode === 'composer' && prod.comps ? price(prod.id, S.current.params) : null;
+    if (pr0 && !pr0.unpriced.length) {
+      var sh = shares(pr0, curTier(), prod), rank = {};
       sh.rows.forEach(function (x, i) { if (x.comp) rank[x.comp] = i; });
       secs.sort(function (a, b) {
         function key(s) { return s === 'Dimensions' ? -1 : secComp[s] ? (rank[secComp[s]] != null ? rank[secComp[s]] : 50) : 100; }
@@ -735,6 +745,7 @@
   /* Effet de chaque option sur le prix TTC, recalculé à chaque changement. */
   function updateDeltas(r, t) {
     var prod = byId[S.current.productId], base = r.sale[t] * tva(), cache = {};
+    if (r.unpriced && r.unpriced.length) { document.querySelectorAll('#form [data-dlf]').forEach(function (el) { el.textContent = ''; }); return; }
     function delta(id, v) {
       var k = id + '=' + v; if (cache[k] != null) return cache[k];
       var pp = Object.assign({}, S.current.params); pp[id] = v;
@@ -757,12 +768,14 @@
     });
   }
   function renderPareto(r, t) {
-    var prod = byId[S.current.productId], sh = shares(r, t, prod), box = $('pareto');
+    var prod = byId[S.current.productId], sh = shares(r, t, prod), box = $('pareto'), nop = r.unpriced && r.unpriced.length;
     document.querySelectorAll('#form [data-share]').forEach(function (el) {
+      el.hidden = !!nop; if (nop) return;
       var row = sh.rows.filter(function (x) { return x.comp === el.dataset.share; })[0];
       el.textContent = row ? Math.round(row.share * 100) + ' % du coût' : '';
     });
     if (!box) return;
+    if (r.unpriced && r.unpriced.length) { box.innerHTML = '<div class="sec-h"><h3>Ce qui fait le prix</h3><span class="sub">disponible une fois les prix saisis</span></div>'; return; }
     var nMaj = sh.rows.filter(function (x) { return x.major; }).length;
     var h = '<div class="sec-h"><h3>Ce qui fait le prix</h3><span class="sub">' + nMaj + ' poste' + (nMaj > 1 ? 's' : '') + ' = 80 % du coût</span></div><div class="pbar">' +
       sh.rows.map(function (x, i) { return '<i class="' + (x.major ? 'maj m' + Math.min(i, 3) : 'min') + '" style="width:' + (x.share * 100).toFixed(2) + '%" title="' + esc(x.label) + '"></i>'; }).join('') + '</div><ol class="plist">' +
@@ -777,7 +790,7 @@
     box.innerHTML = ['A', 'B', 'C'].map(function (k) {
       var pp = Object.assign({}, cur, v[k]), r = price(prod.id, pp), tt = validTier(r, t);
       return '<div class="preset' + (k === 'B' ? ' rec' : '') + '"><div class="ph"><span class="ver-tag">' + k + '</span><b>' + esc(C.VERSION_NAMES[k]) + '</b>' + (k === 'B' ? '<span class="pill acc">conseillée</span>' : '') + '</div>' +
-        '<div class="pp"><b class="num">' + nf0.format(r.sale[tt] * tva()) + '</b> MAD TTC</div><ul>' + r.details.slice(0, 5).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
+        '<div class="pp">' + (r.unpriced.length ? '<span class="pill warn">prix à renseigner</span>' : '<b class="num">' + nf0.format(r.sale[tt] * tva()) + '</b> MAD TTC') + '</div><ul>' + r.details.slice(0, 5).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
         '<button class="btn' + (k === 'B' ? ' pri' : '') + ' wide" type="button" data-preset="' + k + '">Partir de cette configuration</button></div>';
     }).join('');
   }
@@ -857,6 +870,7 @@
   function renderResult() {
     var prod = byId[S.current.productId];
     var r = last = price(S.current.productId, S.current.params), t = validTier(r, curTier());
+    if (r.unpriced.length) { renderUnpriced(prod, r); return; }
     var sale = r.sale[t], cost = r.cost[t];
     var cushion = cost - r.cost.now, marginAmt = sale - cost;
     // plan, effet des options, répartition du coût, configurations prêtes
@@ -903,7 +917,36 @@
     $('mbar-p').textContent = nf0.format(sale * tva()) + ' MAD';
     $('mbar-add').textContent = S.editing ? 'Mettre à jour' : 'Ajouter au devis';
   }
+  /* Produit en configuration : quantités calculées, prix encore inconnus. */
+  function renderUnpriced(prod, r) {
+    renderPlan(r); renderPareto(r, curTier()); renderPresets(curTier()); updateDeltas(r, curTier());
+    var all = [], miss = r.unpriced.length;
+    r.lines.forEach(function (l) { if (all.indexOf(l.item) < 0) all.push(l.item); });
+    var h = '<div class="price"><div><h3>' + esc(r.productName) + '</h3><div class="sub">' + esc(r.summary) + '</div></div>';
+    h += '<div class="todo-price"><b>Prix à renseigner</b><span>' + miss + ' article' + (miss > 1 ? 's' : '') + ' sur ' + all.length + ' sans prix pour cette configuration. Les quantités sont calculées ; le prix s’affichera dès que tous les prix seront saisis.</span></div>';
+    h += '<div class="row"><button class="btn pri" type="button" id="r-fill" style="flex:1">Renseigner les prix</button></div>';
+    var al = r.warnings.map(function (w) { return '<div class="alert">' + esc(w) + '</div>'; });
+    if (al.length) h += '<div class="alerts">' + al.join('') + '</div>';
+    h += '</div><details class="det" open><summary>Quantités de cette configuration</summary><div class="tbl-wrap"><table><thead><tr><th>Article</th><th class="r">Qté</th><th class="r">PU</th></tr></thead><tbody>';
+    r.lines.forEach(function (l) {
+      h += '<tr><td>' + esc(l.name) + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</td><td class="r num">' + nf2.format(l.qty) + ' ' + esc(l.unit) + '</td><td class="r">' +
+        (l.unpriced ? '<span class="pill warn">à renseigner</span>' : '<span class="num">' + nf0.format(l['pu_' + curTier()]) + '</span>') + '</td></tr>';
+    });
+    h += '</tbody></table></div></details>';
+    $('result').innerHTML = h;
+    $('mbar-l').textContent = 'Prix à renseigner';
+    $('mbar-p').textContent = miss + ' article' + (miss > 1 ? 's' : '');
+    $('mbar-add').textContent = 'Renseigner';
+  }
+  function goFill(group) {
+    go('prix');
+    setTimeout(function () {
+      $('p-search').value = ''; $('p-stale').checked = true; renderBook();
+      if (group) { $('p-group').value = group; renderBook(); }
+    });
+  }
   $('result').addEventListener('click', function (e) {
+    if (e.target.id === 'r-fill') { goFill(last && last.lines[0] && last.lines[0].group); return; }
     var tb = e.target.closest('[data-tier]');
     if (tb) { S.current.tier = tb.dataset.tier; save(); renderResult(); return; }
     if (e.target.id === 'r-add' || e.target.id === 'r-update') addOrUpdate();
@@ -1012,6 +1055,7 @@
   });
 
   function addOrUpdate() {
+    if (last && last.unpriced && last.unpriced.length) { goFill(last.lines[0] && last.lines[0].group); return; }
     if (!canWrite()) return;
     var entry = { productId: S.current.productId, params: clone(E.fullParams(byId[S.current.productId], S.current.params)), tier: curTier() };
     var q = activeQuote();
@@ -1029,6 +1073,7 @@
   function proposeVersions() {
     if (!canWrite()) return;
     var prod = byId[S.current.productId]; if (!prod.versions) return;
+    if (last && last.unpriced && last.unpriced.length) { toast('Renseignez d’abord les prix de ce produit'); return; }
     var base = E.fullParams(prod, S.current.params), v = prod.versions(base), q = activeQuote(), fresh = !q || CLOSED[q.status];
     if (fresh) q = newQuote();
     if (q.lines.some(function (l) { return l.ver; })) { toast('Ce devis contient déjà des versions : créez un nouveau devis pour en proposer d’autres.'); return; }
@@ -1555,26 +1600,27 @@
       Object.keys(S.book).forEach(function (id) {
         var it = S.book[id]; if (it.group !== g) return;
         var uc = E.unitCost(it, S.book, S.settings, TODAY);
-        if (uc.stale) staleN++;
+        if (uc.stale || uc.unpriced) staleN++;
         if (q && (it.name + ' ' + (it.supplier || '') + ' ' + g).toLowerCase().indexOf(q) < 0) return;
-        if (onlyStale && !uc.stale) return;
+        if (onlyStale && !uc.stale && !uc.unpriced) return;
         shown++;
-        var gap = uc.now ? uc.max / uc.now - 1 : 0, src, input, sp;
+        var gap = uc.now ? uc.max / uc.now - 1 : 0, src, input, sp, nop = uc.unpriced;
         if (it.type === 'alu') {
           src = '<span class="src">' + nf2.format(it.kg) + ' kg × indice alu + ' + nf0.format(it.fab) + ' MAD</span>';
           input = '<span class="sub">suit l’indice alu</span>';
           sp = spark(S.book.alu_kg.hist, 'mini');
         } else {
-          var lastP = it.hist.slice().sort(function (a, b) { return a.d < b.d ? -1 : 1; }).pop();
-          src = '<span class="src">' + (it.type === 'eur' ? nf2.format(lastP.v) + (lastP.cur === 'MAD' ? ' MAD' : ' €') + ' · ' : '') + srcLink(lastP.src, true) + (it.note ? '<br>' + esc(it.note) : '') + '</span>';
+          var lastP = it.hist.slice().sort(function (a, b) { return a.d < b.d ? -1 : 1; }).pop() || { v: 0, src: 'manuel' };
+          src = nop ? '<span class="src">' + (it.note ? esc(it.note) : 'Prix fournisseur à saisir') + '</span>' : '<span class="src">' + (it.type === 'eur' ? nf2.format(lastP.v) + (lastP.cur === 'MAD' ? ' MAD' : ' €') + ' · ' : '') + srcLink(lastP.src, true) + (it.note ? '<br>' + esc(it.note) : '') + '</span>';
           input = '<div class="upd"><input type="number" step="0.01" id="u-' + id + '" aria-label="Nouveau prix ' + esc(it.name) + '" placeholder="MAD HT">' +
             (it.type === 'eur' ? '<select id="cur-' + id + '" class="inp" style="width:64px;height:32px;padding:0 4px" aria-label="Devise du prix"><option value="MAD">MAD</option><option value="EUR">€</option></select>' : '') + '<button class="btn sm" type="button" data-save="' + id + '">OK</button><button class="btn sm ghost" type="button" data-hist="' + id + '" aria-label="Historique de ' + esc(it.name) + '">⋯</button></div>';
           sp = spark(it.hist, 'mini');
         }
         rows += '<tr><td class="c-name"><b style="font-weight:600">' + esc(it.name) + '</b><small>par ' + esc(it.unit) + (it.supplier ? ' · ' + esc(it.supplier) : '') + '</small></td>' +
-          '<td class="r num" data-l="Aujourd’hui">' + nf2.format(uc.now) + '</td><td class="r num" data-l="Conseillé">' + nf2.format(uc.win) + '</td><td class="r num" data-l="Prudent"><b>' + nf2.format(uc.max) + '</b><small class="up">+' + pct(gap) + '</small></td>' +
+          (nop ? '<td class="r" data-l="Aujourd’hui">—</td><td class="r" data-l="Conseillé">—</td><td class="r" data-l="Prudent">—</td>' :
+          '<td class="r num" data-l="Aujourd’hui">' + nf2.format(uc.now) + '</td><td class="r num" data-l="Conseillé">' + nf2.format(uc.win) + '</td><td class="r num" data-l="Prudent"><b>' + nf2.format(uc.max) + '</b><small class="up">+' + pct(gap) + '</small></td>') +
           '<td class="c-evo">' + sp + '</td><td class="c-src" style="max-width:280px">' + src + '</td>' +
-          '<td class="c-date">' + (uc.stale ? '<span class="pill warn">relevé du ' + frDate(uc.lastDate) + ' · à confirmer</span>' : '<span class="sub num">relevé du ' + frDate(uc.lastDate) + '</span>') + '</td><td class="c-new">' + input + '</td></tr>';
+          '<td class="c-date">' + (nop ? '<span class="pill warn">prix à renseigner</span>' : uc.stale ? '<span class="pill warn">relevé du ' + frDate(uc.lastDate) + ' · à confirmer</span>' : '<span class="sub num">relevé du ' + frDate(uc.lastDate) + '</span>') + '</td><td class="c-new">' + input + '</td></tr>';
         if (openHist[id]) rows += '<tr><td colspan="8"><div class="hist">' + it.hist.slice().sort(function (a, b) { return a.d < b.d ? -1 : 1; }).map(function (p) {
           return '<span title="' + esc((SOURCES[p.src] || {}).label || 'saisie manuelle') + '">' + frDate(p.d) + ' · ' + nf2.format(p.v) + '<button type="button" data-delh="' + id + '|' + p.d + '|' + p.v + '" aria-label="Supprimer ce relevé">✕</button></span>';
         }).join('') + (it.max != null ? '<span>plus haut recherché · ' + nf2.format(it.max) + '</span>' : '') + '</div></td></tr>';
@@ -1583,7 +1629,7 @@
     });
     if (!shown) h += '<tr><td colspan="8" class="sub" style="padding:18px">Aucun article ne correspond.</td></tr>';
     $('book').innerHTML = h + '</tbody>';
-    $('p-count').textContent = shown + ' articles · ' + staleN + ' à confirmer';
+    $('p-count').textContent = shown + ' articles · ' + staleN + ' à confirmer ou à renseigner';
     if (!STORE.canWrite) document.querySelectorAll('#v-prix .upd input, #v-prix .upd button, #v-prix .calc input, #lc-save').forEach(function (el) { el.disabled = true; });
   }
   var openHist = {};
@@ -1781,9 +1827,9 @@
     document.querySelectorAll('#s-base button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === S.settings.policy.base)); });
     Object.keys(SF).forEach(function (id) { $(id).value = SF[id][0](); });
     $('s-cond').value = S.settings.conditions;
-    $('s-margins').innerHTML = '<thead><tr><th>Produit</th><th class="r">Marge %</th></tr></thead><tbody>' + PRODUCTS.map(function (p) {
+    $('s-margins').innerHTML = '<thead><tr><th>Produit</th><th>Actif</th><th class="r">Marge %</th></tr></thead><tbody>' + PRODUCTS.map(function (p) {
       var mg = S.settings.margins[p.id] != null ? S.settings.margins[p.id] : p.margin;
-      return '<tr><td>' + esc(p.name) + '</td><td class="r"><input class="inp num" style="width:84px;height:32px" type="number" step="0.5" min="0" max="80" data-margin="' + p.id + '" value="' + +(mg * 100).toFixed(2) + '" aria-label="Marge ' + esc(p.name) + '"></td></tr>';
+      return '<tr><td>' + esc(p.name) + '</td><td><label class="tog plain"><input type="checkbox" data-active="' + p.id + '"' + (isArchived(p) ? '' : ' checked') + ' aria-label="Produit actif : ' + esc(p.name) + '"></label></td><td class="r"><input class="inp num" style="width:84px;height:32px" type="number" step="0.5" min="0" max="80" data-margin="' + p.id + '" value="' + +(mg * 100).toFixed(2) + '" aria-label="Marge ' + esc(p.name) + '"></td></tr>';
     }).join('') + '</tbody>';
     var accL = { facile: 'Facile', normal: 'Normal', difficile: 'Difficile', hauteur: 'En hauteur' };
     $('s-access').innerHTML = '<tbody>' + Object.keys(accL).map(function (k) {
@@ -1805,6 +1851,12 @@
     var el = e.target, v = parseFloat(el.value);
     if (SF[el.id]) { if (isNaN(v)) return; SF[el.id][1](v); }
     else if (el.id === 's-cond') S.settings.conditions = el.value;
+    else if (el.dataset.active) {
+      if (!S.settings.archived) S.settings.archived = {};
+      S.settings.archived[el.dataset.active] = !el.checked;
+      if (!activeProducts().length) { S.settings.archived[el.dataset.active] = false; el.checked = true; toast('Gardez au moins un produit actif'); return; }
+      renderCatalog();
+    }
     else if (el.dataset.margin) { if (isNaN(v)) return; S.settings.margins[el.dataset.margin] = Math.min(0.8, Math.max(0, v / 100)); }
     else if (el.dataset.access) { if (isNaN(v)) return; S.settings.access[el.dataset.access] = v; }
     else if (el.dataset.zone) {
@@ -1848,7 +1900,11 @@
     save(); $('x-confirm').hidden = true; renderAll(); toast(shared() ? 'Prix et réglages de l’étude restaurés pour toute l’équipe' : 'Prix de l’étude restaurés');
   });
 
-  function renderAll() { renderSite(); syncSiteFold(); renderCatalog(); renderForm(); renderResult(); renderCount(); route(); }
+  function ensureActive() {
+    var p = byId[S.current.productId];
+    if ((!p || isArchived(p)) && !S.editing) S.current = { productId: activeProducts()[0].id, params: {}, tier: null, mode: null, picked: null };
+  }
+  function renderAll() { ensureActive(); renderSite(); syncSiteFold(); renderCatalog(); renderForm(); renderResult(); renderCount(); route(); }
   $('mbar-go').addEventListener('click', function () { $('result').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   renderAll();
   connect();
