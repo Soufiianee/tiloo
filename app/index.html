@@ -1,0 +1,352 @@
+<!doctype html>
+<!-- Fichier généré par scripts/build.mjs à partir de devis.html : ne pas modifier à la main. -->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}</style>
+<title>Store Luxe Chiffrage</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : établi d'atelier — catalogue à gauche, configuration au centre, prix collé à droite. Accent = RAL 5010 bleu gentiane. */
+:root {
+  --bg: #EDF0F2;
+  --surface: #FFFFFF;
+  --surface-2: #F5F7F8;
+  --ink: #15202A;
+  --muted: #586571;
+  --line: #D3DAE0;
+  --accent: #1E4F8F;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E2EAF5;
+  --good: #1D7347;
+  --good-soft: #E1F2E8;
+  --warn: #8F5B00;
+  --warn-soft: #FBF0D9;
+  --bad: #B42318;
+  --hatch: rgba(30, 79, 143, .28);
+  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1317; --surface: #151C22; --surface-2: #1A232A; --ink: #E5EBEF; --muted: #93A0AB; --line: #2A353E;
+    --accent: #77A3DF; --accent-ink: #0B1422; --accent-soft: #1A2A40; --good: #52C48D; --good-soft: #12301F;
+    --warn: #E3AA4A; --warn-soft: #33270F; --bad: #F2786C; --hatch: rgba(119, 163, 223, .32); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1317; --surface: #151C22; --surface-2: #1A232A; --ink: #E5EBEF; --muted: #93A0AB; --line: #2A353E;
+  --accent: #77A3DF; --accent-ink: #0B1422; --accent-soft: #1A2A40; --good: #52C48D; --good-soft: #12301F;
+  --warn: #E3AA4A; --warn-soft: #33270F; --bad: #F2786C; --hatch: rgba(119, 163, 223, .32); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+body { color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.45; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- En-tête ---------- */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top-in { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); max-width: 1480px; margin: 0 auto; }
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand b { font-family: var(--f-display); font-stretch: 112%; font-weight: 800; font-size: 19px; letter-spacing: .01em; }
+.brand span { font-family: var(--f-display); font-stretch: 75%; font-weight: 600; font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.tabs { display: flex; gap: 2px; margin-left: auto; overflow-x: auto; }
+.tabs a { padding: 7px 12px; border-radius: var(--r); color: var(--muted); text-decoration: none; font-weight: 500; white-space: nowrap; }
+.tabs a:hover { color: var(--ink); background: var(--surface-2); }
+.tabs a[aria-current="page"] { color: var(--accent); background: var(--accent-soft); }
+
+.wrap { max-width: 1480px; margin: 0 auto; padding-block: 18px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.view { display: grid; gap: 18px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
+h2 { font-size: 20px; font-weight: 700; font-stretch: 100%; }
+h3 { font-size: 13px; font-stretch: 80%; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.lede { color: var(--muted); margin: 4px 0 0; max-width: 68ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.pad { padding: 16px; }
+.sample { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--warn); background: var(--warn-soft); padding: 2px 7px; border-radius: 3px; }
+
+/* ---------- Chantier ---------- */
+.site { display: grid; grid-template-columns: 2fr 2fr 1.4fr 1fr; gap: 12px; align-items: end; }
+.fld { display: grid; gap: 5px; min-width: 0; }
+.fld > label, .lbl { font-size: 12px; font-weight: 600; color: var(--muted); }
+.inp { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+select.inp { padding-right: 6px; }
+.inp:hover { border-color: var(--muted); }
+
+/* ---------- Atelier : catalogue / formulaire / prix ---------- */
+.bench { display: grid; grid-template-columns: 230px minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+.cat { padding: 8px; display: grid; gap: 2px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 70px); }
+.cat h3 { padding: 10px 8px 4px; }
+.cat button { text-align: left; border: 0; background: none; padding: 8px 10px; border-radius: var(--r); cursor: pointer; display: grid; gap: 1px; }
+.cat button:hover { background: var(--surface-2); }
+.cat button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.cat button[aria-pressed="true"] small { color: inherit; opacity: .85; }
+.cat button b { font-weight: 600; }
+.cat small { color: var(--muted); font-size: 12px; line-height: 1.3; }
+
+.form { padding: 18px; display: grid; gap: 18px; }
+.form-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px 16px; }
+.full { grid-column: 1 / -1; }
+.numbox { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); height: 38px; }
+.numbox:focus-within { border-color: var(--accent); }
+.numbox input { flex: 1; min-width: 0; border: 0; background: none; padding: 0 10px; font-family: var(--f-mono); font-size: 15px; outline: none; }
+.numbox .u { display: grid; place-items: center; padding: 0 10px; color: var(--muted); font-size: 12px; border-left: 1px solid var(--line); }
+.numbox button { width: 34px; border: 0; background: var(--surface-2); cursor: pointer; font-size: 16px; }
+.numbox button:first-child { border-right: 1px solid var(--line); border-radius: var(--r) 0 0 var(--r); }
+.numbox button:last-child { border-left: 1px solid var(--line); border-radius: 0 var(--r) var(--r) 0; }
+.seg { display: flex; flex-wrap: wrap; gap: 4px; }
+.seg button { border: 1px solid var(--line); background: var(--surface); padding: 7px 11px; border-radius: var(--r); cursor: pointer; }
+.seg button:hover { border-color: var(--muted); }
+.seg button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.sw button { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 9px; text-align: left; cursor: pointer; display: grid; gap: 6px; }
+.sw button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.chips { display: flex; gap: 4px; }
+.chips i { width: 22px; height: 22px; border-radius: 3px; border: 1px solid rgba(0,0,0,.18); }
+.sw small { color: var(--muted); font-size: 12px; }
+.tog { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 0; }
+.tog input { appearance: none; width: 36px; height: 20px; border-radius: 10px; background: var(--line); position: relative; cursor: pointer; flex: none; margin: 0; transition: background .15s; }
+.tog input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); transition: transform .15s; }
+.tog input:checked { background: var(--accent); }
+.tog input:checked::after { transform: translateX(16px); }
+
+/* ---------- Résultat ---------- */
+.res { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 70px); display: grid; gap: 14px; }
+.price { padding: 18px; display: grid; gap: 14px; }
+.ttc { font-family: var(--f-display); font-stretch: 88%; font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.ttc small { font-size: 16px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+.sub { color: var(--muted); font-size: 13px; }
+.bar { display: flex; height: 14px; border-radius: 3px; overflow: hidden; background: var(--surface-2); border: 1px solid var(--line); }
+.bar i { display: block; height: 100%; }
+.bar .b-now { background: var(--accent); }
+.bar .b-cush { background: repeating-linear-gradient(135deg, var(--hatch) 0 4px, transparent 4px 8px); border-left: 1px solid var(--accent); }
+.bar .b-mar { background: var(--good-soft); }
+.legend { display: grid; gap: 4px; font-size: 13px; }
+.legend div { display: flex; justify-content: space-between; gap: 10px; }
+.legend span:first-child { display: flex; align-items: center; gap: 7px; color: var(--muted); }
+.legend em { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.kpi { background: var(--surface-2); border-radius: var(--r); padding: 9px 10px; display: grid; gap: 2px; }
+.kpi span { font-size: 12px; color: var(--muted); }
+.kpi b { font-family: var(--f-mono); font-size: 17px; font-weight: 500; }
+.kpi.good b { color: var(--good); }
+.alerts { display: grid; gap: 6px; }
+.alert { font-size: 13px; padding: 8px 10px; border-radius: var(--r); background: var(--warn-soft); color: var(--warn); }
+.alert.info { background: var(--surface-2); color: var(--muted); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 9px 14px; border-radius: var(--r); cursor: pointer; font-weight: 600; }
+.btn:hover { border-color: var(--muted); }
+.btn.pri { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.pri:hover { filter: brightness(1.08); }
+.btn.sm { padding: 5px 10px; font-size: 13px; }
+.btn.ghost { border-color: transparent; background: none; color: var(--muted); }
+.btn.danger { color: var(--bad); }
+details.det { border-top: 1px solid var(--line); }
+details.det summary { cursor: pointer; padding: 12px 18px; font-weight: 600; list-style-position: inside; }
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.r, th.r { text-align: right; white-space: nowrap; }
+tr.grp td { background: var(--surface-2); font-weight: 600; font-size: 12px; letter-spacing: .04em; color: var(--muted); }
+td small { color: var(--muted); display: block; font-size: 12px; }
+.flag { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 3px; background: var(--warn-soft); color: var(--warn); white-space: nowrap; }
+.flag.ok { background: var(--good-soft); color: var(--good); }
+
+/* ---------- Devis en cours ---------- */
+.cart { padding: 18px; display: grid; gap: 12px; }
+.cart-line { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.cart-line b { font-weight: 600; }
+.cart-line small { display: block; color: var(--muted); }
+.tot { display: grid; gap: 4px; }
+.tot div { display: flex; justify-content: space-between; }
+.tot .big { font-family: var(--f-display); font-weight: 800; font-size: 22px; font-stretch: 90%; padding-top: 6px; border-top: 1px solid var(--line); }
+.empty { color: var(--muted); font-size: 13px; padding: 6px 0; }
+textarea.inp { height: auto; min-height: 120px; padding: 10px; font-family: var(--f-mono); font-size: 12px; resize: vertical; }
+
+/* ---------- Prix fournisseurs ---------- */
+.idx { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.idx-card { padding: 16px; display: grid; gap: 10px; }
+.idx-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.idx-val { font-family: var(--f-display); font-weight: 800; font-size: 30px; font-stretch: 88%; font-variant-numeric: tabular-nums; }
+.idx-val small { font-size: 13px; color: var(--muted); font-weight: 600; }
+.spark { display: block; width: 100%; max-width: 100%; height: 48px; }
+.mini { width: 90px; height: 22px; display: block; }
+.upd { display: flex; gap: 6px; align-items: center; }
+.upd input { width: 96px; height: 32px; border: 1px solid var(--line); border-radius: var(--r); padding: 0 8px; background: var(--surface); font-family: var(--f-mono); }
+.tools { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.tools .inp { max-width: 320px; }
+.up { color: var(--bad); } .down { color: var(--good); }
+.hist { display: flex; gap: 6px; flex-wrap: wrap; padding: 4px 0; }
+.hist span { font-family: var(--f-mono); font-size: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 2px 4px 2px 7px; display: inline-flex; gap: 6px; align-items: center; }
+.hist button { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 3px; }
+
+/* ---------- Réglages / méthode ---------- */
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; align-items: start; }
+.prose { max-width: 72ch; display: grid; gap: 12px; }
+.prose p, .prose li { margin: 0; }
+.prose ol, .prose ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.formula { font-family: var(--f-mono); font-size: 13px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; overflow-x: auto; white-space: pre; line-height: 1.6; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: var(--r); font-weight: 500; z-index: 20; }
+
+@media (max-width: 1180px) {
+  .bench { grid-template-columns: minmax(0, 1fr) 340px; }
+  .cat { grid-column: 1 / -1; position: static; display: flex; overflow-x: auto; gap: 4px; }
+  .cat h3 { display: none; }
+  .cat button { flex: none; white-space: nowrap; }
+  .cat small { display: none; }
+}
+@media (max-width: 820px) {
+  .bench { grid-template-columns: minmax(0, 1fr); }
+  .res { position: static; }
+  .site { grid-template-columns: 1fr 1fr; }
+  .idx { grid-template-columns: 1fr; }
+  .ttc { font-size: 34px; }
+}
+@media (max-width: 460px) { .site { grid-template-columns: 1fr; } .tabs { margin-left: 0; width: 100%; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><b>Store Luxe</b><span>Chiffrage rapide</span></div>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#devis" data-tab="devis">Devis</a>
+      <a href="#prix" data-tab="prix">Prix fournisseurs</a>
+      <a href="#reglages" data-tab="reglages">Réglages</a>
+      <a href="#methode" data-tab="methode">Méthode</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- ================= DEVIS ================= -->
+  <section class="view" id="v-devis">
+    <div class="panel pad site">
+      <div class="fld"><label for="c-client">Client</label><input class="inp" id="c-client" placeholder="Nom du client"></div>
+      <div class="fld"><label for="c-zone">Ville du chantier</label><select class="inp" id="c-zone"></select></div>
+      <div class="fld"><label for="c-access">Accès chantier</label>
+        <select class="inp" id="c-access">
+          <option value="facile">Facile (rez-de-chaussée)</option>
+          <option value="normal">Normal</option>
+          <option value="difficile">Difficile (étage, passage étroit)</option>
+          <option value="hauteur">Travail en hauteur (nacelle)</option>
+        </select></div>
+      <div class="fld"><label for="c-disc">Remise</label>
+        <select class="inp" id="c-disc"><option value="0">Aucune</option><option value="0.03">3 %</option><option value="0.05">5 %</option><option value="0.08">8 %</option><option value="0.1">10 %</option></select></div>
+    </div>
+
+    <div class="bench">
+      <nav class="panel cat" id="catalog" aria-label="Produits"></nav>
+      <div class="panel form" id="form"></div>
+      <aside class="res">
+        <div class="panel" id="result"></div>
+        <div class="panel cart" id="cart"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= PRIX ================= -->
+  <section class="view" id="v-prix" hidden>
+    <div>
+      <h2>Prix fournisseurs</h2>
+      <p class="lede">Saisissez un nouveau prix dès qu’un fournisseur vous l’annonce : il s’ajoute à l’historique et les devis se recalculent. Le chiffrage utilise le <b>plafond</b>, le plus haut prix des <span id="p-window">180</span> derniers jours, majoré du tampon.</p>
+    </div>
+    <div class="idx" id="indices"></div>
+    <div class="tools">
+      <input class="inp" id="p-search" type="search" placeholder="Rechercher un article">
+      <label class="tog"><input type="checkbox" id="p-stale"> Seulement les prix à vérifier</label>
+      <span class="sample">Prix d’exemple</span>
+    </div>
+    <div class="panel tbl-wrap"><table id="book"></table></div>
+  </section>
+
+  <!-- ================= RÉGLAGES ================= -->
+  <section class="view" id="v-reglages" hidden>
+    <div><h2>Réglages</h2><p class="lede">Politique de prix, marges par produit, zones de déplacement. Les réglages sont enregistrés dans ce navigateur.</p></div>
+    <div class="cols">
+      <div class="panel pad" style="display:grid;gap:14px">
+        <h3>Politique de prix</h3>
+        <div class="fld"><label for="s-mode">Coût retenu pour chiffrer</label>
+          <select class="inp" id="s-mode">
+            <option value="window">Plus haut prix sur une période (recommandé)</option>
+            <option value="alltime">Plus haut prix de tout l’historique</option>
+            <option value="latest">Dernier prix connu</option>
+          </select></div>
+        <div class="fld"><label for="s-window">Période observée (jours)</label><input class="inp num" id="s-window" type="number" min="7" step="1"></div>
+        <div class="fld"><label for="s-buffer">Tampon de volatilité ajouté au plafond (%)</label><input class="inp num" id="s-buffer" type="number" min="0" step="0.5"></div>
+        <div class="fld"><label for="s-landed">Frais d’approche sur achats en euros (%)</label><input class="inp num" id="s-landed" type="number" min="0" step="1"></div>
+        <div class="fld"><label for="s-valid">Validité du devis (jours)</label><input class="inp num" id="s-valid" type="number" min="1" step="1"></div>
+        <div class="fld"><label for="s-stale">Signaler un prix non mis à jour depuis (jours)</label><input class="inp num" id="s-stale" type="number" min="1" step="1"></div>
+        <div class="fld"><label for="s-round">Arrondi du prix de vente HT (MAD)</label><input class="inp num" id="s-round" type="number" min="0" step="10"></div>
+        <div class="fld"><label for="s-tva">TVA (%)</label><input class="inp num" id="s-tva" type="number" min="0" step="1"></div>
+        <div class="fld"><label for="s-lodge">Hébergement équipe hors zone (MAD / nuit)</label><input class="inp num" id="s-lodge" type="number" min="0" step="50"></div>
+      </div>
+      <div class="panel pad" style="display:grid;gap:14px">
+        <h3>Marge cible par produit</h3>
+        <p class="lede" style="margin:0">Taux de marque : part du prix de vente HT qui reste après le coût plafond.</p>
+        <div class="tbl-wrap"><table id="s-margins"></table></div>
+        <h3>Coefficient main-d’œuvre selon l’accès</h3>
+        <div class="tbl-wrap"><table id="s-access"></table></div>
+      </div>
+      <div class="panel pad" style="display:grid;gap:14px">
+        <h3>Zones de déplacement</h3>
+        <div class="tbl-wrap"><table id="s-zones"></table></div>
+        <h3>Sauvegarde</h3>
+        <p class="lede" style="margin:0">Copiez la sauvegarde pour la partager avec l’équipe ou la recharger sur un autre poste.</p>
+        <div class="row"><button class="btn sm" id="x-export">Copier la sauvegarde</button><label class="btn sm" for="x-file">Ouvrir un fichier…</label><input type="file" id="x-file" accept="application/json,.json" hidden></div>
+        <textarea class="inp" id="x-text" placeholder="Collez ici une sauvegarde puis cliquez sur Importer"></textarea>
+        <div class="row"><button class="btn sm" id="x-import">Importer</button><button class="btn sm danger" id="x-reset">Revenir aux prix d’exemple</button></div>
+        <div id="x-confirm" hidden class="alert">Tous vos prix et réglages seront remplacés par les exemples. <div class="row" style="margin-top:8px"><button class="btn sm danger" id="x-reset-yes">Oui, réinitialiser</button><button class="btn sm" id="x-reset-no">Annuler</button></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MÉTHODE ================= -->
+  <section class="view" id="v-methode" hidden>
+    <div class="panel pad prose">
+      <h2>Comment le prix est calculé</h2>
+      <p>Chaque produit est décomposé en postes réels : profilés, couverture, toile, moteur, fixations, pose. Chaque poste vient du carnet de prix fournisseurs. Vous mettez à jour un prix une fois, et tous les produits qui l’utilisent suivent.</p>
+      <div class="formula">Coût plafond d’un article = plus haut prix sur 180 j × (1 + tampon 2 %)
+  · profilé alu   = kg/ml × cours alu plafond + façonnage
+  · import (€)    = prix € plafond × EUR/MAD plafond × (1 + frais d’approche 25 %)
+
+Coût produit    = Σ matière × (1 + chutes) + Σ équipement + Σ pose × coef. accès
+Prix HT         = Coût produit ÷ (1 − marge cible), arrondi au 50 MAD supérieur
+Devis           = Σ prix HT + déplacement (+ nuits si hors zone) − remise
+TTC             = HT × (1 + TVA 20 %)</div>
+      <h3>Pourquoi le plafond et pas le dernier prix</h3>
+      <p>Les prix de l’aluminium, des toiles et des moteurs importés bougent d’une semaine à l’autre. Si vous chiffrez au dernier prix, une hausse entre le devis et la commande fournisseur mange votre marge. En chiffrant au plus haut de la période, vous êtes couvert. Quand le fournisseur baisse, l’écart devient de la marge en plus. Le tableau de bord montre ce coussin pour chaque devis : <i>marge si achat aujourd’hui</i>.</p>
+      <h3>Trois garde-fous</h3>
+      <ul>
+        <li><b>Période glissante.</b> 180 jours par défaut. Un pic très ancien ne vous rend pas trop cher indéfiniment. Choisissez « tout l’historique » pour être plus prudent, ou une période courte pour être plus compétitif.</li>
+        <li><b>Validité du devis.</b> 15 jours par défaut. Elle borne la durée pendant laquelle vous portez le risque de hausse.</li>
+        <li><b>Prix à vérifier.</b> Un article non mis à jour depuis 30 jours est signalé sur le devis.</li>
+      </ul>
+      <h3>Repère concurrent</h3>
+      <p>Perlago (Casablanca) publie un configurateur pour sa pergola bioclimatique ATLAS. Ce sont des combinaisons figées, sans prise en compte du chantier : 63 163 MAD TTC en 5 × 3 m, 77 050 en 5 × 4 m, 91 685 en 6 × 4 m, pose facturée 5 000 MAD en plus. Spots : 8 unités pour +5 008 MAD. Ruban LED 16 ml : +6 548 MAD en blanc, +8 346 en RGB. Les prix d’exemple de cet outil ont été calés sur ces ordres de grandeur.</p>
+      <p class="sub">Tous les prix fournis au départ sont des exemples. Remplacez-les par vos prix d’achat réels avant d’envoyer un devis.</p>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script src="catalog.js"></script>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "storeluxe-chiffrage",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Outil de chiffrage rapide Store Luxe (prototype)",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/engine.test.mjs"
+  }
+}
