@@ -699,6 +699,9 @@
   function renderCount() {
     var q = activeQuote(), n = q ? q.lines.length : 0, c = $('cart-count');
     c.textContent = n; c.hidden = !n;
+    var tab = document.querySelector('.tabs a[data-tab="devis"]'), dot = $('risk-dot');
+    if (!dot) { dot = document.createElement('span'); dot.id = 'risk-dot'; dot.className = 'badge'; dot.style.background = 'var(--bad)'; dot.style.color = 'var(--surface)'; tab.appendChild(dot); }
+    var r = riskyQuotes().length; dot.textContent = '!'; dot.hidden = !r; dot.title = r ? r + ' devis à marge rognée' : '';
   }
 
   function stChip(s) { return '<span class="st st-' + s + '">' + (STATUS[s] || STATUS.brouillon).l + '</span>'; }
@@ -711,16 +714,20 @@
     var gaps = all.filter(function (q) { return q.status === 'realise' && q.actual && q.actual.cost > 0 && q.snap && q.snap.costNow > 0; })
       .map(function (q) { return q.actual.cost / q.snap.costNow - 1; });
     var gap = gaps.length ? gaps.reduce(function (a, b) { return a + b; }, 0) / gaps.length : null;
+    var risky = {}; all.forEach(function (q) { var r = quoteRisk(q); if (r) risky[q.id] = r; });
+    var nRisk = Object.keys(risky).length;
     var h = '<div class="row" style="justify-content:space-between"><h3>Devis de l’équipe</h3><button class="btn sm pri" type="button" id="q-new">Nouveau</button></div>';
+    if (nRisk) h += '<div class="notice warn"><span>' + nRisk + ' devis envoyé' + (nRisk > 1 ? 's ou acceptés ont' : ' ou accepté a') + ' perdu de la marge depuis une hausse fournisseur.</span><button class="btn sm" type="button" data-qf="risque">Voir</button></div>';
     if (shared() && STORE.pendingLocal && Object.keys(STORE.pendingLocal.quotes || {}).length) h += localNotice();
     h += '<div class="qstats"><div><span>En cours</span><b>' + (count.brouillon + count.envoye) + '</b></div><div><span>Taux de signature</span><b>' + (decided ? Math.round(won / decided * 100) + ' %' : '—') + '</b></div>' +
       '<div title="Coût réel des chantiers réalisés comparé au coût estimé"><span>Écart coût réel</span><b>' + (gap == null ? '—' : (gap > 0 ? '+' : '') + Math.round(gap * 100) + ' %') + '</b></div></div>';
     h += '<input class="inp" type="search" id="q-search" placeholder="Client ou numéro" value="' + esc(qSearch) + '" autocomplete="off">';
-    h += '<div class="qfilter" role="group" aria-label="Filtrer par statut">' + [['tous', 'Tous']].concat(Object.keys(STATUS).map(function (k) { return [k, STATUS[k].l + (count[k] ? ' ' + count[k] : '')]; })).map(function (f) {
+    h += '<div class="qfilter" role="group" aria-label="Filtrer par statut">' + [['tous', 'Tous']].concat(nRisk ? [['risque', 'Marge ↓ ' + nRisk]] : []).concat(Object.keys(STATUS).map(function (k) { return [k, STATUS[k].l + (count[k] ? ' ' + count[k] : '')]; })).map(function (f) {
       return '<button type="button" data-qf="' + f[0] + '" aria-pressed="' + (qFilter === f[0]) + '">' + esc(f[1]) + '</button>';
     }).join('') + '</div>';
     var list = all.filter(function (q) {
-      if (qFilter !== 'tous' && (q.status || 'brouillon') !== qFilter) return false;
+      if (qFilter === 'risque') { if (!risky[q.id]) return false; }
+      else if (qFilter !== 'tous' && (q.status || 'brouillon') !== qFilter) return false;
       if (!qSearch) return true;
       return ((q.site && q.site.client || '') + ' ' + q.no + ' ' + (q.snap && q.snap.title || '')).toLowerCase().indexOf(qSearch.toLowerCase()) >= 0;
     });
@@ -728,7 +735,7 @@
     h += '<div style="display:grid;gap:2px">' + (list.length ? list.map(function (q) {
       ids.push(q.updatedBy);
       return '<button type="button" class="qitem" data-q="' + esc(q.id) + '" aria-current="' + (q.id === S.activeId) + '">' +
-        '<span class="top"><b>' + esc(q.site && q.site.client || 'Client à préciser') + '</b>' + stChip(q.status || 'brouillon') + '</span>' +
+        '<span class="top"><b>' + esc(q.site && q.site.client || 'Client à préciser') + '</b><span class="row" style="gap:4px;flex-wrap:nowrap">' + (risky[q.id] ? '<span class="st st-perdu" title="Marge si achat aujourd’hui : ' + pct(risky[q.id].margin) + '">Marge ↓</span>' : '') + stChip(q.status || 'brouillon') + '</span></span>' +
         '<small><span>' + esc(q.no) + ' · ' + esc(q.snap && q.snap.title || 'vide') + '</span></small>' +
         '<small><span class="num">' + (q.snap ? nf0.format(q.snap.ttc) + ' TTC' : '') + '</span><span>' + shortDate(q.updatedAt) + ' ' + byLabel(q.updatedBy) + '</span></small></button>';
     }).join('') : '<p class="sub" style="margin:8px 4px">' + (all.length ? 'Aucun devis ne correspond.' : 'Aucun devis pour l’instant. Configurez un produit puis « Ajouter au devis ».') + '</p>') + '</div>';
@@ -775,9 +782,10 @@
     // panneau latéral
     var st = Q.status || 'brouillon', ro = !STORE.canWrite;
     var side = '<div class="card pad stack"><h3>Envoyer au client</h3>' +
-      '<button class="btn pri wide" type="button" id="k-wa">Copier le message WhatsApp</button>' +
-      '<button class="btn wide" type="button" id="k-txt">Copier le devis en texte</button>' +
-      '<p class="sub" style="margin:0">' + (st === 'brouillon' ? 'Copier le message marque le devis comme envoyé.' : 'Le message reprend chaque ligne TTC, le total et la validité.') + '</p></div>';
+      '<button class="btn pri wide" type="button" id="k-pdf"' + (d.entries.length ? '' : ' disabled') + '>Télécharger le devis PDF</button>' +
+      '<button class="btn wide" type="button" id="k-wa">Copier le message WhatsApp</button>' +
+      '<button class="btn wide ghost" type="button" id="k-txt">Copier le devis en texte</button>' +
+      '<p class="sub" style="margin:0">' + (st === 'brouillon' ? 'Télécharger le PDF ou copier le message marque le devis comme envoyé et fige ses prix.' : 'Le PDF reprend votre logo, chaque ligne, les totaux, les conditions et un cadre « bon pour accord ».') + '</p></div>';
     side += '<div class="card pad stack"><h3>Suivi</h3><div class="status-seg" role="group" aria-label="Statut du devis">' + Object.keys(STATUS).map(function (k) {
       return '<button type="button" data-status="' + k + '" aria-pressed="' + (k === st) + '"' + (ro ? ' disabled' : '') + '>' + STATUS[k].l + '</button>';
     }).join('') + '</div>';
@@ -803,7 +811,16 @@
     $('doc-side').innerHTML = side; fillNames($('doc-side'));
     wantNames([Q.createdBy, Q.updatedBy]);
   }
-  function renderQuotes() { renderQList(); renderDoc(); }
+  function renderQuotes() { renderQList(); renderDoc(); renderCount(); }
+
+  /* ---------- Alerte : marge rognée par une hausse fournisseur ---------- */
+  function quoteRisk(Q) {
+    if (!Q || !Q.frozenAt || !(Q.status === 'envoye' || Q.status === 'accepte')) return null;
+    var d = quoteCalc(Q); if (!d.entries.length) return null;
+    var target = Math.min.apply(null, d.entries.map(function (e) { return e.line.margin; }));
+    return d.q.marginIfToday < target - 0.005 ? { margin: d.q.marginIfToday, target: target } : null;
+  }
+  function riskyQuotes() { return Object.keys(S.quotes).map(function (k) { return S.quotes[k]; }).filter(quoteRisk); }
   function quoteText(Q, whatsapp) {
     var d = quoteCalc(Q), q = d.q, T = tva(), zone = q.zone.name.split(' (')[0], client = Q.site && Q.site.client;
     var valid = frDate(E.addDays((Q.createdAt || TODAY).slice(0, 10), S.settings.validityDays));
@@ -847,10 +864,8 @@
       Q.status = b.dataset.status; commitQuote(Q); renderQuotes();
       if (Q.status === 'realise') toast('Saisissez le coût réel pour mesurer l’écart avec l’estimation');
     }
-    if (b.id === 'k-wa') {
-      copy(quoteText(Q, true), 'Message copié : collez-le dans WhatsApp');
-      if ((Q.status || 'brouillon') === 'brouillon' && STORE.canWrite) { Q.status = 'envoye'; Q.sentAt = new Date().toISOString(); commitQuote(Q); renderQuotes(); }
-    }
+    if (b.id === 'k-wa') { copy(quoteText(Q, true), 'Message copié : collez-le dans WhatsApp'); markSent(Q); }
+    if (b.id === 'k-pdf') downloadPDF(Q);
     if (b.id === 'k-txt') copy(quoteText(Q, false), 'Devis copié');
     if (b.id === 'k-dup') {
       if (!canWrite()) return;
@@ -873,6 +888,120 @@
     }
   });
   vd.addEventListener('input', function (e) { if (e.target.id === 'q-search') { qSearch = e.target.value; renderQList(); var el = $('q-search'); el.focus(); el.setSelectionRange(qSearch.length, qSearch.length); } });
+
+  /* ---------- Devis PDF ---------- */
+  function pdfText(x) {
+    return String(x == null ? '' : x).replace(/[\u202f\u00a0\u2009]/g, ' ').replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d]/g, '"')
+      .replace(/[\u2013\u2014]/g, '-').replace(/\u2026/g, '...').replace(/\u20ac/g, 'EUR').replace(/[^\x00-\xff]/g, '');
+  }
+  function pdfMad(x) { return pdfText(nf0.format(Math.round(x))) + ' MAD'; }
+  function buildPDF(Q) {
+    var J = window.jspdf.jsPDF, doc = new J({ unit: 'mm', format: 'a4' });
+    var W = 210, M = 16, BR = [180, 83, 9], INK = [19, 29, 39], MU = [86, 99, 111], LN = [210, 217, 223];
+    var d = quoteCalc(Q), q = d.q, site = Q.site || {}, zone = q.zone.name.split(' (')[0];
+    var date = (Q.createdAt || TODAY).slice(0, 10);
+    function col(c) { doc.setTextColor(c[0], c[1], c[2]); }
+    function tint(c, o) { return c.map(function (v) { return Math.round(v * o + 255 * (1 - o)); }); }
+    function mark(x, y, size) {
+      var k = size / 36;
+      [[4, 18, 4, 14, 1], [28, 18, 4, 14, 1], [3, 4, 30, 4, 1], [6, 10, 24, 2.5, 0.7], [6, 14, 24, 2, 0.35]].forEach(function (r) {
+        var c = tint(BR, r[4]); doc.setFillColor(c[0], c[1], c[2]); doc.roundedRect(x + r[0] * k, y + r[1] * k, r[2] * k, r[3] * k, 0.5, 0.5, 'F');
+      });
+    }
+    function head() {
+      mark(M, 12, 13);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(18); col(INK); doc.text('Store', M + 15, 21);
+      var w = doc.getTextWidth('Store '); col(BR); doc.text('Luxe', M + 15 + w, 21);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); col(MU); doc.text(pdfText('PERGOLAS, VÉRANDAS ET STORES SUR MESURE · DEPUIS 1999'), M + 15, 26);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(13); col(INK); doc.text('DEVIS ESTIMATIF', W - M, 17, { align: 'right' });
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); col(MU);
+      doc.text(pdfText('N° ' + Q.no), W - M, 22, { align: 'right' });
+      doc.text(pdfText('Date : ' + frDate(date) + ' · Valable jusqu’au ' + frDate(E.addDays(date, S.settings.validityDays))), W - M, 26.5, { align: 'right' });
+      doc.setDrawColor(INK[0], INK[1], INK[2]); doc.setLineWidth(0.6); doc.line(M, 32, W - M, 32);
+    }
+    head();
+    var y = 40;
+    [['CLIENT', site.client || 'À préciser'], ['CHANTIER', zone], ['PRESTATION', 'Fourniture et pose']].forEach(function (c, i) {
+      var x = M + i * 60;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(7); col(MU); doc.text(pdfText(c[0]), x, y);
+      doc.setFontSize(10.5); col(INK); doc.text(pdfText(c[1]), x, y + 5.5, { maxWidth: 56 });
+    });
+    y = 54;
+    function tableHead() {
+      doc.setFillColor(244, 246, 248); doc.rect(M, y - 4.5, W - 2 * M, 7, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); col(MU);
+      doc.text('N°', M + 2, y); doc.text(pdfText('DÉSIGNATION'), M + 12, y); doc.text('MONTANT HT', W - M - 2, y, { align: 'right' });
+      y += 8;
+    }
+    tableHead();
+    d.entries.forEach(function (e, i) {
+      var r = e.line, t = e.tier || r.base;
+      doc.setFontSize(9); var sum = doc.splitTextToSize(pdfText(r.summary), 120);
+      doc.setFontSize(8.5); var det = r.details.map(function (x) { return doc.splitTextToSize(pdfText('- ' + x), 118); });
+      var hgt = 6 + sum.length * 4.2 + det.reduce(function (a, b) { return a + b.length * 3.8; }, 0) + 4;
+      if (y + hgt > 262) { doc.addPage(); head(); y = 44; tableHead(); }
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); col(MU); doc.text(String(i + 1).padStart(2, '0'), M + 2, y);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); col(INK); doc.text(pdfText(r.productName), M + 12, y);
+      doc.text(pdfMad(r.sale[t]), W - M - 2, y, { align: 'right' });
+      var yy = y + 5;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); col(MU); doc.text(sum, M + 12, yy); yy += sum.length * 4.2;
+      doc.setFontSize(8.5); det.forEach(function (lines) { doc.text(lines, M + 14, yy); yy += lines.length * 3.8; });
+      y = yy + 2;
+      doc.setDrawColor(LN[0], LN[1], LN[2]); doc.setLineWidth(0.2); doc.line(M, y - 1, W - M, y - 1);
+      y += 6;
+    });
+    var rows = [['Sous-total', q.ht - q.travel]];
+    if (q.travel) rows.push(['Déplacement ' + zone + (q.nights ? ' (' + q.nights + ' nuit' + (q.nights > 1 ? 's' : '') + ')' : ''), q.travel]);
+    if (q.discount) rows.push(['Remise', -q.discount]);
+    rows.push(['Total HT', q.htNet], ['TVA ' + Math.round(S.settings.tva * 100) + ' %', q.tva]);
+    if (y + rows.length * 6 + 20 > 262) { doc.addPage(); head(); y = 44; }
+    var x1 = 118;
+    doc.setFontSize(9.5);
+    rows.forEach(function (r) { doc.setFont('helvetica', 'normal'); col(MU); doc.text(pdfText(r[0]), x1, y); col(INK); doc.text((r[1] < 0 ? '- ' : '') + pdfMad(Math.abs(r[1])), W - M, y, { align: 'right' }); y += 6; });
+    doc.setDrawColor(INK[0], INK[1], INK[2]); doc.setLineWidth(0.6); doc.line(x1, y - 2, W - M, y - 2);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(13); col(INK); doc.text('Total TTC', x1, y + 5); doc.text(pdfMad(q.ttc), W - M, y + 5, { align: 'right' });
+    y += 16;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+    var cond = doc.splitTextToSize(pdfText(S.settings.conditions), W - 2 * M);
+    if (y + cond.length * 4 + 40 > 275) { doc.addPage(); head(); y = 44; }
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); col(INK); doc.text('Conditions', M, y); y += 5;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); col(MU); doc.text(cond, M, y); y += cond.length * 4 + 6;
+    doc.setDrawColor(LN[0], LN[1], LN[2]); doc.setLineWidth(0.3);
+    [['Bon pour accord du client', M], ['Store Luxe', W / 2 + 4]].forEach(function (b) {
+      doc.rect(b[1], y, W / 2 - M - 4, 26); doc.setFontSize(8); col(MU); doc.text(pdfText(b[0]), b[1] + 3, y + 5);
+      doc.setFontSize(7); doc.text(pdfText(b[0] === 'Store Luxe' ? 'Cachet et signature' : 'Date, nom et signature'), b[1] + 3, y + 23);
+    });
+    var n = doc.getNumberOfPages();
+    for (var i = 1; i <= n; i++) {
+      doc.setPage(i); doc.setDrawColor(LN[0], LN[1], LN[2]); doc.setLineWidth(0.2); doc.line(M, 284, W - M, 284);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); col(MU);
+      doc.text(pdfText('Store Luxe · Entrée 6, Av. 2 Mars, Souk Elhad, Agadir · +212 6 67 62 03 60 · contact@storeluxe.ma · www.storeluxe.ma'), M, 289);
+      doc.text('Page ' + i + ' / ' + n, W - M, 289, { align: 'right' });
+    }
+    return doc.output('blob');
+  }
+  function markSent(Q) {
+    if ((Q.status || 'brouillon') === 'brouillon' && STORE.canWrite) { Q.status = 'envoye'; Q.sentAt = new Date().toISOString(); commitQuote(Q); renderQuotes(); }
+  }
+  function downloadPDF(Q) {
+    if (!window.jspdf || !window.jspdf.jsPDF) { toast('Le module PDF n’a pas pu se charger : vérifiez la connexion puis rechargez la page.'); return; }
+    var blob;
+    try { blob = buildPDF(Q); } catch (e) { toast('Le PDF n’a pas pu être généré.'); return; }
+    var name = pdfText('Devis ' + Q.no + (Q.site && Q.site.client ? ' - ' + Q.site.client : '')).replace(/[\\/:*?"<>|]+/g, ' ').trim() + '.pdf';
+    var inClaude = window.claude && typeof window.claude.use === 'function';
+    if (!inClaude) {
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+      toast('Devis PDF téléchargé'); markSent(Q); return;
+    }
+    window.claude.use('downloads').then(function (dl) {
+      if (!dl) { toast('Le téléchargement n’est pas disponible dans cette vue.'); return; }
+      return dl.save({ filename: name, data: blob }).then(function () { toast('Devis PDF enregistré'); markSent(Q); }, function (e) {
+        if (e && e.code === 'declined') return;
+        toast(e && e.code === 'rate_limited' ? 'Une demande d’enregistrement est déjà ouverte.' : 'Le téléchargement n’a pas abouti.');
+      });
+    });
+  }
 
   /* ---------- Données saisies avant le partage ---------- */
   function localNotice() {
@@ -968,8 +1097,9 @@
           sp = spark(S.book.alu_kg.hist, 'mini');
         } else {
           var lastP = it.hist.slice().sort(function (a, b) { return a.d < b.d ? -1 : 1; }).pop();
-          src = '<span class="src">' + (it.type === 'eur' ? nf2.format(lastP.v) + ' € · ' : '') + srcLink(lastP.src, true) + (it.note ? '<br>' + esc(it.note) : '') + '</span>';
-          input = '<div class="upd"><input type="number" step="0.01" id="u-' + id + '" aria-label="Nouveau prix ' + esc(it.name) + '" placeholder="' + (it.type === 'eur' ? '€' : 'MAD') + '"><button class="btn sm" type="button" data-save="' + id + '">OK</button><button class="btn sm ghost" type="button" data-hist="' + id + '" aria-label="Historique de ' + esc(it.name) + '">⋯</button></div>';
+          src = '<span class="src">' + (it.type === 'eur' ? nf2.format(lastP.v) + (lastP.cur === 'MAD' ? ' MAD' : ' €') + ' · ' : '') + srcLink(lastP.src, true) + (it.note ? '<br>' + esc(it.note) : '') + '</span>';
+          input = '<div class="upd"><input type="number" step="0.01" id="u-' + id + '" aria-label="Nouveau prix ' + esc(it.name) + '" placeholder="MAD HT">' +
+            (it.type === 'eur' ? '<select id="cur-' + id + '" class="inp" style="width:64px;height:32px;padding:0 4px" aria-label="Devise du prix"><option value="MAD">MAD</option><option value="EUR">€</option></select>' : '') + '<button class="btn sm" type="button" data-save="' + id + '">OK</button><button class="btn sm ghost" type="button" data-hist="' + id + '" aria-label="Historique de ' + esc(it.name) + '">⋯</button></div>';
           sp = spark(it.hist, 'mini');
         }
         rows += '<tr><td><b style="font-weight:600">' + esc(it.name) + '</b><small>par ' + esc(it.unit) + (it.supplier ? ' · ' + esc(it.supplier) : '') + '</small></td>' +
@@ -989,17 +1119,22 @@
   }
   var openHist = {};
   /* Un relevé par jour et par article ; il garde qui l'a saisi et quand. */
-  function addPrice(id, v) {
-    var it = S.book[id], st = stamp();
-    it.hist = it.hist.filter(function (p) { return p.d !== TODAY; }).concat([{ d: TODAY, v: v, src: 'manuel', by: st.by, at: st.at }]);
+  function addPrice(id, v, cur) {
+    var it = S.book[id], st = stamp(), pt = { d: TODAY, v: v, src: 'manuel', by: st.by, at: st.at };
+    if (it.type === 'eur' && cur !== 'EUR') pt.cur = 'MAD';
+    it.hist = it.hist.filter(function (p) { return p.d !== TODAY; }).concat([pt]);
     persistPrice(id);
   }
   function saveNewPrice(id) {
     if (!canWrite()) return;
     var inp = $('u-' + id), v = parseFloat(String(inp.value).replace(',', '.'));
     if (!(v > 0)) { toast('Saisissez un prix supérieur à 0'); inp.focus(); return; }
-    addPrice(id, v);
-    save(); renderBook(); renderResult(); toast(S.book[id].name + ' : ' + nf2.format(v) + (shared() ? ' enregistré pour toute l’équipe' : ' enregistré'));
+    var cs = $('cur-' + id), cur = cs ? cs.value : 'MAD', before = riskyQuotes().length;
+    addPrice(id, v, cur);
+    save(); renderBook(); renderResult(); renderCount();
+    var after = riskyQuotes().length;
+    toast(S.book[id].name + ' : ' + nf2.format(v) + (S.book[id].type === 'eur' && cur === 'EUR' ? ' €' : ' MAD') + ' enregistré' +
+      (after > before ? ' · ' + after + ' devis envoyé' + (after > 1 ? 's perdent' : ' perd') + ' de la marge' : ''));
   }
   function renderJournal() {
     var rows = [];
@@ -1010,7 +1145,7 @@
     if (!rows.length) h += '<p class="sub" style="margin:0">Aucun prix saisi pour l’instant. Commencez par le cours de l’aluminium et l’EUR/MAD ci-dessus, puis les articles marqués « à confirmer ».</p>';
     else h += '<div>' + rows.map(function (r) {
       var it = S.book[r.id];
-      return '<div class="jrow"><span class="num sub">' + frDate(r.p.at.slice(0, 10)).slice(0, 5) + '</span><span><b style="font-weight:600">' + esc(it.name) + '</b> · <span class="num">' + nf2.format(r.p.v) + '</span> ' + esc(it.type === 'eur' ? '€/' + it.unit : it.type === 'index' ? it.unit : 'MAD/' + it.unit) + '</span><span class="sub">' + byLabel(r.p.by) + '</span></div>';
+      return '<div class="jrow"><span class="num sub">' + frDate(r.p.at.slice(0, 10)).slice(0, 5) + '</span><span><b style="font-weight:600">' + esc(it.name) + '</b> · <span class="num">' + nf2.format(r.p.v) + '</span> ' + esc(it.type === 'index' ? it.unit : (it.type === 'eur' && r.p.cur !== 'MAD' ? '€/' : 'MAD/') + it.unit) + '</span><span class="sub">' + byLabel(r.p.by) + '</span></div>';
     }).join('') + '</div>';
     $('journal').innerHTML = h; fillNames($('journal'));
     wantNames(rows.map(function (r) { return r.p.by; }));

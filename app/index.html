@@ -32,6 +32,7 @@
   --bad: #B42318;
   --bad-soft: #FBE4E1;
   --hatch: rgba(30, 79, 143, .28);
+  --brand: #B45309;
   --shadow: 0 1px 2px rgba(19, 29, 39, .06), 0 4px 16px rgba(19, 29, 39, .05);
   --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
   --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -43,14 +44,14 @@
     --bg: #0D1216; --surface: #141B21; --surface-2: #19222A; --sunken: #10161B; --ink: #E4EAEF; --muted: #95A2AD; --faint: #66737E; --line: #27323B;
     --accent: #7BA6E0; --accent-ink: #0A1320; --accent-soft: #19283C; --glass: #6FB6DA;
     --good: #54C690; --good-soft: #112D1E; --warn: #E4AC4C; --warn-soft: #30250F; --bad: #F2796D; --bad-soft: #3A1A17;
-    --hatch: rgba(123, 166, 224, .32); --shadow: 0 1px 2px rgba(0, 0, 0, .3); color-scheme: dark;
+    --hatch: rgba(123, 166, 224, .32); --shadow: 0 1px 2px rgba(0, 0, 0, .3); --brand: #E39A4E; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0D1216; --surface: #141B21; --surface-2: #19222A; --sunken: #10161B; --ink: #E4EAEF; --muted: #95A2AD; --faint: #66737E; --line: #27323B;
   --accent: #7BA6E0; --accent-ink: #0A1320; --accent-soft: #19283C; --glass: #6FB6DA;
   --good: #54C690; --good-soft: #112D1E; --warn: #E4AC4C; --warn-soft: #30250F; --bad: #F2796D; --bad-soft: #3A1A17;
-  --hatch: rgba(123, 166, 224, .32); --shadow: 0 1px 2px rgba(0, 0, 0, .3); color-scheme: dark;
+  --hatch: rgba(123, 166, 224, .32); --shadow: 0 1px 2px rgba(0, 0, 0, .3); --brand: #E39A4E; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { background: var(--bg); }
@@ -68,6 +69,8 @@ a { color: var(--accent); }
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .brand { display: flex; align-items: center; gap: 10px; flex: none; }
 .brand svg { width: 30px; height: 30px; }
+.brand svg.mark { fill: var(--brand); }
+.brand b em { font-style: normal; color: var(--brand); }
 .brand b { font-family: var(--f-display); font-stretch: 112%; font-weight: 800; font-size: 18px; letter-spacing: .01em; display: block; line-height: 1.05; }
 .brand span { font-family: var(--f-display); font-stretch: 75%; font-weight: 600; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
 .tabs { display: flex; gap: 2px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
@@ -309,7 +312,7 @@ td small { color: var(--muted); display: block; font-size: 12px; }
 .sync.local i { background: var(--faint); }
 
 /* ---------- Liste des devis ---------- */
-.qlist { padding: 12px; display: grid; gap: 10px; align-content: start; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); max-height: calc(100vh - 90px); overflow-y: auto; }
+.qlist { padding: 12px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; align-content: start; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); max-height: calc(100vh - 90px); overflow-y: auto; }
 .qstats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .qstats div { background: var(--surface-2); border-radius: var(--r); padding: 8px; display: grid; gap: 1px; }
 .qstats span { font-size: 11px; color: var(--muted); }
@@ -321,6 +324,8 @@ td small { color: var(--muted); display: block; font-size: 12px; }
 .qitem:hover { background: var(--surface-2); }
 .qitem[aria-current="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .qitem .top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.qitem .top b { min-width: 0; }
+.qitem small span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .qitem b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .qitem small { color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; gap: 8px; }
 .st { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; white-space: nowrap; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
@@ -387,8 +392,8 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 <header class="top">
   <div class="top-in">
     <div class="brand">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="5" width="28" height="4" rx="1" style="fill:var(--ink)"></rect><path d="M4 9 L28 9 L24 19 L8 19 Z" style="fill:var(--accent)"></path><path d="M8 19 L24 19" style="stroke:var(--ink);stroke-width:2"></path><path d="M10 9 L8 19 M16 9 L16 19 M22 9 L24 19" style="stroke:var(--surface);stroke-width:1.2;opacity:.7"></path><rect x="6" y="19" width="2" height="9" style="fill:var(--ink)"></rect><rect x="24" y="19" width="2" height="9" style="fill:var(--ink)"></rect></svg>
-      <div><b>Store Luxe</b><span>Chiffrage</span></div>
+      <svg viewBox="0 0 36 36" aria-hidden="true" class="mark"><rect x="4" y="18" width="4" height="14" rx="1.5"></rect><rect x="28" y="18" width="4" height="14" rx="1.5"></rect><rect x="3" y="4" width="30" height="4" rx="2"></rect><rect x="6" y="10" width="24" height="2.5" rx="1.25" opacity=".7"></rect><rect x="6" y="14" width="24" height="2" rx="1" opacity=".35"></rect></svg>
+      <div><b>Store <em>Luxe</em></b><span>Chiffrage</span></div>
     </div>
     <span class="sync" id="sync" role="status"><i></i><span>Chargement…</span></span>
     <nav class="tabs" aria-label="Sections">
@@ -437,7 +442,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
   <section class="view" id="v-prix" hidden>
     <div>
       <h2>Prix &amp; sources</h2>
-      <p class="lede">Chaque article garde l’historique de ses prix. Le devis utilise le prix du jour (plancher), le plus haut des 12 derniers mois (conseillé) ou le plus haut jamais relevé (prudent). Saisissez un nouveau prix dès qu’un fournisseur l’annonce.</p>
+      <p class="lede">Saisissez les prix en MAD HT, tels que vos fournisseurs vous les facturent (le choix € reste possible pour les articles importés en direct). Chaque article garde l’historique de ses prix. Le devis utilise le prix du jour (plancher), le plus haut des 12 derniers mois (conseillé) ou le plus haut jamais relevé (prudent). Saisissez un nouveau prix dès qu’un fournisseur l’annonce.</p>
     </div>
     <div id="p-banner"></div>
     <div class="idx" id="indices"></div>
@@ -593,7 +598,7 @@ Devis        = Σ lignes + déplacement (+ nuitées hors zone) − remise ; TTC 
           </div></div>
         <div class="fld"><label for="s-window">Période du niveau conseillé (jours)</label><input class="inp num" id="s-window" type="number" min="7" step="1"></div>
         <div class="fld"><label for="s-buffer">Tampon de volatilité (%)</label><input class="inp num" id="s-buffer" type="number" min="0" step="0.5"></div>
-        <div class="fld"><label for="s-landed">Frais d’approche sur achats en euros (%)</label><input class="inp num" id="s-landed" type="number" min="0" step="1"></div>
+        <div class="fld"><label for="s-landed">Frais d’approche sur les prix saisis en euros (%)</label><input class="inp num" id="s-landed" type="number" min="0" step="1"></div>
         <div class="fld"><label for="s-valid">Validité du devis (jours)</label><input class="inp num" id="s-valid" type="number" min="1" step="1"></div>
         <div class="fld"><label for="s-stale">Prix à confirmer après (jours sans mise à jour)</label><input class="inp num" id="s-stale" type="number" min="1" step="1"></div>
         <div class="fld"><label for="s-round">Arrondi du prix de vente HT (MAD)</label><input class="inp num" id="s-round" type="number" min="0" step="10"></div>
@@ -625,6 +630,7 @@ Devis        = Σ lignes + déplacement (+ nuitées hors zone) − remise ; TTC 
 <div class="mbar" id="mbar"><div><span class="sub" id="mbar-l">Prix conseillé TTC</span><br><b class="num" id="mbar-p">—</b></div><button class="btn pri" type="button" id="mbar-add">Ajouter au devis</button></div>
 <div class="toast" id="toast" hidden role="status"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="catalog.js"></script>
 <script src="engine.js"></script>
 <script src="app.js"></script>

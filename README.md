@@ -103,6 +103,12 @@ Opened from claude.ai, the page uses a database shared by everyone the artifact 
 
 Without claude.ai (for example `app/index.html` opened locally), the tool runs in **local mode**: same features, data stored in the browser. Prices and quotes entered locally can then be shared with the team in one click.
 
+## 2d. Prices in dirhams, PDF and alerts (since v4)
+
+- **Prices in MAD**: every price is entered in MAD excl. VAT, as Moroccan suppliers invoice it. For imported items (Somfy, Sauleda, Ferrari, Gaviota…) a MAD/€ selector remains: a € price is converted at the EUR/MAD rate plus landed costs, a MAD price is used as-is. Both coexist in the history.
+- **PDF quote**: Store Luxe logo, client, lines and details, totals, conditions, "bon pour accord" (client acceptance) and stamp boxes, footer with contact details. Downloading the PDF (or copying the WhatsApp message) marks the quote as sent and locks its prices.
+- **Alerts**: when a supplier price goes up, every sent or accepted quote whose real margin drops below target is flagged ("Marge ↓" in the list, "!" on the Devis tab, a notice, and a dedicated filter). The toast says how many quotes are affected when the price is entered.
+
 ## 3. Using the tool
 
 - **Configurer** (configure): city, access, client → product → dimensions/options. A dimensioned drawing (top view, profile or front view) updates live. The price excl. and incl. VAT shows instantly, with the bar for cost today / ceiling cushion / margin, technical alerts, and the internal cost breakdown. "Ajouter au devis" adds the line to the quote. A quote can combine products (pergola + ZIP + awning). "Copier pour WhatsApp" copies the message to send.

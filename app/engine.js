@@ -61,11 +61,19 @@
       c = { now: item.kg * a.now + item.fab, win: item.kg * a.win + item.fab, max: item.kg * a.max + item.fab };
       lastDate = a.lastDate;
     } else if (item.type === 'eur') {
+      /* Article importé : un relevé est en euros (prix catalogue, converti au
+       * cours du niveau + frais d'approche) ou en MAD ({cur: 'MAD'}, prix du
+       * distributeur marocain, déjà rendu). Les deux se mélangent dans l'historique. */
       var fx = series(book.eur_mad.hist, w, today, book.eur_mad.max);
-      var r = series(item.hist, w, today, item.max);
       var landed = 1 + (item.landed != null ? item.landed : settings.landedEur);
-      c = { now: r.now * fx.now * landed, win: r.win * fx.win * landed, max: r.max * fx.max * landed };
-      lastDate = r.lastDate;
+      var conv = function (rate) {
+        return (item.hist || []).map(function (p) { return { d: p.d, v: p.cur === 'MAD' ? p.v : p.v * rate * landed }; });
+      };
+      var sn = series(conv(fx.now), w, today);
+      var sw = series(conv(fx.win), w, today);
+      var sm = series(conv(fx.max), w, today, item.max != null ? item.max * fx.max * landed : null);
+      c = { now: sn.now, win: sw.win, max: sm.max };
+      lastDate = sn.lastDate;
     } else {
       var s = series(item.hist, w, today, item.max);
       c = { now: s.now, win: s.win, max: s.max };
