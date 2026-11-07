@@ -316,6 +316,13 @@ td small { color: var(--muted); display: block; font-size: 12px; }
 .fact span { font-size: 12px; color: var(--muted); }
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start; }
 
+/* ---------- Onglets : icônes ; chantier repliable ---------- */
+.tabs .ti { width: 18px; height: 18px; flex: none; }
+.tl-s { display: none; }
+.site-sum { display: none; }
+.site-d > .site { border: 0; }
+.mbar-p { border: 0; background: none; text-align: left; padding: 0; display: grid; color: var(--ink); }
+
 /* ---------- Synchronisation ---------- */
 .sync { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); padding: 4px 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); white-space: nowrap; }
 .sync i { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
@@ -381,7 +388,68 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
   .mbar b { font-family: var(--f-display); font-stretch: 88%; font-weight: 800; font-size: 22px; }
   .calc { grid-template-columns: 1fr 1fr; }
 }
-@media (max-width: 680px) { .sync span { display: none; } }
+@media (max-width: 1100px) { .tl-l { display: none; } .tl-s { display: inline; } .tabs a { padding: 8px 10px; } }
+@media (max-width: 900px) { .sync span { display: none; } }
+/* ---------- Téléphone : barre d'onglets en bas, champs à 16 px (pas de zoom iOS) ---------- */
+@media (max-width: 700px) {
+  body { --navh: calc(58px + env(safe-area-inset-bottom, 0px)); }
+  .wrap { padding-block: 12px calc(var(--navh) + 96px); }
+  .top-in { padding-block: 8px; }
+  .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; margin: 0; width: auto; background: var(--surface); border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; overflow: visible;
+    padding-block: 4px env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+  .tabs a { flex-direction: column; gap: 2px; padding: 6px 2px; font-size: 11px; border-radius: 0; position: relative; justify-content: center; }
+  .tabs a[aria-current="page"] { background: none; }
+  .tabs a[aria-current="page"]::before { content: ""; position: absolute; top: -4px; left: 30%; right: 30%; height: 3px; border-radius: 0 0 3px 3px; background: var(--accent); }
+  .tabs .ti { width: 22px; height: 22px; }
+  .tabs .badge { position: absolute; top: 2px; left: 54%; min-width: 17px; height: 17px; font-size: 10px; padding: 0 4px; }
+  .tabs #risk-dot { left: auto; right: 18%; }
+  .tl-l { display: none; } .tl-s { display: inline; }
+  .mbar { bottom: var(--navh); padding-block: 10px; box-shadow: 0 -4px 16px rgba(19, 29, 39, .08); }
+  .toast { bottom: calc(var(--navh) + 84px); }
+  .inp, .numbox input, .upd input, select, textarea, input[type="search"] { font-size: 16px; }
+  .site-d:not([open]) { padding: 0; }
+  .site-sum { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; list-style: none; }
+  .site-sum::-webkit-details-marker { display: none; }
+  .site-sum > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .site-d[open] .site-sum { border-bottom: 1px solid var(--line); }
+  .site { padding: 12px 14px; }
+  .cfg-head { padding: 14px 16px 10px; }
+  .cfg-head h2 { font-size: 21px; }
+  .sec { padding: 14px 16px; }
+  .grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid > .fld.full, .grid > .fld:has(.tog) { grid-column: 1 / -1; }
+  .numbox { height: 44px; }
+  .numbox button { width: 40px; }
+  .seg button { padding: 9px 12px; }
+  .plan { padding: 10px 12px 8px; }
+  .v3d { height: 280px; }
+  .price { padding: 16px; }
+  .ttc { font-size: 34px; }
+  .qline { grid-template-columns: 26px minmax(0, 1fr); row-gap: 6px; }
+  .qline > div:last-child { grid-column: 2; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .qline .amt { text-align: left; }
+  .qline .tools { margin-top: 0; }
+  .doc-head { flex-direction: column; }
+  .doc-meta { text-align: left; }
+  .doc-to { grid-template-columns: 1fr 1fr; }
+  .totals { width: 100%; }
+  .totals .big { font-size: 22px; }
+  .qlist { max-height: none; }
+  /* Carnet de prix en cartes */
+  #book thead { display: none; }
+  #book, #book tbody { display: block; }
+  #book tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 10px; padding: 12px 2px; border-bottom: 1px solid var(--line); }
+  #book tr.grp { display: block; padding: 8px 2px; }
+  #book td { border: 0; padding: 0; text-align: left; white-space: normal; }
+  #book td.r { text-align: left; }
+  #book td[data-l]::before { content: attr(data-l); display: block; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-family: var(--f-body); font-weight: 600; }
+  #book td.c-name, #book td.c-src, #book td.c-new, #book tr > td[colspan] { grid-column: 1 / -1; }
+  #book td.c-evo { display: none; }
+  #book td.c-date { grid-column: 1 / -1; }
+  .tools .inp { max-width: none; }
+  .calc { grid-template-columns: 1fr 1fr; }
+}
 @media (max-width: 520px) {
   .site { grid-template-columns: 1fr; }
   .top-in { gap: 10px; flex-wrap: wrap; }
@@ -409,11 +477,11 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
     </div>
     <span class="sync" id="sync" role="status"><i></i><span>Chargement…</span></span>
     <nav class="tabs" aria-label="Sections">
-      <a href="#configurer" data-tab="configurer">Configurer</a>
-      <a href="#devis" data-tab="devis">Devis <span class="badge" id="cart-count" hidden>0</span></a>
-      <a href="#prix" data-tab="prix">Prix &amp; sources</a>
-      <a href="#etude" data-tab="etude">Étude de marché</a>
-      <a href="#reglages" data-tab="reglages">Réglages</a>
+      <a href="#configurer" data-tab="configurer"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M7 7v12M17 7v12M4 19h16"/><path d="M4 4h16"/></svg><span class="tl">Configurer</span></a>
+      <a href="#devis" data-tab="devis"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg><span class="tl">Devis</span><span class="badge" id="cart-count" hidden>0</span></a>
+      <a href="#prix" data-tab="prix"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l5-5 4 4 7-8"/><path d="M15 8h5v5"/></svg><span class="tl"><span class="tl-l">Prix &amp; sources</span><span class="tl-s">Prix</span></span></a>
+      <a href="#etude" data-tab="etude"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M9 16h4M9 8h3"/></svg><span class="tl"><span class="tl-l">Étude de marché</span><span class="tl-s">Étude</span></span></a>
+      <a href="#reglages" data-tab="reglages"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg><span class="tl">Réglages</span></a>
     </nav>
   </div>
 </header>
@@ -421,7 +489,9 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 <main class="wrap">
   <!-- ================= CONFIGURER ================= -->
   <section class="view" id="v-configurer">
-    <div class="card site">
+    <details class="card site-d" id="site-d" open>
+      <summary class="site-sum"><span><b>Chantier</b> <span id="site-sum-t" class="sub"></span></span><span class="pill acc">Modifier</span></summary>
+      <div class="site">
       <div class="fld"><label for="c-client">Client</label><input class="inp" id="c-client" placeholder="Nom du client ou du projet" autocomplete="off"></div>
       <div class="fld"><label for="c-zone">Ville du chantier</label><select class="inp" id="c-zone"></select></div>
       <div class="fld"><label for="c-access">Accès chantier</label>
@@ -433,7 +503,8 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
         </select></div>
       <div class="fld"><label for="c-disc">Remise</label>
         <select class="inp" id="c-disc"><option value="0">Aucune</option><option value="0.03">3 %</option><option value="0.05">5 %</option><option value="0.08">8 %</option><option value="0.1">10 %</option></select></div>
-    </div>
+      </div>
+    </details>
     <div class="bench">
       <nav class="card rail" id="catalog" aria-label="Produits"></nav>
       <div class="card cfg" id="form"></div>
@@ -662,7 +733,7 @@ Devis        = Σ lignes + déplacement (+ nuitées hors zone) − remise ; TTC 
   </section>
 </main>
 
-<div class="mbar" id="mbar"><div><span class="sub" id="mbar-l">Prix conseillé TTC</span><br><b class="num" id="mbar-p">—</b></div><button class="btn pri" type="button" id="mbar-add">Ajouter au devis</button></div>
+<div class="mbar" id="mbar"><button type="button" class="mbar-p" id="mbar-go" aria-label="Voir le détail du prix"><span class="sub" id="mbar-l">Prix conseillé TTC</span><b class="num" id="mbar-p">—</b></button><button class="btn pri" type="button" id="mbar-add">Ajouter au devis</button></div>
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

@@ -709,7 +709,15 @@
   function renderSite() {
     $('c-zone').innerHTML = S.settings.zones.map(function (z) { return '<option value="' + esc(z.id) + '">' + esc(z.name) + (z.cost ? ' · ' + nf0.format(z.cost) + ' MAD' : '') + '</option>'; }).join('');
     $('c-client').value = S.site.client || ''; $('c-zone').value = S.site.zone; $('c-access').value = S.site.access; $('c-disc').value = String(S.site.discount || 0);
+    var z = S.settings.zones.filter(function (x) { return x.id === S.site.zone; })[0];
+    var acc = { facile: 'accès facile', normal: 'accès normal', difficile: 'accès difficile', hauteur: 'en hauteur' }[S.site.access] || '';
+    $('site-sum-t').textContent = [S.site.client, z ? z.name.split(' (')[0] : '', acc, S.site.discount ? 'remise ' + Math.round(S.site.discount * 100) + ' %' : ''].filter(Boolean).join(' · ');
   }
+  /* Sur téléphone, le bloc chantier se replie en une ligne ; sur grand écran il reste ouvert. */
+  var phone = window.matchMedia('(max-width: 700px)');
+  function syncSiteFold() { $('site-d').open = !phone.matches; }
+  if (phone.addEventListener) phone.addEventListener('change', syncSiteFold);
+  $('site-d').addEventListener('toggle', function () { if (!phone.matches && !this.open) this.open = true; });
   ['c-client', 'c-zone', 'c-access', 'c-disc'].forEach(function (id) {
     $(id).addEventListener('input', function () {
       S.site = { client: $('c-client').value, zone: $('c-zone').value, access: $('c-access').value, discount: +$('c-disc').value };
@@ -883,6 +891,7 @@
     S.activeId = id; S.editing = null; confirmDel = false;
     if (q.site) S.site = Object.assign({}, S.site, clone(q.site));
     save(); renderSite(); renderResult(); renderCount(); renderQuotes();
+    if (window.matchMedia('(max-width: 900px)').matches) $('doc').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   var vd = document.getElementById('v-devis');
   vd.addEventListener('click', function (e) {
@@ -1147,10 +1156,10 @@
             (it.type === 'eur' ? '<select id="cur-' + id + '" class="inp" style="width:64px;height:32px;padding:0 4px" aria-label="Devise du prix"><option value="MAD">MAD</option><option value="EUR">€</option></select>' : '') + '<button class="btn sm" type="button" data-save="' + id + '">OK</button><button class="btn sm ghost" type="button" data-hist="' + id + '" aria-label="Historique de ' + esc(it.name) + '">⋯</button></div>';
           sp = spark(it.hist, 'mini');
         }
-        rows += '<tr><td><b style="font-weight:600">' + esc(it.name) + '</b><small>par ' + esc(it.unit) + (it.supplier ? ' · ' + esc(it.supplier) : '') + '</small></td>' +
-          '<td class="r num">' + nf2.format(uc.now) + '</td><td class="r num">' + nf2.format(uc.win) + '</td><td class="r num"><b>' + nf2.format(uc.max) + '</b><small class="up">+' + pct(gap) + '</small></td>' +
-          '<td>' + sp + '</td><td style="max-width:280px">' + src + '</td>' +
-          '<td>' + (uc.stale ? '<span class="pill warn">' + frDate(uc.lastDate) + '</span>' : '<span class="sub num">' + frDate(uc.lastDate) + '</span>') + '</td><td>' + input + '</td></tr>';
+        rows += '<tr><td class="c-name"><b style="font-weight:600">' + esc(it.name) + '</b><small>par ' + esc(it.unit) + (it.supplier ? ' · ' + esc(it.supplier) : '') + '</small></td>' +
+          '<td class="r num" data-l="Aujourd’hui">' + nf2.format(uc.now) + '</td><td class="r num" data-l="Conseillé">' + nf2.format(uc.win) + '</td><td class="r num" data-l="Prudent"><b>' + nf2.format(uc.max) + '</b><small class="up">+' + pct(gap) + '</small></td>' +
+          '<td class="c-evo">' + sp + '</td><td class="c-src" style="max-width:280px">' + src + '</td>' +
+          '<td class="c-date">' + (uc.stale ? '<span class="pill warn">relevé du ' + frDate(uc.lastDate) + ' · à confirmer</span>' : '<span class="sub num">relevé du ' + frDate(uc.lastDate) + '</span>') + '</td><td class="c-new">' + input + '</td></tr>';
         if (openHist[id]) rows += '<tr><td colspan="8"><div class="hist">' + it.hist.slice().sort(function (a, b) { return a.d < b.d ? -1 : 1; }).map(function (p) {
           return '<span title="' + esc((SOURCES[p.src] || {}).label || 'saisie manuelle') + '">' + frDate(p.d) + ' · ' + nf2.format(p.v) + '<button type="button" data-delh="' + id + '|' + p.d + '|' + p.v + '" aria-label="Supprimer ce relevé">✕</button></span>';
         }).join('') + (it.max != null ? '<span>plus haut recherché · ' + nf2.format(it.max) + '</span>' : '') + '</div></td></tr>';
@@ -1316,7 +1325,8 @@
     save(); $('x-confirm').hidden = true; renderAll(); toast(shared() ? 'Prix et réglages de l’étude restaurés pour toute l’équipe' : 'Prix de l’étude restaurés');
   });
 
-  function renderAll() { renderSite(); renderCatalog(); renderForm(); renderResult(); renderCount(); route(); }
+  function renderAll() { renderSite(); syncSiteFold(); renderCatalog(); renderForm(); renderResult(); renderCount(); route(); }
+  $('mbar-go').addEventListener('click', function () { $('result').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   renderAll();
   connect();
 })();
