@@ -643,12 +643,13 @@
   }
   $('catalog').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-p]'); if (!b) return;
-    if (S.current.productId !== b.dataset.p) { S.current = { productId: b.dataset.p, params: {}, tier: null }; S.editing = null; save(); }
+    if (S.current.productId !== b.dataset.p) { S.current = { productId: b.dataset.p, params: {}, tier: null, mode: null, picked: null }; S.editing = null; save(); }
     renderCatalog(); renderForm(); renderResult();
   });
 
   /* ================= Formulaire ================= */
-  function field(d, v) {
+  function dl(d, v) { return '<small class="dl" data-dlf="' + d.id + '" data-dlv="' + esc(v) + '"></small>'; }
+  function field(d, v, unpicked) {
     var id = 'f-' + d.id;
     if (d.type === 'number' || d.type === 'count') {
       var step = d.type === 'count' ? 1 : (d.step || 0.1);
@@ -660,36 +661,125 @@
     }
     if (d.type === 'seg') {
       return '<div class="fld full"><span class="lbl">' + esc(d.label) + '</span><div class="seg" role="group" aria-label="' + esc(d.label) + '">' +
-        d.options.map(function (o) { return '<button type="button" data-f="' + d.id + '" data-v="' + esc(o.v) + '" aria-pressed="' + (String(v) === String(o.v)) + '">' + esc(o.l) + '</button>'; }).join('') + '</div></div>';
+        d.options.map(function (o) { return '<button type="button" data-f="' + d.id + '" data-v="' + esc(o.v) + '" aria-pressed="' + (!unpicked && String(v) === String(o.v)) + '">' + esc(o.l) + dl(d, o.v) + '</button>'; }).join('') + '</div></div>';
     }
     if (d.type === 'select') {
       return '<div class="fld"><label for="' + id + '">' + esc(d.label) + '</label><select class="inp" id="' + id + '" data-f="' + d.id + '">' +
-        d.options.map(function (o) { return '<option value="' + esc(o.v) + '"' + (o.v === v ? ' selected' : '') + '>' + esc(o.l) + '</option>'; }).join('') + '</select></div>';
+        d.options.map(function (o) { return '<option value="' + esc(o.v) + '" data-l="' + esc(o.l) + '"' + (o.v === v ? ' selected' : '') + '>' + esc(o.l) + '</option>'; }).join('') + '</select></div>';
     }
-    if (d.type === 'toggle') return '<div class="fld"><label class="tog"><input type="checkbox" id="' + id + '" data-f="' + d.id + '"' + (v ? ' checked' : '') + '> ' + esc(d.label) + '</label></div>';
+    if (d.type === 'toggle') return '<div class="fld"><label class="tog"><input type="checkbox" id="' + id + '" data-f="' + d.id + '"' + (v ? ' checked' : '') + '> <span>' + esc(d.label) + dl(d, '!') + '</span></label></div>';
     if (d.type === 'ral') {
       return '<div class="fld full"><span class="lbl">' + esc(d.label) + '</span><div class="sw">' + d.options.map(function (o) {
-        return '<button type="button" data-f="' + d.id + '" data-v="' + o.v + '" aria-pressed="' + (v === o.v) + '"><span class="chips">' +
-          o.sw.map(function (c) { return '<i style="background:' + c + '"></i>'; }).join('') + '</span><b>' + esc(o.l) + '</b><small>' + esc(o.sub) + '</small></button>';
+        return '<button type="button" data-f="' + d.id + '" data-v="' + o.v + '" aria-pressed="' + (!unpicked && v === o.v) + '"><span class="chips">' +
+          o.sw.map(function (c) { return '<i style="background:' + c + '"></i>'; }).join('') + '</span><b>' + esc(o.l) + '</b><small>' + esc(o.sub) + '</small>' + dl(d, o.v) + '</button>';
       }).join('') + '</div></div>';
     }
     return '';
   }
+  /* ---------- Prêt à chiffrer / Composer ---------- */
+  var COMP_DEFAULT = { structure: 'Structure', couverture: 'Couverture', fixation: 'Fixations & fondations', toile: 'Toile', mecanisme: 'Mécanisme', commande: 'Commande', automatisme: 'Automatisme', cable: 'Câble', accast: 'Accastillage', vitrage: 'Vitrage', plafond: 'Plafond' };
+  var GROUP_COMP = { 'Profilés aluminium': 'Structure aluminium', 'Métaux au kilo': 'Structure métallique', 'Couvertures & vitrages': 'Couverture & vitrage', 'Toiles': 'Toile',
+    'Systèmes de stores': 'Mécanisme', 'Motorisation & éclairage': 'Motorisation & éclairage', 'Fixations & gros œuvre': 'Fixations & fondations', 'Main-d’œuvre': 'Pose' };
+  function modeOf(prod) { return S.current.mode || (prod.versions ? 'pret' : 'composer'); }
+  function isPicked(prod, comp) { return !comp || !S.current.picked || !!S.current.picked[comp]; }
+  function compLabel(prod, id) { var c = (prod.comps || []).filter(function (x) { return x.id === id; })[0]; return c ? c.l : COMP_DEFAULT[id] || id; }
+  /* Répartition du coût par composant (pour « Ce qui fait le prix »). */
+  function shares(r, t, prod) {
+    var m = {}, total = 0;
+    r.lines.forEach(function (l) {
+      var label = l.comp ? compLabel(prod, l.comp) : l.cat === 'pose' ? 'Pose et raccordements' : GROUP_COMP[l.group] || 'Divers';
+      if (!m[label]) m[label] = { key: label, comp: null, label: label, cost: 0 };
+      if (l.comp) m[label].comp = l.comp;
+      var key = label;
+      m[key].cost += l[t]; total += l[t];
+    });
+    var rows = Object.keys(m).map(function (k) { return m[k]; }).sort(function (a, b) { return b.cost - a.cost; });
+    var cum = 0; rows.forEach(function (x) { x.share = total ? x.cost / total : 0; x.major = cum < 0.8; cum += x.share; });
+    return { rows: rows, total: total };
+  }
   function renderForm() {
-    var prod = byId[S.current.productId], p = E.fullParams(prod, S.current.params);
+    var prod = byId[S.current.productId], p = E.fullParams(prod, S.current.params), mode = modeOf(prod);
     var h = '<div class="cfg-head"><div><h2>' + esc(prod.name) + '</h2><p class="lede">' + esc(prod.blurb) + '</p></div>' +
       '<div class="row">' + (S.editing ? '<span class="pill warn">Modification d’une ligne du devis</span>' : '') +
-      '<button class="btn sm ghost" type="button" id="f-reset">Valeurs par défaut</button></div></div>';
+      (mode === 'composer' ? '<button class="btn sm ghost" type="button" id="f-reset">Valeurs par défaut</button>' : '') + '</div></div>';
+    if (prod.versions) h += '<div class="modes" role="tablist" aria-label="Façon de chiffrer"><button type="button" role="tab" data-mode="pret" aria-selected="' + (mode === 'pret') + '"><b>Prêt à chiffrer</b><small>3 configurations prêtes</small></button>' +
+      '<button type="button" role="tab" data-mode="composer" aria-selected="' + (mode === 'composer') + '"><b>Composer</b><small>composant par composant</small></button></div>';
     h += '<div class="plan" id="plan"><div class="plan-bar" id="plan-bar"></div><div id="plan-2d"></div><div id="plan-3d" class="v3d" hidden></div><div id="plan-photo" hidden></div><div id="plan-sun" class="sunbar" hidden></div><div class="plan-facts" id="plan-facts"></div></div>';
-    var secs = [], bySec = {};
+    var secs = [], bySec = {}, secComp = {};
     prod.params.forEach(function (d) {
       if (d.showIf && !d.showIf(p)) return;
       var s = d.sec || 'Options';
+      if (mode === 'pret' && s !== 'Dimensions') return;
       if (!bySec[s]) { bySec[s] = []; secs.push(s); }
-      bySec[s].push(field(d, p[d.id]));
+      if (d.comp) secComp[s] = d.comp;
+      bySec[s].push(field(d, p[d.id], d.comp && !isPicked(prod, d.comp)));
     });
-    secs.forEach(function (s) { h += '<div class="sec"><h3>' + esc(s) + '</h3><div class="grid">' + bySec[s].join('') + '</div></div>'; });
+    if (mode === 'composer' && prod.comps) {
+      var sh = shares(price(prod.id, S.current.params), curTier(), prod), rank = {};
+      sh.rows.forEach(function (x, i) { if (x.comp) rank[x.comp] = i; });
+      secs.sort(function (a, b) {
+        function key(s) { return s === 'Dimensions' ? -1 : secComp[s] ? (rank[secComp[s]] != null ? rank[secComp[s]] : 50) : 100; }
+        return key(a) - key(b);
+      });
+    }
+    if (mode === 'composer') h += '<div class="sec pareto" id="pareto"></div>';
+    secs.forEach(function (s) {
+      var c = secComp[s], todo = c && !isPicked(prod, c);
+      h += '<div class="sec' + (todo ? ' todo' : '') + '"' + (c ? ' data-comp="' + c + '"' : '') + '><div class="sec-h"><h3>' + esc(s) + '</h3>' +
+        (c ? '<span class="pill" data-share="' + c + '"></span>' : '') + (todo ? '<span class="pill warn">À choisir</span>' : '') + '</div><div class="grid">' + bySec[s].join('') + '</div></div>';
+    });
+    if (mode === 'pret') h += '<div class="sec"><div class="sec-h"><h3>Choisissez une configuration</h3></div><div class="presets" id="presets"></div>' +
+      '<button class="btn" type="button" id="f-scratch">Composer de zéro, composant par composant</button></div>';
     $('form').innerHTML = h;
+  }
+  /* Effet de chaque option sur le prix TTC, recalculé à chaque changement. */
+  function updateDeltas(r, t) {
+    var prod = byId[S.current.productId], base = r.sale[t] * tva(), cache = {};
+    function delta(id, v) {
+      var k = id + '=' + v; if (cache[k] != null) return cache[k];
+      var pp = Object.assign({}, S.current.params); pp[id] = v;
+      var rr = price(prod.id, pp); return (cache[k] = rr.sale[validTier(rr, t)] * tva() - base);
+    }
+    function fmt(x) { return Math.abs(x) < 25 ? '' : (x > 0 ? '+' : '−') + nf0.format(Math.abs(x)); }
+    document.querySelectorAll('#form [data-dlf]').forEach(function (el) {
+      var id = el.dataset.dlf, d = prod.params.filter(function (x) { return x.id === id; })[0]; if (!d) return;
+      var cur = E.fullParams(prod, S.current.params)[id], v = el.dataset.dlv;
+      if (d.type === 'toggle') v = !cur; else if (d.num) v = +v;
+      if (d.type !== 'toggle' && String(v) === String(cur) && isPicked(prod, d.comp)) { el.textContent = ''; return; }
+      var x = delta(id, v); el.textContent = fmt(x); el.className = 'dl' + (x > 0 ? ' up' : x < 0 ? ' down' : '');
+    });
+    document.querySelectorAll('#form select[data-f]').forEach(function (sel) {
+      var id = sel.dataset.f; Array.prototype.forEach.call(sel.options, function (o) {
+        var lb = o.getAttribute('data-l'); if (!lb) return;
+        if (o.value === sel.value) { o.textContent = lb; return; }
+        var x = delta(id, o.value); o.textContent = lb + (fmt(x) ? ' (' + fmt(x) + ')' : '');
+      });
+    });
+  }
+  function renderPareto(r, t) {
+    var prod = byId[S.current.productId], sh = shares(r, t, prod), box = $('pareto');
+    document.querySelectorAll('#form [data-share]').forEach(function (el) {
+      var row = sh.rows.filter(function (x) { return x.comp === el.dataset.share; })[0];
+      el.textContent = row ? Math.round(row.share * 100) + ' % du coût' : '';
+    });
+    if (!box) return;
+    var nMaj = sh.rows.filter(function (x) { return x.major; }).length;
+    var h = '<div class="sec-h"><h3>Ce qui fait le prix</h3><span class="sub">' + nMaj + ' poste' + (nMaj > 1 ? 's' : '') + ' = 80 % du coût</span></div><div class="pbar">' +
+      sh.rows.map(function (x, i) { return '<i class="' + (x.major ? 'maj m' + Math.min(i, 3) : 'min') + '" style="width:' + (x.share * 100).toFixed(2) + '%" title="' + esc(x.label) + '"></i>'; }).join('') + '</div><ol class="plist">' +
+      sh.rows.map(function (x, i) {
+        return '<li class="' + (x.major ? 'maj' : 'min') + '"><span class="pl"><i class="' + (x.major ? 'm' + Math.min(i, 3) : 'min') + '"></i>' + esc(x.label) + '</span><span class="num">' + nf0.format(x.cost) + '</span><b class="num">' + Math.round(x.share * 100) + ' %</b></li>';
+      }).join('') + '</ol>';
+    box.innerHTML = h;
+  }
+  function renderPresets(t) {
+    var box = $('presets'); if (!box) return;
+    var prod = byId[S.current.productId], cur = E.fullParams(prod, S.current.params), v = prod.versions(cur);
+    box.innerHTML = ['A', 'B', 'C'].map(function (k) {
+      var pp = Object.assign({}, cur, v[k]), r = price(prod.id, pp), tt = validTier(r, t);
+      return '<div class="preset' + (k === 'B' ? ' rec' : '') + '"><div class="ph"><span class="ver-tag">' + k + '</span><b>' + esc(C.VERSION_NAMES[k]) + '</b>' + (k === 'B' ? '<span class="pill acc">conseillée</span>' : '') + '</div>' +
+        '<div class="pp"><b class="num">' + nf0.format(r.sale[tt] * tva()) + '</b> MAD TTC</div><ul>' + r.details.slice(0, 5).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
+        '<button class="btn' + (k === 'B' ? ' pri' : '') + ' wide" type="button" data-preset="' + k + '">Partir de cette configuration</button></div>';
+    }).join('');
   }
   function visibleCount() {
     var prod = byId[S.current.productId], p = E.fullParams(prod, S.current.params);
@@ -703,12 +793,28 @@
       v = Math.min(d.max, Math.max(d.min, v));
       v = d.type === 'count' ? Math.round(v) : Math.round(v * 1000) / 1000;
     }
+    if (d.num) v = +v;
+    if (d.comp && S.current.picked) S.current.picked[d.comp] = true;
     var before = visibleCount();
     S.current.params[f] = v; save();
     return before !== visibleCount();
   }
   $('form').addEventListener('click', function (e) {
     if (e.target.id === 'f-reset') { S.current.params = {}; save(); renderForm(); renderResult(); return; }
+    var mb = e.target.closest('[data-mode]');
+    if (mb) { S.current.mode = mb.dataset.mode; if (S.current.mode === 'composer') S.current.picked = null; save(); renderForm(); renderResult(); return; }
+    var pb = e.target.closest('[data-preset]');
+    if (pb) {
+      var prod = byId[S.current.productId], cur = E.fullParams(prod, S.current.params);
+      S.current.params = Object.assign(cur, prod.versions(cur)[pb.dataset.preset]); S.current.mode = 'composer'; S.current.picked = null; save();
+      renderForm(); renderResult(); toast('Configuration ' + C.VERSION_NAMES[pb.dataset.preset] + ' chargée : ajustez chaque composant si besoin');
+      $('form').scrollIntoView({ behavior: 'smooth', block: 'start' }); return;
+    }
+    if (e.target.id === 'f-scratch') {
+      var pr = byId[S.current.productId], keep = {};
+      pr.params.forEach(function (d) { if (d.sec === 'Dimensions' && S.current.params[d.id] != null) keep[d.id] = S.current.params[d.id]; });
+      S.current.params = keep; S.current.mode = 'composer'; S.current.picked = {}; save(); renderForm(); renderResult(); return;
+    }
     var b = e.target.closest('button[data-f]'); if (!b) return;
     if (b.dataset.step) {
       var inp = $('f-' + b.dataset.f);
@@ -753,8 +859,9 @@
     var r = last = price(S.current.productId, S.current.params), t = validTier(r, curTier());
     var sale = r.sale[t], cost = r.cost[t];
     var cushion = cost - r.cost.now, marginAmt = sale - cost;
-    // plan
+    // plan, effet des options, répartition du coût, configurations prêtes
     renderPlan(r);
+    updateDeltas(r, t); renderPareto(r, t); renderPresets(t);
     var h = '<div class="price">';
     h += '<div><h3>' + esc(r.productName) + '</h3><div class="sub">' + esc(r.summary) + '</div></div>';
     h += '<div><div class="ttc">' + nf0.format(sale * tva()) + ' <small>MAD TTC</small></div><div class="sub num">' + mad(sale) + ' HT · fourniture et pose · hors déplacement</div></div>';
@@ -771,6 +878,10 @@
     h += '<div class="kpis"><div class="kpi good"><span>Marge si achat aujourd’hui</span><b>' + pct(sale > 0 ? 1 - r.cost.now / sale : 0) + '</b></div><div class="kpi"><span>Prix au m²</span><b>' + (r.area ? nf0.format(sale * tva() / r.area) : '—') + '</b></div></div>';
     h += marketBlock(prod, r, t);
     var al = r.warnings.map(function (w) { return '<div class="alert">' + esc(w) + '</div>'; });
+    if (prod.comps && S.current.picked && modeOf(prod) === 'composer') {
+      var done = prod.comps.filter(function (c) { return S.current.picked[c.id]; }).length;
+      if (done < prod.comps.length) al.unshift('<div class="alert info">Composition : ' + done + ' composant' + (done > 1 ? 's' : '') + ' sur ' + prod.comps.length + ' choisi' + (done > 1 ? 's' : '') + '. Le prix complète avec les choix standard en attendant.</div>');
+    }
     if (r.stale.length) al.push('<div class="alert info">' + r.stale.length + ' prix de l’étude à confirmer auprès de vos fournisseurs (onglet Prix &amp; sources).</div>');
     if (al.length) h += '<div class="alerts">' + al.join('') + '</div>';
     if (S.editing) h += '<div class="row"><button class="btn pri" type="button" id="r-update" style="flex:1">Mettre à jour la ligne</button><button class="btn" type="button" id="r-cancel">Annuler</button></div>';
@@ -1120,7 +1231,7 @@
     if (b.dataset.del) { if (!canWrite()) return; Q.lines = Q.lines.filter(function (l) { return l.uid !== b.dataset.del; }); commitQuote(Q); renderQuotes(); }
     if (b.dataset.edit) {
       var l = Q.lines.filter(function (x) { return x.uid === b.dataset.edit; })[0]; if (!l) return;
-      S.current = { productId: l.productId, params: clone(l.params), tier: l.tier }; S.editing = l.uid; save();
+      S.current = { productId: l.productId, params: clone(l.params), tier: l.tier, mode: 'composer' }; S.editing = l.uid; save();
       renderCatalog(); renderForm(); renderResult(); go('configurer');
     }
     if (b.dataset.status) {

@@ -149,7 +149,7 @@
     venitien_50: { name: 'Store vénitien alu lames 50 mm', unit: 'm²', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 510, 'est')], max: 680, maxSrc: 'est' },
     guidage_cable: { name: 'Guidage latéral par câble', unit: 'ml', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 35, 'est')], max: 50, maxSrc: 'est' },
     kit_moust_fixe: { name: 'Kit moustiquaire fixe', unit: 'u', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 60, 'est')], max: 90, maxSrc: 'est' },
-    kit_moust_coul: { name: 'Kit moustiquaire coulissante', unit: 'u', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 190, 'est')], max: 260, maxSrc: 'est' },
+    kit_moust_coul: { name: 'Kit moustiquaire coulissante', unit: 'u', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 130, 'est')], max: 180, maxSrc: 'est', note: 'Marché marocain : moustiquaire coulissante posée 420 à 700 MAD/m².' },
     kit_moust_enr: { name: 'Kit moustiquaire enroulable', unit: 'u', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 480, 'est')], max: 650, maxSrc: 'est' },
     kit_moust_pli: { name: 'Kit moustiquaire plissée', unit: 'u', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 650, 'est')], max: 850, maxSrc: 'est' },
 
@@ -183,6 +183,48 @@
       hist: [pt('2026-06-15', 650, 'lc_beton')], max: 800, maxSrc: 'lc_beton', note: 'Béton B25 : 950 à 1 100 DH/m³ + pompage 150 à 250.' },
     ancrage_facade: { name: 'Ancrage façade inox pour voile', unit: 'u', cat: 'matiere', type: 'mad', group: 'Fixations & gros œuvre', hist: [pt('2026-06-15', 240, 'est')], max: 320, maxSrc: 'est' },
     tendeur: { name: 'Tendeur inox + manille', unit: 'u', cat: 'matiere', type: 'mad', group: 'Fixations & gros œuvre', hist: [pt('2026-06-15', 110, 'est')], max: 150, maxSrc: 'est' },
+
+    /* ---------- Métaux au kilo (structures acier, inox, galvanisé) ---------- */
+    metal_alu_kg: { name: 'Aluminium profilé, au kilo', unit: 'kg', cat: 'matiere', type: 'alu', kg: 1, fab: 0, group: 'Métaux au kilo' },
+    acier_kg: { name: 'Tube acier noir (fer)', unit: 'kg', cat: 'matiere', type: 'mad', group: 'Métaux au kilo', hist: [pt('2026-06-15', 14, 'est')], max: 18, maxSrc: 'est', note: 'Tube soudé S235, prix négoce marocain estimé.' },
+    galva_kg: { name: 'Tube acier galvanisé', unit: 'kg', cat: 'matiere', type: 'mad', group: 'Métaux au kilo', hist: [pt('2026-06-15', 20, 'est')], max: 26, maxSrc: 'est' },
+    inox_kg: { name: 'Tube inox 304', unit: 'kg', cat: 'matiere', type: 'mad', group: 'Métaux au kilo', hist: [pt('2026-06-15', 65, 'est')], max: 85, maxSrc: 'est', note: 'Inox 316 (bord de mer) : environ +30 %.' },
+    fab_acier_kg: { name: 'Façonnage acier (découpe, soudure, perçage)', unit: 'kg', cat: 'matiere', type: 'mad', group: 'Métaux au kilo', hist: [pt('2026-06-15', 9, 'est')], max: 12, maxSrc: 'est' },
+    fab_inox_kg: { name: 'Façonnage inox (soudure TIG, polissage)', unit: 'kg', cat: 'matiere', type: 'mad', group: 'Métaux au kilo', hist: [pt('2026-06-15', 24, 'est')], max: 30, maxSrc: 'est' },
+    fab_alu_kg: { name: 'Façonnage aluminium (découpe, assemblage)', unit: 'kg', cat: 'matiere', type: 'mad', group: 'Métaux au kilo', hist: [pt('2026-06-15', 8, 'est')], max: 11, maxSrc: 'est' },
+    peinture_acier_kg: { name: 'Antirouille + laque (acier noir)', unit: 'kg', cat: 'matiere', type: 'mad', group: 'Métaux au kilo', hist: [pt('2026-06-15', 6, 'est')], max: 8, maxSrc: 'est' },
+
+    /* ---------- Bâches et toiles, en 1er et 2e choix ---------- */
+    bache_pvc_1: { name: 'Bâche PVC 1er choix (≈ 650 g/m², traitée UV)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Toiles', hist: [pt('2026-06-15', 160, 'est')], max: 220, maxSrc: 'est' },
+    bache_pvc_2: { name: 'Bâche PVC 2e choix', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Toiles', hist: [pt('2026-06-15', 75, 'est')], max: 100, maxSrc: 'est' },
+    toile_tissee_1: { name: 'Toile tissée 1er choix (acrylique teintée masse)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Toiles', hist: [pt('2026-06-15', 180, 'est')], max: 240, maxSrc: 'est' },
+    toile_tissee_2: { name: 'Toile tissée 2e choix (polyester)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Toiles', hist: [pt('2026-06-15', 110, 'est')], max: 150, maxSrc: 'est' },
+    screen_std: { name: 'Toile screen standard (polyester enduit)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Toiles', hist: [pt('2026-06-15', 110, 'est')], max: 150, maxSrc: 'est' },
+    toile_banne_std: { name: 'Toile store banne standard (polyester / acrylique import)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Toiles', hist: [pt('2026-06-15', 120, 'est')], max: 160, maxSrc: 'est' },
+    poly_16_2: { name: 'Polycarbonate alvéolaire 16 mm, 2e choix', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Couvertures & vitrages', hist: [pt('2026-06-15', 165, 'est')], max: 220, maxSrc: 'est' },
+    dalakit: { name: 'Plafond « Dalakit » (à préciser)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Couvertures & vitrages', hist: [pt('2026-06-15', 240, 'est')], max: 320, maxSrc: 'est', note: 'Produit à confirmer par Store Luxe : prix provisoire.' },
+
+    /* ---------- Câbles et accastillage ---------- */
+    cable_inox: { name: 'Câble inox 316 Ø 6 mm', unit: 'ml', cat: 'matiere', type: 'mad', group: 'Fixations & gros œuvre', hist: [pt('2026-06-15', 28, 'est')], max: 38, maxSrc: 'est' },
+    cable_galva: { name: 'Câble acier galvanisé Ø 6 mm', unit: 'ml', cat: 'matiere', type: 'mad', group: 'Fixations & gros œuvre', hist: [pt('2026-06-15', 9, 'est')], max: 13, maxSrc: 'est' },
+    accast_inox: { name: 'Accastillage inox par point (ridoir, manille, plaque)', unit: 'point', cat: 'matiere', type: 'mad', group: 'Fixations & gros œuvre', hist: [pt('2026-06-15', 260, 'est')], max: 340, maxSrc: 'est' },
+    accast_galva: { name: 'Accastillage galvanisé par point', unit: 'point', cat: 'matiere', type: 'mad', group: 'Fixations & gros œuvre', hist: [pt('2026-06-15', 90, 'est')], max: 120, maxSrc: 'est' },
+
+    /* ---------- Mécanismes standard (import) face aux marques ---------- */
+    banne_mono_std: { name: 'Mécanisme store banne monobloc standard', unit: 'ml', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 420, 'est')], max: 540, maxSrc: 'est' },
+    banne_coffre_std: { name: 'Mécanisme store banne coffre standard', unit: 'ml', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 850, 'est')], max: 1080, maxSrc: 'est' },
+    moteur_std: { name: 'Moteur tubulaire standard + télécommande', unit: 'u', cat: 'equipement', type: 'mad', group: 'Motorisation & éclairage', hist: [pt('2026-06-15', 950, 'est')], max: 1250, maxSrc: 'est' },
+    zip_coffre_std: { name: 'Coffre + barre ZIP standard', unit: 'ml', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 320, 'est')], max: 420, maxSrc: 'est' },
+    zip_guides_std: { name: 'Coulisse ZIP standard', unit: 'ml', cat: 'equipement', type: 'mad', group: 'Systèmes de stores', hist: [pt('2026-06-15', 55, 'est')], max: 75, maxSrc: 'est' },
+    moteur_zip_std: { name: 'Moteur ZIP standard', unit: 'u', cat: 'equipement', type: 'mad', group: 'Motorisation & éclairage', hist: [pt('2026-06-15', 850, 'est')], max: 1100, maxSrc: 'est' },
+    inter_mural: { name: 'Interrupteur mural montée / descente', unit: 'u', cat: 'equipement', type: 'mad', group: 'Motorisation & éclairage', hist: [pt('2026-06-15', 180, 'est')], max: 240, maxSrc: 'est' },
+    telec_std: { name: 'Télécommande standard', unit: 'u', cat: 'equipement', type: 'mad', group: 'Motorisation & éclairage', hist: [pt('2026-06-15', 150, 'est')], max: 200, maxSrc: 'est' },
+
+    /* ---------- Véranda bois / accordéon ---------- */
+    bois_facade: { name: 'Menuiserie bois traité (façade vitrée)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Couvertures & vitrages', hist: [pt('2026-06-15', 1150, 'est')], max: 1450, maxSrc: 'est' },
+    bois_toiture: { name: 'Charpente bois lamellé-collé (toiture)', unit: 'm²', cat: 'matiere', type: 'mad', group: 'Couvertures & vitrages', hist: [pt('2026-06-15', 380, 'est')], max: 480, maxSrc: 'est' },
+    bois_poteau: { name: 'Poteau bois lamellé-collé 140×140', unit: 'ml', cat: 'matiere', type: 'mad', group: 'Couvertures & vitrages', hist: [pt('2026-06-15', 260, 'est')], max: 330, maxSrc: 'est' },
+    alu_veranda_accordeon: { name: 'Menuiserie accordéon aluminium', unit: 'm²', cat: 'matiere', type: 'alu', kg: 9, fab: 640, group: 'Profilés aluminium' },
 
     /* ---------- Main-d'œuvre ---------- */
     pose_jour: { name: 'Équipe de pose (chef poseur + aide)', unit: 'jour', cat: 'pose', type: 'mad', group: 'Main-d’œuvre', buffer: 0, noStale: true,
@@ -278,6 +320,54 @@
   var CMD3 = function (def) {
     return { id: 'cmd', sec: 'Commande', label: 'Commande', type: 'seg', def: def || 'moteur', options: [{ v: 'manuel', l: 'Manuelle' }, { v: 'moteur', l: 'Moteur Somfy' }, { v: 'capteur', l: 'Moteur + capteur vent' }] };
   };
+
+  /* ---------- Composants de structure métallique : poids réel du tube × prix au kilo ---------- */
+  var RHO = { alu: 2.7, galva: 7.85, fer: 7.85, inox: 7.9 }; // densité (kg/dm³)
+  var METAL_NAMES = { alu: 'aluminium', galva: 'acier galvanisé', fer: 'acier (fer) peint', inox: 'inox' };
+  var METAL_RAL = { alu: 'standard', galva: 'sable', fer: 'standard', inox: 'sable' };
+  /* kg par mètre d'un tube rond Ø D × épaisseur t (mm) */
+  function tubeKg(D, t, mat) { return Math.PI * (D - t) * t * (RHO[mat] || 7.85) / 1000; }
+  function metalLines(mat, kg, note) {
+    var L = [];
+    if (mat === 'alu') { L.push({ item: 'metal_alu_kg', qty: kg, note: note, comp: 'structure' }, { item: 'fab_alu_kg', qty: kg, comp: 'structure' }); }
+    else {
+      L.push({ item: mat === 'inox' ? 'inox_kg' : mat === 'galva' ? 'galva_kg' : 'acier_kg', qty: kg, note: note, comp: 'structure' });
+      L.push({ item: mat === 'inox' ? 'fab_inox_kg' : 'fab_acier_kg', qty: kg, comp: 'structure' });
+      if (mat === 'fer') L.push({ item: 'peinture_acier_kg', qty: kg, comp: 'structure' });
+    }
+    return L;
+  }
+  function METAL_P(comp, sec, def, showIf) {
+    return { id: 'mat', comp: comp, sec: sec, label: 'Métal', type: 'seg', def: def, showIf: showIf, options: [
+      { v: 'inox', l: 'Inox' }, { v: 'galva', l: 'Galvanisé' }, { v: 'fer', l: 'Fer (acier peint)' }, { v: 'alu', l: 'Aluminium' }] };
+  }
+  function DIAM_P(comp, sec, def, showIf) {
+    return { id: 'd', comp: comp, sec: sec, label: 'Diamètre du tube', type: 'seg', def: def, showIf: showIf, num: true, options: [
+      { v: 60, l: 'Ø 60' }, { v: 76, l: 'Ø 76' }, { v: 89, l: 'Ø 89' }, { v: 114, l: 'Ø 114' }] };
+  }
+  function EP_P(comp, sec, def, showIf) {
+    return { id: 't', comp: comp, sec: sec, label: 'Épaisseur', type: 'seg', def: def, showIf: showIf, num: true, options: [
+      { v: 2, l: '2 mm' }, { v: 3, l: '3 mm' }, { v: 4, l: '4 mm' }, { v: 5, l: '5 mm' }] };
+  }
+  /* Couverture souple ou rigide, avec 1er / 2e choix pour les bâches et toiles. */
+  function COUV_P(comp, sec, def, rigid) {
+    var o = [{ v: 'bache_pvc', l: 'Bâche plastique (PVC)' }, { v: 'toile', l: 'Toile' }, { v: 'screen', l: 'Screen (micro-aéré)' }];
+    if (rigid) o.push({ v: 'poly', l: 'Polycarbonate' }, { v: 'sandwich_40', l: 'Panneau sandwich' });
+    return { id: 'couv', comp: comp, sec: sec, label: 'Type', type: 'seg', def: def, options: o };
+  }
+  function QUAL_P(comp, sec) {
+    return { id: 'q', comp: comp, sec: sec, label: 'Qualité', type: 'seg', def: '1', options: [{ v: '1', l: '1er choix' }, { v: '2', l: '2e choix' }],
+      showIf: function (p) { return p.couv !== 'sandwich_40'; } };
+  }
+  function coverItem(p) {
+    var q = p.q === '2' ? 2 : 1;
+    return { bache_pvc: 'bache_pvc_' + q, toile: 'toile_tissee_' + q, screen: q === 1 ? 'toile_ferrari' : 'screen_std', poly: q === 1 ? 'poly_16' : 'poly_16_2', sandwich_40: 'sandwich_40' }[p.couv] || 'bache_pvc_1';
+  }
+  function coverName(p) {
+    var n = { bache_pvc: 'bâche PVC', toile: 'toile', screen: 'toile screen', poly: 'polycarbonate', sandwich_40: 'panneau sandwich' }[p.couv];
+    return n + (p.couv === 'sandwich_40' ? '' : p.q === '2' ? ' 2e choix' : ' 1er choix');
+  }
+  function coverLines(p, qty, h) { return [{ item: coverItem(p), qty: h.r2(qty), note: coverName(p), comp: 'couverture' }]; }
 
   var PRODUCTS = [
     {
@@ -440,108 +530,126 @@
       }
     },
     {
-      id: 'veranda', name: 'Véranda aluminium', short: 'Véranda', family: 'Pergolas & structures', icon: 'veranda', margin: 0.30, waste: 0.06,
+      id: 'veranda', name: 'Véranda', short: 'Véranda', family: 'Pergolas & structures', icon: 'veranda', margin: 0.30, waste: 0.06,
       blurb: 'Pièce vitrée sur terrasse, jardin ou toit-terrasse.',
       market: [
         { label: 'Alu + polycarbonate, posée', unit: 'm²', low: 4500, high: 6500, src: 'lc_veranda', ma: true },
         { label: 'Alu + verre feuilleté, posée', unit: 'm²', low: 6500, high: 9000, src: 'lc_veranda' }
       ],
+      comps: [{ id: 'structure', l: 'Structure' }, { id: 'vitrage', l: 'Vitrage' }, { id: 'plafond', l: 'Plafond' }, { id: 'fixation', l: 'Fixation' }],
       params: [
         { id: 'L', sec: 'Dimensions', label: 'Largeur (côté façade)', type: 'number', unit: 'm', min: 2, max: 12, step: 0.05, def: 5 },
         { id: 'P', sec: 'Dimensions', label: 'Profondeur', type: 'number', unit: 'm', min: 1.5, max: 6, step: 0.05, def: 3.5 },
         { id: 'H', sec: 'Dimensions', label: 'Hauteur des façades', type: 'number', unit: 'm', min: 2, max: 3.5, step: 0.05, def: 2.6 },
-        { id: 'faces', sec: 'Structure', label: 'Faces vitrées', type: 'seg', def: '3', options: [{ v: '1', l: '1 face' }, { v: '2', l: '2 faces' }, { v: '3', l: '3 faces' }] },
-        { id: 'vitrage', sec: 'Structure', label: 'Vitrage des façades', type: 'select', def: 'double_vitrage', options: [
+        { id: 'mat', comp: 'structure', sec: 'Structure', label: 'Matériau', type: 'seg', def: 'alu', options: [{ v: 'alu', l: 'Aluminium' }, { v: 'bois', l: 'Bois' }] },
+        { id: 'ral', comp: 'structure', sec: 'Structure', label: 'Couleur aluminium', type: 'ral', def: 'standard', options: RAL.options, showIf: function (p) { return p.mat === 'alu'; } },
+        { id: 'ouv', comp: 'vitrage', sec: 'Vitrage', label: 'Ouverture', type: 'seg', def: 'coulissant', options: [{ v: 'coulissant', l: 'Coulissant' }, { v: 'accordeon', l: 'Accordéon (repliable)' }] },
+        { id: 'vitrage', comp: 'vitrage', sec: 'Vitrage', label: 'Verre', type: 'select', def: 'double_vitrage', options: [
           { v: 'vitre_trempe', l: 'Simple trempé 6 mm' }, { v: 'double_vitrage', l: 'Double vitrage 4/16/4' }, { v: 'controle_solaire', l: 'Double vitrage contrôle solaire' }] },
-        { id: 'toit', sec: 'Structure', label: 'Toiture', type: 'select', def: 'sandwich_40', options: [
-          { v: 'sandwich_40', l: 'Panneau sandwich (isolant)' }, { v: 'poly_16', l: 'Polycarbonate 16 mm' }, { v: 'verre_442', l: 'Verre feuilleté' }] },
-        { id: 'site', sec: 'Structure', label: 'Emplacement', type: 'seg', def: 'terrasse', options: [{ v: 'terrasse', l: 'Terrasse / jardin' }, { v: 'toit', l: 'Toit-terrasse' }] },
-        RAL,
-        { id: 'spots', sec: 'Éclairage & confort', label: 'Spots LED', type: 'count', unit: 'u', min: 0, max: 30, def: 4 }
+        { id: 'faces', comp: 'vitrage', sec: 'Vitrage', label: 'Faces vitrées', type: 'seg', def: '3', options: [{ v: '1', l: '1 face' }, { v: '2', l: '2 faces' }, { v: '3', l: '3 faces' }, { v: '4', l: '4 faces' }] },
+        { id: 'toit', comp: 'plafond', sec: 'Plafond', label: 'Plafond', type: 'seg', def: 'sandwich_40', options: [
+          { v: 'dalakit', l: 'Dalakit' }, { v: 'sandwich_40', l: 'Panneau sandwich' }, { v: 'bache_pvc_1', l: 'Bâche PVC' }] },
+        { id: 'fix', comp: 'fixation', sec: 'Fixation', label: 'Fixation', type: 'seg', def: 'murale', options: [{ v: 'murale', l: 'Murale (adossée)' }, { v: 'poteaux', l: 'Sur poteaux (autoportante)' }] },
+        { id: 'np', comp: 'fixation', sec: 'Fixation', label: 'Nombre de poteaux (0 = calcul automatique)', type: 'count', unit: 'u', min: 0, max: 12, def: 0 },
+        { id: 'site', sec: 'Options', label: 'Emplacement', type: 'seg', def: 'terrasse', options: [{ v: 'terrasse', l: 'Terrasse / jardin' }, { v: 'toit', l: 'Toit-terrasse' }] },
+        { id: 'spots', sec: 'Options', label: 'Spots LED', type: 'count', unit: 'u', min: 0, max: 30, def: 4 }
       ],
       build: function (p, h) {
-        var W = [], area = p.L * p.P, f = +p.faces;
-        var facade = p.L * p.H + (f >= 2 ? p.P * p.H : 0) + (f >= 3 ? p.P * p.H : 0);
+        var W = [], area = p.L * p.P, f = +p.faces, auto = p.fix === 'poteaux', bois = p.mat === 'bois';
+        if (f === 4 && !auto) W.push('4 faces vitrées : seulement en véranda autoportante (sur poteaux).');
+        if (f === 4 && !auto) f = 3;
+        var facade = p.L * p.H + (f >= 2 ? p.P * p.H : 0) + (f >= 3 ? p.P * p.H : 0) + (f >= 4 ? p.L * p.H : 0);
+        var autoPosts = (auto ? 2 : 1) * (h.ceil(p.L / 3.5) + 1);
+        var np = p.np > 0 ? p.np : autoPosts;
+        if (p.np > 0 && p.np < autoPosts) W.push('Moins de poteaux que le calcul (' + autoPosts + ') : portées à valider en étude.');
         if (p.site === 'toit') W.push('Toit-terrasse : vérifier dalle, étanchéité, évacuations et accès de levage.');
         if (p.vitrage === 'vitre_trempe') W.push('Simple vitrage : effet de serre l’été, proposer le contrôle solaire.');
+        if (p.toit === 'dalakit') W.push('Plafond « Dalakit » : prix provisoire, à confirmer.');
+        var frame = bois ? 'bois_facade' : p.ouv === 'accordeon' ? 'alu_veranda_accordeon' : 'alu_veranda_facade';
         var L = [
-          { item: 'alu_veranda_facade', qty: h.r2(facade), note: h.r2(facade) + ' m² de façade' },
-          { item: p.vitrage, qty: h.r2(facade * 0.85), note: '85 % de la façade' },
-          { item: 'alu_veranda_toiture', qty: h.r2(area) },
-          { item: p.toit, qty: h.r2(area * 1.05) },
-          { item: 'alu_poteau_100', qty: h.r2(2 * p.H), note: '2 poteaux d’angle' },
-          { item: 'alu_cheneau', qty: h.r2(p.L + 2 * p.H) },
-          { item: 'cheville_chim', qty: h.ceil((p.L + 2 * p.P) / 0.5) },
-          { item: 'visserie', qty: h.ceil(area / 8) }
+          { item: frame, qty: h.r2(facade), note: h.r2(facade) + ' m² de façade' + (p.ouv === 'accordeon' && !bois ? ', ouverture accordéon' : ''), comp: 'structure' },
+          { item: p.vitrage, qty: h.r2(facade * 0.85), note: '85 % de la façade', comp: 'vitrage' },
+          { item: bois ? 'bois_toiture' : 'alu_veranda_toiture', qty: h.r2(area), comp: 'structure' },
+          { item: p.toit, qty: h.r2(area * 1.05), comp: 'plafond' },
+          { item: bois ? 'bois_poteau' : 'alu_poteau_100', qty: h.r2(np * p.H), note: np + ' poteaux', comp: 'fixation' },
+          { item: 'alu_cheneau', qty: h.r2(p.L + 2 * p.H), comp: 'structure' },
+          { item: 'cheville_chim', qty: auto ? np * 4 : h.ceil((p.L + 2 * p.P) / 0.5), comp: 'fixation' },
+          { item: 'platine', qty: auto ? np : 0, comp: 'fixation' },
+          { item: 'visserie', qty: h.ceil(area / 8), comp: 'fixation' }
         ];
+        if (p.ouv === 'accordeon' && bois) L.push({ item: 'kit_moust_pli', qty: h.ceil(p.L / 1.2), note: 'quincaillerie de repliage', comp: 'vitrage' });
         if (p.spots > 0) { L.push({ item: 'spot_led', qty: p.spots }); L.push({ item: 'alim_led', qty: 1 }); L.push({ item: 'electricien', qty: 1 }); }
-        var days = h.r1(2 + area / 8 + (p.site === 'toit' ? 1 : 0));
+        var days = h.r1(2 + area / 8 + (p.site === 'toit' ? 1 : 0) + (p.ouv === 'accordeon' ? 0.5 : 0));
         L.push({ item: 'pose_jour', qty: days, note: 'estimation ' + days + ' j' });
         var vn = { vitre_trempe: 'simple vitrage trempé', double_vitrage: 'double vitrage', controle_solaire: 'double vitrage contrôle solaire' };
-        var tn = { sandwich_40: 'toiture panneau sandwich', poly_16: 'toiture polycarbonate', verre_442: 'toiture verre' };
+        var tn = { dalakit: 'plafond Dalakit', sandwich_40: 'plafond panneau sandwich', bache_pvc_1: 'plafond bâche PVC' };
         var sides = [{ side: 'front', type: 'verre' }];
         if (f >= 2) sides.push({ side: 'right', type: 'verre' });
         if (f >= 3) sides.push({ side: 'left', type: 'verre' });
-        return { lines: L, warnings: W, laborDays: days, aluSurcharge: ralSurcharge(p.ral), area: area,
-          details: [vn[p.vitrage], tn[p.toit]].concat(p.spots ? [p.spots + ' spots LED'] : []),
-          summary: p.L + ' × ' + p.P + ' m, h ' + p.H + ' m, ' + f + ' face(s) vitrée(s)',
-          geo: { kind: 'plan', L: p.L, P: p.P, H: p.H, ral: p.ral, wall: true, posts: [[0, p.P], [p.L, p.P]], roof: 'plein', couv: p.toit, sides: sides, spots: p.spots } };
+        if (f >= 4) sides.push({ side: 'back', type: 'verre' });
+        var postsGeo = []; var per = auto ? 2 : 1, cols = Math.max(2, Math.round(np / per));
+        for (var i = 0; i < cols; i++) { postsGeo.push([p.L * i / (cols - 1), p.P]); if (auto) postsGeo.push([p.L * i / (cols - 1), 0]); }
+        return { lines: L, warnings: W, laborDays: days, aluSurcharge: bois ? 0 : ralSurcharge(p.ral), area: area,
+          details: [bois ? 'structure bois' : 'structure aluminium', 'ouverture ' + (p.ouv === 'accordeon' ? 'accordéon' : 'coulissante'), vn[p.vitrage], tn[p.toit], auto ? np + ' poteaux' : 'fixation murale'].concat(p.spots ? [p.spots + ' spots LED'] : []),
+          summary: p.L + ' × ' + p.P + ' × ' + p.H + ' m, ' + f + ' face(s) vitrée(s)',
+          geo: { kind: 'plan', L: p.L, P: p.P, H: p.H, ral: bois ? 'special' : p.ral, wall: !auto, posts: postsGeo, roof: 'plein', couv: p.toit === 'bache_pvc_1' ? 'poly_16' : 'sandwich_40', sides: sides, spots: p.spots } };
       }
     },
     {
-      id: 'carport', name: 'Carport aluminium', short: 'Carport', family: 'Pergolas & structures', icon: 'carport', margin: 0.32, waste: 0.07,
-      blurb: 'Abri voiture simple, double ou triple.',
+      id: 'carport', name: 'Abri de voiture', short: 'Abri voiture', family: 'Pergolas & structures', icon: 'carport', margin: 0.32, waste: 0.07,
+      blurb: 'Structure métallique au choix, bâche ou couverture rigide.',
+      comps: [{ id: 'structure', l: 'Structure métallique' }, { id: 'couverture', l: 'Couverture' }],
       params: [
         { id: 'places', sec: 'Dimensions', label: 'Nombre de places', type: 'seg', def: '1', options: [{ v: '1', l: 'Simple' }, { v: '2', l: 'Double' }, { v: '3', l: 'Triple' }] },
         { id: 'lp', sec: 'Dimensions', label: 'Largeur par place', type: 'number', unit: 'm', min: 2.5, max: 4, step: 0.05, def: 3 },
         { id: 'P', sec: 'Dimensions', label: 'Profondeur', type: 'number', unit: 'm', min: 4, max: 7, step: 0.05, def: 5 },
         { id: 'H', sec: 'Dimensions', label: 'Hauteur de passage', type: 'number', unit: 'm', min: 2.1, max: 3, step: 0.05, def: 2.4 },
-        { id: 'config', sec: 'Structure', label: 'Pose', type: 'seg', def: 'autoportante', options: [{ v: 'adossee', l: 'Adossé à la façade' }, { v: 'autoportante', l: 'Autoportant' }] },
-        { id: 'couv', sec: 'Structure', label: 'Couverture', type: 'select', def: 'poly_16', options: [
-          { v: 'poly_16', l: 'Polycarbonate 16 mm' }, { v: 'sandwich_40', l: 'Panneau sandwich' }, { v: 'tole_bac', l: 'Bac acier prélaqué' }] },
-        { id: 'sol', sec: 'Structure', label: 'Sol', type: 'seg', def: 'beton', options: [{ v: 'beton', l: 'Dalle béton existante' }, { v: 'terre', l: 'Terre / pavé (massifs)' }] },
-        RAL,
-        { id: 'spots', sec: 'Éclairage & confort', label: 'Spots LED', type: 'count', unit: 'u', min: 0, max: 20, def: 0 }
+        { id: 'config', sec: 'Dimensions', label: 'Pose', type: 'seg', def: 'autoportante', options: [{ v: 'adossee', l: 'Adossé à la façade' }, { v: 'autoportante', l: 'Autoportant' }] },
+        METAL_P('structure', 'Structure métallique', 'galva'), DIAM_P('structure', 'Structure métallique', 89), EP_P('structure', 'Structure métallique', 3),
+        COUV_P('couverture', 'Couverture', 'bache_pvc', true), QUAL_P('couverture', 'Couverture'),
+        { id: 'sol', sec: 'Options', label: 'Sol', type: 'seg', def: 'beton', options: [{ v: 'beton', l: 'Dalle béton existante' }, { v: 'terre', l: 'Terre / pavé (massifs)' }] },
+        { id: 'spots', sec: 'Options', label: 'Spots LED', type: 'count', unit: 'u', min: 0, max: 20, def: 0 }
       ],
       build: function (p, h) {
         var W = [], n = +p.places, Wd = n * p.lp, area = Wd * p.P, auto = p.config === 'autoportante';
-        var spans = h.ceil(Wd / 4);
+        var spans = h.ceil(Wd / (p.mat === 'alu' ? 4 : 4.5));
         var np = auto ? 2 * (spans + 1) : spans + 1;
         if (p.H < 2.2) W.push('Hauteur < 2,20 m : vérifier le gabarit des 4×4 et utilitaires.');
-        if (p.couv === 'tole_bac') W.push('Bac acier nu : très chaud l’été, proposer le panneau sandwich.');
-        var L = [
-          { item: 'alu_poutre_fixe', qty: h.r2(2 * Wd + (spans + 1) * p.P * (auto ? 1 : 0.5)) },
-          { item: 'alu_chevron', qty: h.r2((h.ceil(Wd / 0.9) + 1) * p.P) },
-          { item: 'alu_poteau_100', qty: h.r2(np * (p.H + 0.3)), note: np + ' poteaux' },
-          { item: 'alu_cheneau', qty: h.r2(Wd) },
-          { item: p.couv, qty: h.r2(area * 1.05) },
-          { item: 'platine', qty: np },
-          { item: 'cheville_chim', qty: np * 4 + (auto ? 0 : h.ceil(Wd / 0.6) * 2) },
-          { item: 'visserie', qty: spans }
-        ];
-        if (p.sol === 'terre') L.push({ item: 'fondation', qty: np, note: '1 massif par poteau' });
+        var soft = p.couv === 'bache_pvc' || p.couv === 'toile' || p.couv === 'screen';
+        var mainMl = np * (p.H + 0.3) + 2 * Wd + (spans + 1) * p.P * (auto ? 1 : 0.5);
+        var raf = (h.ceil(Wd / (soft ? 1.2 : 0.9)) + 1) * p.P * 1.03;
+        var kg = mainMl * tubeKg(p.d, p.t, p.mat) + raf * tubeKg(soft ? 42 : 50, 2, p.mat);
+        if (p.d < 76 && n > 1) W.push('Ø ' + p.d + ' mm pour ' + n + ' places : vérifier la section avec la portée.');
+        if (p.mat === 'alu') W.push('Aluminium : environ 3 fois moins rigide que l’acier ; à portée égale, prévoir un Ø ou une épaisseur supérieurs.');
+        var L = metalLines(p.mat, h.r1(kg), h.r1(kg) + ' kg : ' + np + ' poteaux + poutres Ø ' + p.d + '×' + p.t + ' mm, arceaux');
+        coverLines(p, area * 1.05, h).forEach(function (l) { L.push(l); });
+        L.push({ item: 'platine', qty: np, comp: 'fixation' }, { item: 'cheville_chim', qty: np * 4 + (auto ? 0 : h.ceil(Wd / 0.6) * 2), comp: 'fixation' }, { item: 'visserie', qty: spans });
+        if (p.sol === 'terre') L.push({ item: 'fondation', qty: np, note: '1 massif par poteau', comp: 'fixation' });
         if (p.spots > 0) { L.push({ item: 'spot_led', qty: p.spots }); L.push({ item: 'alim_led', qty: 1 }); L.push({ item: 'electricien', qty: 1 }); }
-        var days = h.r1(1 + area / 15 + (p.sol === 'terre' ? 0.5 : 0));
+        var days = h.r1(1 + area / 15 + (p.sol === 'terre' ? 0.5 : 0) + (p.mat === 'inox' ? 0.5 : 0));
         L.push({ item: 'pose_jour', qty: days, note: 'estimation ' + days + ' j' });
-        var cn = { poly_16: 'couverture polycarbonate', sandwich_40: 'couverture panneau sandwich', tole_bac: 'couverture bac acier' };
-        return { lines: L, warnings: W, laborDays: days, aluSurcharge: ralSurcharge(p.ral), area: area,
-          details: [cn[p.couv]].concat(p.sol === 'terre' ? ['massifs béton'] : []).concat(p.spots ? [p.spots + ' spots LED'] : []),
+        return { lines: L, warnings: W, laborDays: days, aluSurcharge: 0, area: area,
+          details: ['structure ' + METAL_NAMES[p.mat] + ' Ø ' + p.d + ' × ' + p.t + ' mm', coverName(p)].concat(p.sol === 'terre' ? ['massifs béton'] : []).concat(p.spots ? [p.spots + ' spots LED'] : []),
           summary: n + ' place(s), ' + h.r2(Wd) + ' × ' + p.P + ' m, ' + (auto ? 'autoportant' : 'adossé'),
-          geo: { kind: 'plan', L: Wd, P: p.P, H: p.H, ral: p.ral, wall: !auto, posts: posts(Wd, p.P, spans, auto), roof: 'chevrons', pitch: 0.9, couv: p.couv, sides: [], cars: n, spots: p.spots } };
+          geo: { kind: 'plan', L: Wd, P: p.P, H: p.H, ral: METAL_RAL[p.mat], wall: !auto, posts: posts(Wd, p.P, spans, auto), roof: 'chevrons', pitch: soft ? 1.2 : 0.9,
+            couv: soft ? 'poly_16' : p.couv === 'sandwich_40' ? 'sandwich_40' : 'poly_16', sides: [], cars: n, spots: p.spots } };
       }
     },
     {
       id: 'voile-ombrage', name: 'Voile d’ombrage', short: 'Voile d’ombrage', family: 'Pergolas & structures', icon: 'voile', margin: 0.35, waste: 0.08,
-      blurb: 'Toile tendue triangle ou rectangle, sur mâts ou façade.',
+      blurb: 'Toile tendue sur mâts : métal, toile, câble et accastillage au choix.',
+      comps: [{ id: 'structure', l: 'Mâts (structure métallique)' }, { id: 'couverture', l: 'Toile' }, { id: 'cable', l: 'Câble' }, { id: 'accast', l: 'Accastillage' }],
       params: [
         { id: 'forme', sec: 'Dimensions', label: 'Forme', type: 'seg', def: 'rectangle', options: [{ v: 'triangle', l: 'Triangle' }, { v: 'rectangle', l: 'Rectangle' }] },
         { id: 'A', sec: 'Dimensions', label: 'Côté A', type: 'number', unit: 'm', min: 2, max: 15, step: 0.1, def: 6 },
         { id: 'B', sec: 'Dimensions', label: 'Côté B', type: 'number', unit: 'm', min: 2, max: 15, step: 0.1, def: 4 },
         { id: 'C', sec: 'Dimensions', label: 'Côté C', type: 'number', unit: 'm', min: 2, max: 15, step: 0.1, def: 5, showIf: function (p) { return p.forme === 'triangle'; } },
-        { id: 'toile', sec: 'Structure', label: 'Toile', type: 'select', def: 'toile_hdpe', options: [
-          { v: 'toile_hdpe', l: 'HDPE micro-perforée (respirante)' }, { v: 'toile_pvc', l: 'PVC enduite (imperméable)' }, { v: 'toile_ferrari', l: 'Serge Ferrari Soltis' }] },
-        { id: 'mats', sec: 'Structure', label: 'Points sur mât', type: 'count', unit: 'mâts', min: 0, max: 4, def: 2 },
-        { id: 'Hm', sec: 'Structure', label: 'Hauteur des mâts', type: 'number', unit: 'm', min: 2.5, max: 6, step: 0.1, def: 3.5, showIf: function (p) { return p.mats > 0; } }
+        { id: 'mats', sec: 'Dimensions', label: 'Points sur mât', type: 'count', unit: 'mâts', min: 0, max: 4, def: 2 },
+        { id: 'Hm', sec: 'Dimensions', label: 'Hauteur des mâts', type: 'number', unit: 'm', min: 2.5, max: 6, step: 0.1, def: 3.5, showIf: function (p) { return p.mats > 0; } },
+        METAL_P('structure', 'Mâts (structure métallique)', 'galva', function (p) { return p.mats > 0; }), DIAM_P('structure', 'Mâts (structure métallique)', 114, function (p) { return p.mats > 0; }), EP_P('structure', 'Mâts (structure métallique)', 4, function (p) { return p.mats > 0; }),
+        COUV_P('couverture', 'Toile', 'screen', false), QUAL_P('couverture', 'Toile'),
+        { id: 'cable', comp: 'cable', sec: 'Câble', label: 'Câble de bordure', type: 'seg', def: 'galva', options: [{ v: 'inox', l: 'Inox 316' }, { v: 'galva', l: 'Galvanisé' }] },
+        { id: 'accast', comp: 'accast', sec: 'Accastillage', label: 'Pièces d’accastillage', type: 'seg', def: 'galva', options: [{ v: 'inox', l: 'Inox' }, { v: 'galva', l: 'Galvanisé' }] }
       ],
       build: function (p, h) {
         var W = [], tri = p.forme === 'triangle', area, perim, pts;
@@ -549,96 +657,124 @@
           var s = (p.A + p.B + p.C) / 2;
           area = Math.sqrt(Math.max(0, s * (s - p.A) * (s - p.B) * (s - p.C)));
           perim = p.A + p.B + p.C;
-          var x = (p.A * p.A + p.C * p.C - p.B * p.B) / (2 * p.A);
-          var y = Math.sqrt(Math.max(0, p.C * p.C - x * x));
+          var x = (p.A * p.A + p.C * p.C - p.B * p.B) / (2 * p.A), y = Math.sqrt(Math.max(0, p.C * p.C - x * x));
           pts = [[0, 0], [p.A, 0], [x, y]];
           if (area === 0) W.push('Triangle impossible avec ces 3 côtés.');
         } else { area = p.A * p.B; perim = 2 * (p.A + p.B); pts = [[0, 0], [p.A, 0], [p.A, p.B], [0, p.B]]; }
         var points = pts.length, mats = Math.min(p.mats, points);
-        if (p.toile === 'toile_pvc') W.push('Toile imperméable : pente marquée et ancrages renforcés.');
-        if (area > 40) W.push('Grande voile (> 40 m²) : étude de vent et mâts renforcés.');
-        var L = [
-          { item: p.toile, qty: h.r2(area * 1.1), note: h.r2(area) + ' m² + 10 % de coupe' },
-          { item: 'confection_voile', qty: h.r2(perim) },
-          { item: 'tendeur', qty: points },
-          { item: 'ancrage_facade', qty: points - mats }
-        ];
+        if (p.couv === 'bache_pvc') W.push('Bâche PVC imperméable : pente marquée et ancrages renforcés.');
+        if (area > 40) W.push('Grande voile (> 40 m²) : étude de vent, mâts Ø 114 mm minimum.');
+        if (mats && p.d < 89) W.push('Mâts Ø < 89 mm : réservés aux petites voiles abritées.');
+        if (mats && p.mat === 'alu') W.push('Mâts aluminium : moins rigides que l’acier sous la tension de la voile ; prévoir Ø 114 × 5 mm minimum.');
+        if (p.cable === 'galva' && p.accast === 'inox') W.push('Câble galvanisé avec accastillage inox : risque de corrosion galvanique.');
+        var L = [];
         if (mats) {
-          L.push({ item: 'mat_acier', qty: h.r2(mats * (p.Hm + 0.8)), note: mats + ' mâts dont 0,8 m enterré' });
-          L.push({ item: 'fondation', qty: mats });
+          var kg = mats * (p.Hm + 0.8) * tubeKg(p.d, p.t, p.mat);
+          metalLines(p.mat, h.r1(kg), mats + ' mâts Ø ' + p.d + '×' + p.t + ' mm, dont 0,8 m enterré').forEach(function (l) { L.push(l); });
+          L.push({ item: 'fondation', qty: mats, comp: 'fixation' });
         }
+        coverLines(p, area * 1.1, h).forEach(function (l) { L.push(l); });
+        L.push({ item: 'confection_voile', qty: h.r2(perim), comp: 'couverture' });
+        L.push({ item: p.cable === 'inox' ? 'cable_inox' : 'cable_galva', qty: h.r2(perim * 1.15), note: 'bordure + 15 %', comp: 'cable' });
+        L.push({ item: p.accast === 'inox' ? 'accast_inox' : 'accast_galva', qty: points, note: points + ' points de tension', comp: 'accast' });
+        L.push({ item: 'ancrage_facade', qty: points - mats, comp: 'fixation' });
         var days = h.r1(0.5 + mats * 0.4 + area / 40);
         L.push({ item: 'pose_jour', qty: days, note: 'estimation ' + days + ' j' });
-        var tn = { toile_hdpe: 'toile HDPE respirante', toile_pvc: 'toile PVC imperméable', toile_ferrari: 'toile Serge Ferrari' };
-        return { lines: L, warnings: W, laborDays: days, area: area, details: [tn[p.toile], mats + ' mât(s), ' + (points - mats) + ' ancrage(s) façade'],
+        return { lines: L, warnings: W, laborDays: days, area: area,
+          details: [coverName(p), 'câble ' + (p.cable === 'inox' ? 'inox' : 'galvanisé'), 'accastillage ' + (p.accast === 'inox' ? 'inox' : 'galvanisé')].concat(mats ? [mats + ' mât(s) ' + METAL_NAMES[p.mat] + ' Ø ' + p.d + ' mm'] : []),
           summary: (tri ? 'Triangle ' + p.A + ' / ' + p.B + ' / ' + p.C : 'Rectangle ' + p.A + ' × ' + p.B) + ' m',
           geo: { kind: 'voile', pts: pts, mats: mats, Hm: p.Hm } };
       }
     },
     {
       id: 'store-banne', name: 'Store banne', short: 'Store banne', family: 'Stores extérieurs', icon: 'banne', margin: 0.33, waste: 0.03,
-      blurb: 'Projection sur terrasse : monobloc, semi-coffre ou coffre.',
+      blurb: 'Monobloc ou coffre, mécanisme standard ou Gaviota.',
       market: [{ label: 'France, coffre intégral motorisé posé', unit: 'u', low: 16200, high: 54000, src: 'banne_fr' }],
+      comps: [{ id: 'mecanisme', l: 'Mécanisme' }, { id: 'toile', l: 'Toile' }, { id: 'commande', l: 'Commande' }],
       params: [
         { id: 'W', sec: 'Dimensions', label: 'Largeur', type: 'number', unit: 'm', min: 1.5, max: 7, step: 0.05, def: 4 },
         { id: 'A', sec: 'Dimensions', label: 'Avancée', type: 'number', unit: 'm', min: 1.5, max: 4, step: 0.25, def: 3 },
-        { id: 'type', sec: 'Structure', label: 'Type', type: 'seg', def: 'banne_coffre', options: [
-          { v: 'banne_monobloc', l: 'Monobloc' }, { v: 'banne_semicoffre', l: 'Semi-coffre' }, { v: 'banne_coffre', l: 'Coffre intégral' }] },
-        { id: 'toile', sec: 'Structure', label: 'Toile', type: 'seg', def: 'toile_sauleda', options: [{ v: 'toile_sauleda', l: 'Acrylique Sauleda' }, { v: 'toile_ferrari', l: 'Serge Ferrari Soltis' }] },
-        { id: 'support', sec: 'Structure', label: 'Support', type: 'seg', def: 'beton', options: [{ v: 'beton', l: 'Béton' }, { v: 'brique', l: 'Brique / pierre' }, { v: 'ite', l: 'Façade isolée' }] },
-        { id: 'cmd', sec: 'Commande', label: 'Commande', type: 'seg', def: 'moteur', options: [{ v: 'manuel', l: 'Manivelle' }, { v: 'moteur', l: 'Moteur Somfy' }, { v: 'capteur', l: 'Moteur + capteur vent' }] },
-        { id: 'ledbras', sec: 'Éclairage & confort', label: 'LED dans les bras', type: 'toggle', def: false }
+        { id: 'type', comp: 'mecanisme', sec: 'Mécanisme', label: 'Type', type: 'seg', def: 'coffre', options: [{ v: 'mono', l: 'Monobloc' }, { v: 'coffre', l: 'Coffre' }] },
+        { id: 'meca', comp: 'mecanisme', sec: 'Mécanisme', label: 'Qualité du mécanisme', type: 'seg', def: 'std', options: [{ v: 'std', l: 'Standard' }, { v: 'gaviota', l: '1re qualité · Gaviota' }] },
+        { id: 'toile', comp: 'toile', sec: 'Toile', label: 'Toile', type: 'seg', def: 'std', options: [{ v: 'std', l: 'Standard' }, { v: 'premium', l: 'Premium · Sauleda' }, { v: 'screen', l: 'Screen · Serge Ferrari' }] },
+        { id: 'cmd', comp: 'commande', sec: 'Commande', label: 'Commande', type: 'seg', def: 'moteur', options: [{ v: 'manuel', l: 'Manivelle' }, { v: 'moteur', l: 'Moteur standard' }, { v: 'somfy', l: 'Moteur Somfy' }] },
+        { id: 'capteur', comp: 'commande', sec: 'Commande', label: 'Capteur vent (repli automatique)', type: 'toggle', def: false, showIf: function (p) { return p.cmd !== 'manuel'; } },
+        { id: 'support', sec: 'Options', label: 'Support', type: 'seg', def: 'beton', options: [{ v: 'beton', l: 'Béton' }, { v: 'brique', l: 'Brique / pierre' }, { v: 'ite', l: 'Façade isolée' }] },
+        { id: 'ledbras', sec: 'Options', label: 'LED dans les bras', type: 'toggle', def: false }
       ],
       build: function (p, h) {
         var W = [], brackets = h.ceil(p.W / 1.5) + 1;
         if (p.A > p.W - 0.3) W.push('Avancée trop grande pour la largeur : les bras se croisent (avancée ≤ largeur − 30 cm).');
         if (p.W > 5.5 && p.cmd === 'manuel') W.push('Plus de 5,5 m en manuel : proposer la motorisation.');
+        var sys = p.meca === 'gaviota' ? (p.type === 'mono' ? 'banne_monobloc' : 'banne_coffre') : (p.type === 'mono' ? 'banne_mono_std' : 'banne_coffre_std');
+        var toile = { std: 'toile_banne_std', premium: 'toile_sauleda', screen: 'toile_ferrari' }[p.toile];
         var L = [
-          { item: p.type, qty: p.W, note: 'largeur' },
-          { item: p.toile, qty: h.r2(p.W * (p.A + 0.35)), note: 'toile + lambrequin' },
-          { item: 'cheville_chim', qty: brackets * (p.support === 'brique' ? 4 : 3), note: brackets + ' supports' },
+          { item: sys, qty: p.W, note: 'largeur', comp: 'mecanisme' },
+          { item: toile, qty: h.r2(p.W * (p.A + 0.35)), note: 'toile + lambrequin', comp: 'toile' },
+          { item: 'cheville_chim', qty: brackets * (p.support === 'brique' ? 4 : 3), note: brackets + ' supports', comp: 'fixation' },
           { item: 'visserie', qty: 1 }
         ];
-        if (p.A > 3) L.push({ item: 'banne_bras_renfort', qty: 1 });
-        if (p.support === 'ite') L.push({ item: 'console_ite', qty: brackets });
+        if (p.A > 3) L.push({ item: 'banne_bras_renfort', qty: 1, comp: 'mecanisme' });
+        if (p.support === 'ite') L.push({ item: 'console_ite', qty: brackets, comp: 'fixation' });
         if (p.ledbras) L.push({ item: 'banne_led_bras', qty: 1 });
-        if (p.cmd === 'manuel') L.push({ item: 'manivelle', qty: 1 });
+        if (p.cmd === 'manuel') L.push({ item: 'manivelle', qty: 1, comp: 'commande' });
         else {
-          L.push({ item: 'somfy_banne', qty: 1 }); L.push({ item: 'somfy_telec', qty: 1 }); L.push({ item: 'electricien', qty: 1 });
-          if (p.cmd === 'capteur') L.push({ item: 'somfy_eolis', qty: 1 });
+          L.push({ item: p.cmd === 'somfy' ? 'somfy_banne' : 'moteur_std', qty: 1, comp: 'commande' });
+          if (p.cmd === 'somfy') L.push({ item: 'somfy_telec', qty: 1, comp: 'commande' });
+          L.push({ item: 'electricien', qty: 1 });
+          if (p.capteur) L.push({ item: 'somfy_eolis', qty: 1, comp: 'commande' });
         }
         var days = h.r1(0.5 + p.W / 10);
         L.push({ item: 'pose_jour', qty: days, note: 'estimation ' + days + ' j' });
-        var tn = { banne_monobloc: 'monobloc', banne_semicoffre: 'semi-coffre', banne_coffre: 'coffre intégral' };
+        var cn = { manuel: 'manivelle', moteur: 'moteur standard', somfy: 'moteur Somfy' };
         return { lines: L, warnings: W, laborDays: days, area: p.W * p.A,
-          details: [p.toile === 'toile_sauleda' ? 'toile acrylique Sauleda' : 'toile Serge Ferrari', p.cmd === 'manuel' ? 'manivelle' : 'moteur Somfy' + (p.cmd === 'capteur' ? ' + capteur vent' : '')].concat(p.ledbras ? ['LED dans les bras'] : []),
-          summary: p.W + ' × ' + p.A + ' m, ' + tn[p.type],
-          geo: { kind: 'banne', W: p.W, A: p.A, type: p.type } };
+          details: ['mécanisme ' + (p.meca === 'gaviota' ? 'Gaviota' : 'standard'), { std: 'toile standard', premium: 'toile acrylique Sauleda', screen: 'toile Serge Ferrari' }[p.toile], cn[p.cmd] + (p.capteur && p.cmd !== 'manuel' ? ' + capteur vent' : '')].concat(p.ledbras ? ['LED dans les bras'] : []),
+          summary: p.W + ' × ' + p.A + ' m, ' + (p.type === 'mono' ? 'monobloc' : 'coffre'),
+          geo: { kind: 'banne', W: p.W, A: p.A, type: p.type === 'mono' ? 'banne_monobloc' : 'banne_coffre' } };
       }
     },
     {
       id: 'store-zip', name: 'Store ZIP vertical', short: 'Store ZIP', family: 'Stores extérieurs', icon: 'zip', margin: 0.33, waste: 0.03,
       blurb: 'Toile guidée, tenue au vent, fermeture de pergola ou de baie.',
+      comps: [{ id: 'mecanisme', l: 'Mécanisme' }, { id: 'automatisme', l: 'Automatisme' }, { id: 'toile', l: 'Toile' }],
       params: [
         { id: 'W', sec: 'Dimensions', label: 'Largeur', type: 'number', unit: 'm', min: 0.8, max: 6, step: 0.05, def: 3 },
         { id: 'H', sec: 'Dimensions', label: 'Hauteur', type: 'number', unit: 'm', min: 1, max: 4, step: 0.05, def: 2.5 },
         { id: 'n', sec: 'Dimensions', label: 'Stores identiques', type: 'count', unit: 'u', min: 1, max: 30, def: 1 },
-        { id: 'toile', sec: 'Structure', label: 'Toile', type: 'seg', def: 'screen', options: [{ v: 'screen', l: 'Screen (garde la vue)' }, { v: 'occultant', l: 'Occultante' }] },
-        { id: 'support', sec: 'Structure', label: 'Pose', type: 'seg', def: 'facade', options: [{ v: 'facade', l: 'Façade / baie' }, { v: 'pergola', l: 'Sur pergola' }] },
-        CMD3('moteur')
+        { id: 'meca', comp: 'mecanisme', sec: 'Mécanisme', label: 'Mécanisme (coffre + coulisses)', type: 'seg', def: 'std', options: [{ v: 'std', l: 'Standard' }, { v: 'premium', l: 'Premium (alu extrudé laqué)' }] },
+        { id: 'auto', comp: 'automatisme', sec: 'Automatisme', label: 'Automatisme', type: 'seg', def: 'moteur_std', options: [{ v: 'manuel', l: 'Manuel' }, { v: 'moteur_std', l: 'Motorisé standard' }, { v: 'moteur_premium', l: 'Motorisé premium · Somfy' }] },
+        { id: 'cmdz', comp: 'automatisme', sec: 'Automatisme', label: 'Commande', type: 'seg', def: 'telec', options: [{ v: 'inter', l: 'Interrupteur mural' }, { v: 'telec', l: 'Télécommande' }], showIf: function (p) { return p.auto !== 'manuel'; } },
+        { id: 'capteur', comp: 'automatisme', sec: 'Automatisme', label: 'Capteur vent', type: 'toggle', def: false, showIf: function (p) { return p.auto === 'moteur_premium'; } },
+        { id: 'toile', comp: 'toile', sec: 'Toile', label: 'Toile screen', type: 'seg', def: 'std', options: [{ v: 'std', l: 'Screen standard' }, { v: 'premium', l: 'Screen premium · Serge Ferrari' }] },
+        { id: 'support', sec: 'Options', label: 'Pose', type: 'seg', def: 'facade', options: [{ v: 'facade', l: 'Façade / baie' }, { v: 'pergola', l: 'Sur pergola' }] }
       ],
       build: function (p, h) {
         var W = [];
         if (p.W > 5) W.push('Largeur > 5 m : vérifier la limite du système et la tenue au vent.');
-        var L = zipLines(p.W, p.H, p.cmd, p.toile, p.n);
-        L.push({ item: 'cheville_chim', qty: p.n * (p.support === 'facade' ? 8 : 4) });
-        if (p.cmd !== 'manuel') L.push({ item: 'electricien', qty: 1 });
-        var days = h.r1(Math.max(0.5, p.n * 0.35));
+        if (p.meca === 'std' && p.W > 4) W.push('Mécanisme standard au-delà de 4 m : préférer le premium.');
+        var prem = p.meca === 'premium', n = p.n;
+        var L = [
+          { item: prem ? 'alu_zip_coffre' : 'zip_coffre_std', qty: h.r2(p.W * n), note: n + ' × ' + p.W + ' m', comp: 'mecanisme' },
+          { item: prem ? 'alu_zip_guides' : 'zip_guides_std', qty: h.r2(2 * p.H * n), note: '2 coulisses × ' + p.H + ' m', comp: 'mecanisme' },
+          { item: p.toile === 'premium' ? 'toile_ferrari' : 'screen_std', qty: h.r2(p.W * (p.H + 0.3) * n), note: 'chute + 30 cm', comp: 'toile' },
+          { item: 'cheville_chim', qty: n * (p.support === 'facade' ? 8 : 4), comp: 'fixation' }
+        ];
+        if (p.auto === 'manuel') L.push({ item: 'treuil_zip', qty: n, comp: 'automatisme' });
+        else {
+          var premM = p.auto === 'moteur_premium';
+          L.push({ item: premM ? 'somfy_zip' : 'moteur_zip_std', qty: n, comp: 'automatisme' });
+          L.push({ item: p.cmdz === 'inter' ? 'inter_mural' : (premM ? 'somfy_telec' : 'telec_std'), qty: p.cmdz === 'inter' ? n : 1, comp: 'automatisme' });
+          if (premM && p.capteur) L.push({ item: 'somfy_eolis', qty: 1, comp: 'automatisme' });
+          L.push({ item: 'electricien', qty: 1 });
+        }
+        var days = h.r1(Math.max(0.5, n * 0.35));
         L.push({ item: 'pose_jour', qty: days, note: 'estimation ' + days + ' j' });
-        return { lines: L, warnings: W, laborDays: days, area: p.W * p.H * p.n,
-          details: [p.toile === 'screen' ? 'toile screen Soltis 86' : 'toile occultante', p.cmd === 'manuel' ? 'manœuvre manuelle' : 'moteur Somfy' + (p.cmd === 'capteur' ? ' + capteur vent' : '')],
-          summary: p.n + ' × ' + p.W + ' × ' + p.H + ' m',
-          geo: { kind: 'front', W: p.W, H: p.H, n: p.n, pattern: 'zip' } };
+        var an = { manuel: 'manœuvre manuelle', moteur_std: 'moteur standard', moteur_premium: 'moteur Somfy' };
+        return { lines: L, warnings: W, laborDays: days, area: p.W * p.H * n,
+          details: ['mécanisme ' + (prem ? 'premium' : 'standard'), p.toile === 'premium' ? 'toile Serge Ferrari Soltis' : 'toile screen standard',
+            an[p.auto] + (p.auto !== 'manuel' ? (p.cmdz === 'inter' ? ', interrupteur' : ', télécommande') : '') + (p.capteur && p.auto === 'moteur_premium' ? ', capteur vent' : '')],
+          summary: n + ' × ' + p.W + ' × ' + p.H + ' m',
+          geo: { kind: 'front', W: p.W, H: p.H, n: n, pattern: 'zip' } };
       }
     },
     {
@@ -709,8 +845,8 @@
           { item: 'toile_moust', qty: h.r2(p.W * p.H * 1.1 * p.n) },
           { item: p.sys, qty: p.n }
         ];
-        var days = h.r1(Math.max(0.3, p.n * 0.12));
-        L.push({ item: 'pose_jour', qty: days });
+        var days = h.r1(Math.max(0.15, p.n * 0.1));
+        L.push({ item: 'pose_jour', qty: days, note: '≈ 0,1 j par moustiquaire' });
         var sn = { kit_moust_fixe: 'fixe', kit_moust_coul: 'coulissante', kit_moust_enr: 'enroulable', kit_moust_pli: 'plissée' };
         return { lines: L, warnings: W, laborDays: days, aluSurcharge: p.laquage === 'ral' ? 0.12 : 0, area: p.W * p.H * p.n,
           details: ['système ' + sn[p.sys]].concat(p.laquage === 'ral' ? ['laquage RAL'] : []),
@@ -728,7 +864,7 @@
     if (p.coffre) L.push({ item: 'coffre_enrouleur', qty: h.r2(p.W * p.n) });
     if (p.cmd === 'moteur') { L.push({ item: 'somfy_int', qty: p.n }); L.push({ item: 'somfy_telec', qty: 1 }); L.push({ item: 'electricien', qty: 1 }); }
     L.push({ item: 'visserie', qty: h.ceil(p.n / 6) });
-    var days = h.r1(Math.max(0.3, p.n * 0.12));
+    var days = h.r1(Math.max(0.2, p.n * 0.12));
     L.push({ item: 'pose_jour', qty: days });
     var tn = { toile_tamisant: 'toile tamisante', toile_occultant: 'toile occultante', toile_screen_int: 'toile screen', toile_jour_nuit: 'double voile' };
     return { lines: L, warnings: p.W > 2.5 ? ['Largeur > 2,50 m : vérifier le tube (risque de flèche).'] : [], laborDays: days, area: p.W * p.H * p.n,
@@ -756,18 +892,30 @@
         C: { couv: 'verre_442', spots: Math.max(p.spots, 8), cotes: 'avant', ferm: 'zip', zipCmd: 'moteur' } };
     },
     'veranda': function (p) {
-      return { A: { vitrage: 'vitre_trempe', toit: 'poly_16', spots: 0 }, B: { vitrage: 'double_vitrage', toit: 'sandwich_40', spots: Math.max(p.spots, 4) },
-        C: { vitrage: 'controle_solaire', toit: 'sandwich_40', spots: Math.max(p.spots, 8) } };
+      return { A: { mat: 'alu', ouv: 'coulissant', vitrage: 'vitre_trempe', toit: 'bache_pvc_1', spots: 0 },
+        B: { mat: 'alu', ouv: 'coulissant', vitrage: 'double_vitrage', toit: 'sandwich_40', spots: Math.max(p.spots, 4) },
+        C: { mat: 'alu', ouv: 'accordeon', vitrage: 'controle_solaire', toit: 'sandwich_40', spots: Math.max(p.spots, 8) } };
     },
     'carport': function (p) {
-      return { A: { couv: 'poly_16', spots: 0 }, B: { couv: 'sandwich_40', spots: Math.max(p.spots, 2) }, C: { couv: 'sandwich_40', spots: Math.max(p.spots, 4), ral: 'sable' } };
+      return { A: { mat: 'fer', d: 76, t: 3, couv: 'bache_pvc', q: '2', spots: 0 },
+        B: { mat: 'galva', d: 89, t: 3, couv: 'bache_pvc', q: '1', spots: 0 },
+        C: { mat: 'alu', d: 89, t: 4, couv: 'sandwich_40', q: '1', spots: Math.max(p.spots, 4) } };
     },
-    'voile-ombrage': function () { return { A: { toile: 'toile_hdpe' }, B: { toile: 'toile_pvc' }, C: { toile: 'toile_ferrari' } }; },
+    'voile-ombrage': function () {
+      return { A: { mat: 'fer', d: 89, t: 3, couv: 'screen', q: '2', cable: 'galva', accast: 'galva' },
+        B: { mat: 'galva', d: 114, t: 4, couv: 'screen', q: '1', cable: 'galva', accast: 'galva' },
+        C: { mat: 'inox', d: 114, t: 4, couv: 'screen', q: '1', cable: 'inox', accast: 'inox' } };
+    },
     'store-banne': function () {
-      return { A: { type: 'banne_monobloc', cmd: 'manuel', ledbras: false }, B: { type: 'banne_semicoffre', cmd: 'moteur', ledbras: false },
-        C: { type: 'banne_coffre', cmd: 'capteur', ledbras: true, toile: 'toile_ferrari' } };
+      return { A: { type: 'mono', meca: 'std', toile: 'std', cmd: 'manuel', capteur: false, ledbras: false },
+        B: { type: 'coffre', meca: 'std', toile: 'std', cmd: 'moteur', capteur: false, ledbras: false },
+        C: { type: 'coffre', meca: 'gaviota', toile: 'premium', cmd: 'somfy', capteur: true, ledbras: false } };
     },
-    'store-zip': function () { return { A: { cmd: 'manuel' }, B: { cmd: 'moteur' }, C: { cmd: 'capteur' } }; },
+    'store-zip': function () {
+      return { A: { meca: 'std', auto: 'manuel', toile: 'std', capteur: false },
+        B: { meca: 'std', auto: 'moteur_std', cmdz: 'telec', toile: 'std', capteur: false },
+        C: { meca: 'premium', auto: 'moteur_premium', cmdz: 'telec', toile: 'premium', capteur: true } };
+    },
     'store-enrouleur': function () { return { A: { cmd: 'chainette', coffre: false }, B: { cmd: 'chainette', coffre: true }, C: { cmd: 'moteur', coffre: true } }; },
     'store-jour-nuit': function () { return { A: { cmd: 'chainette', coffre: false }, B: { cmd: 'chainette', coffre: true }, C: { cmd: 'moteur', coffre: true } }; },
     'store-venitien': function () {

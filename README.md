@@ -127,6 +127,17 @@ Without claude.ai (for example `app/index.html` opened locally), the tool runs i
 - **3 versions** (Essentiel, Confort, Premium, same dimensions): one button creates them in the quote; each version has its own TTC total; the client's choice is recorded; the PDF shows all three with boxes to tick.
 - **Supplier invoice**: in Prix & sources, a photo or pasted text is read by Claude (`sample` capability with images), which proposes prices per item; each price is checked and validated before being saved (source "facture").
 
+## 2g. Products by component (since v7)
+
+- Each product opens either in **Prêt à chiffrer** (3 ready configurations: Essentiel / Confort / Premium, with their price) or in **Composer** (component by component, or "from scratch" with each major component left to choose).
+- **Ce qui fait le prix**: the components ranked by their share of the cost, with the items that make up 80 % highlighted. Sections are shown in that order.
+- **Effect of each option** shown next to it (+/− MAD TTC), recalculated on every change.
+- **Abri de voiture** (carport) and **Voile d'ombrage** (shade sail): metal structure (inox, galvanised, fer, aluminium) × tube diameter × thickness → real weight (π·(D−t)·t·density) × price per kg + fabrication (+ paint for raw steel); cover in PVC tarp / fabric / screen (1st or 2nd choice), plus polycarbonate or sandwich panel for the carport; cable and fittings in inox or galvanised for the sail.
+- **Store banne** (awning): monobloc or cassette × standard mechanism or Gaviota, standard / Sauleda / Serge Ferrari fabric, crank / standard motor / Somfy.
+- **Store ZIP**: standard or premium mechanism, manual / standard motor / Somfy with wall switch or remote, standard or premium screen.
+- **Véranda**: wood or aluminium structure, sliding or folding opening, glass, ceiling (Dalakit, to be specified / sandwich / PVC tarp), wall-mounted or on posts (automatic or chosen count).
+- Moroccan level: standard mechanisms, motors and fabrics added; insect screens and indoor blinds now with decreasing installation time per unit.
+
 ## 3. Using the tool
 
 - **Configurer** (configure): city, access, client → product → dimensions/options. A dimensioned drawing (top view, profile or front view) updates live. The price excl. and incl. VAT shows instantly, with the bar for cost today / ceiling cushion / margin, technical alerts, and the internal cost breakdown. "Ajouter au devis" adds the line to the quote. A quote can combine products (pergola + ZIP + awning). "Copier pour WhatsApp" copies the message to send.

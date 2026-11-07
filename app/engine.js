@@ -120,7 +120,7 @@
       if (!item) { missing.push(l.item); return; }
       var uc = unitCost(item, book, settings, today);
       var mult = (item.type === 'alu' ? aluAdj : 1) * (item.cat === 'pose' ? accessMult : item.cat === 'matiere' ? 1 + waste : 1);
-      var line = { item: l.item, name: item.name, unit: item.unit, cat: item.cat, qty: l.qty, note: l.note || '', stale: uc.stale };
+      var line = { item: l.item, name: item.name, unit: item.unit, cat: item.cat, group: item.group || '', comp: l.comp || null, qty: l.qty, note: l.note || '', stale: uc.stale };
       TIERS.forEach(function (t) {
         var v = l.qty * uc[t] * mult;
         line[t] = v; line['pu_' + t] = uc[t] * mult;
