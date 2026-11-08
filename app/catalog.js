@@ -607,7 +607,7 @@
         order.forEach(function (id) {
           var T = tubes[id], k = cpPack(T.pieces, BL), handBars = T.hand ? h.ceil(T.hand / BL - 1e-9) : 0;
           var bars = k.bars + handBars, chute = bars * BL - T.m;
-          L.push({ item: id, qty: bars, comp: 'structure', note: T.what.join(', ') + ' → ' + bars + ' barre' + (bars > 1 ? 's' : '') + ' de ' + fr(BL) + ' m, chute ' + fr(h.r1(Math.max(0, chute))) + ' m' + (k.joints ? ', ' + k.joints + ' raboutage' + (k.joints > 1 ? 's' : '') : '') });
+          L.push({ item: id, qty: bars, comp: 'structure', note: T.what.join(', ') + ', chute ' + fr(h.r1(Math.max(0, chute))) + ' m' + (k.joints ? ', ' + k.joints + ' raboutage' + (k.joints > 1 ? 's' : '') : '') });
           if (k.joints) W.push(cpSectName(T.s) + ' : pièces de plus de ' + fr(BL) + ' m, ' + k.joints + ' raboutage' + (k.joints > 1 ? 's' : '') + ' soudé' + (k.joints > 1 ? 's' : '') + ' à prévoir.');
           if (fin === 'peinture' || fin === 'thermo') L.push({ item: cpFinId(fin, T.s.prof, T.s.D), qty: h.r1(T.m), comp: 'structure', note: fr(h.r1(T.m)) + ' m réellement utilisés' });
         });

@@ -14,7 +14,9 @@
   /* Produit archivé : retiré du catalogue (réactivable dans Réglages), toujours lisible dans les anciens devis. */
   function isArchived(p) { var a = (S && S.settings && S.settings.archived) || {}; return a[p.id] != null ? !!a[p.id] : !!p.archived; }
   function activeProducts() { return PRODUCTS.filter(function (p) { return !isArchived(p); }); }
-  function unitOf(u, q) { return u === 'barre' && q > 1 ? 'barres' : u; }
+  function barTxt() { return String((S && S.settings && S.settings.barLength) || 6).replace('.', ',') + ' m'; }
+  function qtyHTML(l) { return l.unit === 'barre' ? nf2.format(l.qty) + ' barre' + (l.qty > 1 ? 's' : '') + '<small>de ' + barTxt() + '</small>' : nf2.format(l.qty) + ' ' + esc(l.unit); }
+  function unitOf(u, q) { return u === 'barre' ? (q > 1 ? 'barres' : 'barre') + ' de ' + barTxt() : u; }
   function tiersFor(r) { return E.TIERS.concat(r.sale.mkt ? ['mkt'] : []); }
   function validTier(r, t) { return t && r.sale[t] != null ? t : r.base; }
 
@@ -937,7 +939,7 @@
       var ls = r.lines.filter(function (l) { return l.cat === c; }); if (!ls.length) return;
       h += '<tr class="grp"><td colspan="3">' + cats[c] + '</td><td class="r num">' + nf0.format(r.byCat[t][c]) + '</td></tr>';
       ls.forEach(function (l) {
-        h += '<tr><td>' + esc(l.name) + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</td><td class="r num">' + nf2.format(l.qty) + ' ' + esc(unitOf(l.unit, l.qty)) + '</td><td class="r num">' + nf0.format(l['pu_' + t]) + '</td><td class="r num">' + nf0.format(l[t]) + '</td></tr>';
+        h += '<tr><td>' + esc(l.name) + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</td><td class="r num">' + qtyHTML(l) + '</td><td class="r num">' + nf0.format(l['pu_' + t]) + '</td><td class="r num">' + nf0.format(l[t]) + '</td></tr>';
       });
     });
     h += '<tr class="grp"><td colspan="3">Coût total</td><td class="r num">' + nf0.format(cost) + '</td></tr></tbody></table></div></details>';
@@ -979,7 +981,7 @@
     r.lines.forEach(function (l) {
       var input = l.unpriced && !seen[l.item];
       seen[l.item] = true;
-      h += '<tr><td>' + esc(l.name) + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</td><td class="r num">' + nf2.format(l.qty) + ' ' + esc(unitOf(l.unit, l.qty)) + '</td><td class="r">' +
+      h += '<tr><td>' + esc(l.name) + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</td><td class="r num">' + qtyHTML(l) + '</td><td class="r">' +
         (input ? '<div class="qrow-in"><input class="inp num" type="number" inputmode="decimal" step="0.01" min="0" id="pq-' + l.item + '" placeholder="MAD" aria-label="Prix ' + esc(l.name) + ' en MAD HT par ' + esc(l.unit) + '"><button class="btn sm pri" type="button" data-ppsave="' + l.item + '" data-src="pq-">OK</button></div>'
           : l.unpriced ? '<span class="pill warn">à renseigner</span>' : '<span class="num">' + nf0.format(l['pu_' + curTier()]) + '</span>') + '</td></tr>';
     });
@@ -1023,7 +1025,7 @@
       var sb = it.sub || 'Articles'; if (!bySub[sb]) { bySub[sb] = []; subs.push(sb); }
       bySub[sb].push('<div class="pp-row' + (used[id] ? ' used' : '') + (ppJust === id ? ' just' : '') + '"><div><b>' + esc(it.name) + '</b><small>par ' + esc(it.unit) + (used[id] ? ' · dans la configuration' : '') + '</small></div>' +
         '<div class="cur">' + (u.unpriced ? '<span class="pill warn">à renseigner</span>' : '<b class="num">' + nf2.format(u.now) + '</b> <small>MAD</small><br><small>' + frDate(u.lastDate) + '</small>') + '</div>' +
-        '<div class="upd"><input class="inp num" type="number" inputmode="decimal" step="0.01" min="0" id="pp-' + id + '" placeholder="' + (u.unpriced ? 'MAD/' + esc(it.unit) : 'Nouveau') + '" aria-label="Prix ' + esc(it.name) + ' en MAD HT"><button class="btn sm' + (u.unpriced ? ' pri' : '') + '" type="button" data-ppsave="' + id + '" data-src="pp-">' + (u.unpriced ? 'Enregistrer' : 'Mettre à jour') + '</button></div></div>');
+        '<div class="upd"><input class="inp num" type="number" inputmode="decimal" step="0.01" min="0" id="pp-' + id + '" placeholder="' + (u.unpriced ? (it.unit === 'barre' ? 'MAD / barre' : 'MAD/' + esc(it.unit)) : 'Nouveau') + '" aria-label="Prix ' + esc(it.name) + ' en MAD HT"><button class="btn sm' + (u.unpriced ? ' pri' : '') + '" type="button" data-ppsave="' + id + '" data-src="pp-">' + (u.unpriced ? 'Enregistrer' : 'Mettre à jour') + '</button></div></div>');
     });
     if (ppFilter !== 'config') h += '<div class="pp-grp" style="text-transform:none;letter-spacing:0;font-weight:500"><span>Tubes et finitions au mètre : seules les dimensions de la configuration ou déjà chiffrées apparaissent. Choisissez une autre dimension dans le configurateur pour la chiffrer.</span></div>';
     subs.forEach(function (sb) { h += '<div class="pp-grp"><span>' + esc(sb) + '</span><span>' + bySub[sb].length + '</span></div>' + bySub[sb].join(''); });
@@ -1730,7 +1732,7 @@
             (it.type === 'eur' ? '<select id="cur-' + id + '" class="inp" style="width:64px;height:32px;padding:0 4px" aria-label="Devise du prix"><option value="MAD">MAD</option><option value="EUR">€</option></select>' : '') + '<button class="btn sm" type="button" data-save="' + id + '">OK</button><button class="btn sm ghost" type="button" data-hist="' + id + '" aria-label="Historique de ' + esc(it.name) + '">⋯</button></div>';
           sp = spark(it.hist, 'mini');
         }
-        rows += '<tr><td class="c-name"><b style="font-weight:600">' + esc(it.name) + '</b><small>par ' + esc(it.unit) + (it.supplier ? ' · ' + esc(it.supplier) : '') + '</small></td>' +
+        rows += '<tr><td class="c-name"><b style="font-weight:600">' + esc(it.name) + '</b><small>par ' + esc(unitOf(it.unit, 1)) + (it.supplier ? ' · ' + esc(it.supplier) : '') + '</small></td>' +
           (nop ? '<td class="r" data-l="Aujourd’hui">—</td><td class="r" data-l="Conseillé">—</td><td class="r" data-l="Prudent">—</td>' :
           '<td class="r num" data-l="Aujourd’hui">' + nf2.format(uc.now) + '</td><td class="r num" data-l="Conseillé">' + nf2.format(uc.win) + '</td><td class="r num" data-l="Prudent"><b>' + nf2.format(uc.max) + '</b><small class="up">+' + pct(gap) + '</small></td>') +
           '<td class="c-evo">' + sp + '</td><td class="c-src" style="max-width:280px">' + src + '</td>' +
