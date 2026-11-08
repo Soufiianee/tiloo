@@ -122,7 +122,7 @@
       var item = book[l.item];
       if (!item) { missing.push(l.item); return; }
       var uc = unitCost(item, book, settings, today);
-      var mult = (item.type === 'alu' ? aluAdj : 1) * (item.cat === 'pose' ? accessMult : item.cat === 'matiere' && !item.noWaste ? 1 + waste : 1);
+      var mult = (item.type === 'alu' ? aluAdj : 1) * (item.cat === 'pose' && !item.noAccess ? accessMult : item.cat === 'matiere' && !item.noWaste ? 1 + waste : 1);
       var line = { item: l.item, name: item.name, unit: item.unit, cat: item.cat, group: item.group || '', comp: l.comp || null, qty: l.qty, note: l.note || '', stale: uc.stale, unpriced: uc.unpriced };
       if (uc.unpriced && unpriced.indexOf(l.item) < 0) unpriced.push(l.item);
       TIERS.forEach(function (t) {

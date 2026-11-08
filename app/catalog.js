@@ -317,7 +317,10 @@
     ['cp_alim', 'Alimentation LED', 'u', 'equipement', 'Options'],
     ['cp_elec', 'Raccordement électrique', 'forfait', 'pose', 'Options'],
     ['cp_pose_jour', 'Équipe de pose', 'jour', 'pose', 'Pose']
-  ].forEach(function (a) { BOOK[a[0]] = { name: a[1], unit: a[2], cat: a[3], sub: a[4], type: 'mad', group: CP_GROUP, hist: [] }; });
+  ].forEach(function (a) {
+    BOOK[a[0]] = { name: a[1], unit: a[2], cat: a[3], sub: a[4], type: 'mad', group: CP_GROUP, hist: [] };
+    if (/^cp_fab_/.test(a[0])) BOOK[a[0]].noAccess = true; // travail d'atelier : pas de coefficient d'accès chantier
+  });
 
   var SETTINGS = {
     policy: { windowDays: 365, buffer: 0.02, base: 'win' },
