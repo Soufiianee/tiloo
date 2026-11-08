@@ -139,7 +139,7 @@
     var base = settings.policy.base || 'win';
     return {
       productId: product.id, productName: product.name,
-      params: p, summary: b.summary || '', details: b.details || [], area: b.area || 0, geo: b.geo || null,
+      params: p, summary: b.summary || '', details: b.details || [], area: b.area || 0, geo: b.geo || null, metrage: b.metrage || null,
       lines: lines, byCat: byCat,
       warnings: (b.warnings || []).concat(missing.map(function (m) { return 'Article introuvable dans le carnet : ' + m; })),
       stale: stale, unpriced: unpriced, laborDays: b.laborDays || 0,

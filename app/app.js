@@ -753,10 +753,11 @@
       });
     }
     if (mode === 'composer') h += '<div class="sec pareto" id="pareto"></div>';
+    var pillDone = {};
     secs.forEach(function (s) {
-      var c = secComp[s], todo = c && !isPicked(prod, c);
+      var c = secComp[s], todo = c && !isPicked(prod, c), pill = c && !pillDone[c]; if (c) pillDone[c] = true;
       h += '<div class="sec' + (todo ? ' todo' : '') + '"' + (c ? ' data-comp="' + c + '"' : '') + '><div class="sec-h"><h3>' + esc(s) + '</h3>' +
-        (c ? '<span class="pill" data-share="' + c + '"></span>' : '') + (todo ? '<span class="pill warn">À choisir</span>' : '') + '</div><div class="grid">' + bySec[s].join('') + '</div></div>';
+        (pill ? '<span class="pill" data-share="' + c + '"></span>' : '') + (todo ? '<span class="pill warn">À choisir</span>' : '') + '</div><div class="grid">' + bySec[s].join('') + '</div></div>';
     });
     if (mode === 'pret') h += '<div class="sec"><div class="sec-h"><h3>Choisissez une configuration</h3></div><div class="presets" id="presets"></div>' +
       '<button class="btn" type="button" id="f-scratch">Composer de zéro, composant par composant</button></div>';
@@ -833,6 +834,8 @@
     if (d.num) v = +v;
     if (d.comp && S.current.picked) S.current.picked[d.comp] = true;
     var before = visibleCount();
+    /* Activer la correction manuelle part des valeurs calculées (ex. métrages). */
+    if (d.prefill && v) { var pre = price(S.current.productId, S.current.params)[d.prefill]; if (pre) Object.assign(S.current.params, pre); }
     S.current.params[f] = v; save();
     return before !== visibleCount();
   }
@@ -943,7 +946,17 @@
     $('mbar-add').textContent = S.editing ? 'Mettre à jour' : 'Ajouter au devis';
   }
   /* ---------- Prix d'un produit en configuration ---------- */
-  function ppItems(prod) { return prod && prod.priceGroup ? Object.keys(S.book).filter(function (id) { return S.book[id].group === prod.priceGroup; }) : []; }
+  /* Articles du produit. Les articles « dim » (une dimension de tube parmi des centaines) ne comptent
+   * que s'ils servent à la configuration en cours ou ont déjà un prix. */
+  function ppItems(prod) {
+    if (!prod || !prod.priceGroup) return [];
+    var used = {};
+    if (prod.id === S.current.productId) price(prod.id, S.current.params).lines.forEach(function (l) { used[l.item] = true; });
+    return Object.keys(S.book).filter(function (id) {
+      var it = S.book[id]; if (it.group !== prod.priceGroup) return false;
+      return !it.dim || used[id] || (it.hist && it.hist.length);
+    });
+  }
   function ppDone(prod) { return ppItems(prod).filter(function (id) { return !E.unitCost(S.book[id], S.book, S.settings, TODAY).unpriced; }).length; }
   function progHTML(prod) {
     var n = ppItems(prod).length, d = ppDone(prod);
@@ -1011,6 +1024,7 @@
         '<div class="cur">' + (u.unpriced ? '<span class="pill warn">à renseigner</span>' : '<b class="num">' + nf2.format(u.now) + '</b> <small>MAD</small><br><small>' + frDate(u.lastDate) + '</small>') + '</div>' +
         '<div class="upd"><input class="inp num" type="number" inputmode="decimal" step="0.01" min="0" id="pp-' + id + '" placeholder="' + (u.unpriced ? 'MAD/' + esc(it.unit) : 'Nouveau') + '" aria-label="Prix ' + esc(it.name) + ' en MAD HT"><button class="btn sm' + (u.unpriced ? ' pri' : '') + '" type="button" data-ppsave="' + id + '" data-src="pp-">' + (u.unpriced ? 'Enregistrer' : 'Mettre à jour') + '</button></div></div>');
     });
+    if (ppFilter !== 'config') h += '<div class="pp-grp" style="text-transform:none;letter-spacing:0;font-weight:500"><span>Tubes et finitions au mètre : seules les dimensions de la configuration ou déjà chiffrées apparaissent. Choisissez une autre dimension dans le configurateur pour la chiffrer.</span></div>';
     subs.forEach(function (sb) { h += '<div class="pp-grp"><span>' + esc(sb) + '</span><span>' + bySub[sb].length + '</span></div>' + bySub[sb].join(''); });
     if (!subs.length) h += '<div class="pp-empty">' + (ppFilter === 'config' ? 'Tous les prix de la configuration en cours sont renseignés. ' : ppFilter === 'todo' ? 'Tous les prix sont renseignés. ' : '') + '<button class="btn sm" type="button" data-ppf="all">Voir tous les articles</button></div>';
     box.innerHTML = h;
@@ -1698,6 +1712,7 @@
       Object.keys(S.book).forEach(function (id) {
         var it = S.book[id]; if (it.group !== g) return;
         var uc = E.unitCost(it, S.book, S.settings, TODAY);
+        if (it.dim && uc.unpriced) return; // dimensions de tube jamais chiffrées : via « Prix du carport »
         if (uc.stale || uc.unpriced) staleN++;
         if (q && (it.name + ' ' + (it.supplier || '') + ' ' + g).toLowerCase().indexOf(q) < 0) return;
         if (onlyStale && !uc.stale && !uc.unpriced) return;

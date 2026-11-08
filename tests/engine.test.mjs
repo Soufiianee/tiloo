@@ -143,9 +143,10 @@ test('carport en configuration : articles sans prix signalés, prix nul tant qu�
 test('carport : toutes les options produisent des lignes valides', () => {
   const p = C.PRODUCTS.find((x) => x.id === 'abri-voiture'), book = filledBook();
   const opts = (id) => p.params.find((d) => d.id === id).options.map((o) => o.v);
-  for (const mat of opts('mat')) for (const profil of opts('profil')) for (const couv of opts('couv')) for (const sol of opts('sol'))
-    for (const config of opts('config')) for (const forme of opts('forme')) {
-      const params = { mat, profil, couv, sol, config, forme, mur: 'creux', cotes: 'trois', gout: true, lamb: true, spots: 2, expo: 'mer' };
+  for (const mat of opts('mat')) for (const profP of opts('profP')) for (const couv of opts('couv')) for (const sol of opts('sol'))
+    for (const config of opts('config')) for (const forme of opts('forme')) for (const poutre of opts('poutre')) {
+      const params = { mat, profP, poutre, profB: profP === 'rond' ? 'carre' : 'rond', dP: 150, cP: 150, tP: 4, dB: 90, cB: 80, tB: 1.5, cPan: 60, tPan: 2,
+        couv, sol, config, forme, mur: 'creux', cotes: 'trois', gout: true, lamb: true, spots: 2, expo: 'mer' };
       const r = E.priceLine(p, params, book, C.SETTINGS, TODAY, {});
       const label = JSON.stringify(params);
       assert.ok(!r.warnings.some((w) => w.includes('introuvable')), label + ' ' + r.warnings.join(' | '));
@@ -163,4 +164,16 @@ test('carport : plus de places = plus de poteaux ; adossé sur mur creux = chevi
   assert.ok(q(wall, 'cp_chimique') > 0);
   const paves = E.priceLine(p, { sol: 'paves' }, C.BOOK, C.SETTINGS, TODAY, {});
   assert.equal(q(paves, 'cp_plot'), q(paves, 'cp_paves'));
+});
+
+test('carport au mètre : un prix par dimension de tube, métrages corrigeables', () => {
+  const p = C.PRODUCTS.find((x) => x.id === 'abri-voiture'), book = filledBook();
+  const r = E.priceLine(p, { profP: 'rond', dP: 120, tP: 2.5, poutre: 'autre', profB: 'carre', cB: 100, tB: 2 }, book, C.SETTINGS, TODAY, {});
+  const ids = r.lines.map((l) => l.item);
+  assert.ok(ids.includes('cp_t_acier_r120_25') && ids.includes('cp_t_acier_c100_20') && ids.includes('cp_t_acier_c40_15'), ids.join(' '));
+  assert.ok(r.lines.filter((l) => l.item.startsWith('cp_t_')).every((l) => l.unit === 'm'));
+  const auto = r.metrage, hand = E.priceLine(p, { mlEdit: true, mlP: auto.mlP + 10, mlB: auto.mlB, mlPan: auto.mlPan }, book, C.SETTINGS, TODAY, {});
+  const base = E.priceLine(p, {}, book, C.SETTINGS, TODAY, {});
+  const q = (x, pre) => x.lines.filter((l) => l.item.startsWith(pre)).reduce((a, l) => a + l.qty, 0);
+  assert.ok(Math.abs(q(hand, 'cp_t_') - q(base, 'cp_t_') - 10) < 0.2);
 });
