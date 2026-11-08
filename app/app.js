@@ -15,7 +15,9 @@
   function isArchived(p) { var a = (S && S.settings && S.settings.archived) || {}; return a[p.id] != null ? !!a[p.id] : !!p.archived; }
   function activeProducts() { return PRODUCTS.filter(function (p) { return !isArchived(p); }); }
   function barTxt() { return String((S && S.settings && S.settings.barLength) || 6).replace('.', ',') + ' m'; }
-  function qtyHTML(l) { return l.unit === 'barre' ? nf2.format(l.qty) + ' barre' + (l.qty > 1 ? 's' : '') + '<small>de ' + barTxt() + '</small>' : nf2.format(l.qty) + ' ' + esc(l.unit); }
+  /* Quantité et prix unitaire, chacun avec son unité : « 5 × barre de 6 m » · « 530 / barre ». */
+  function qtyHTML(l) { return l.unit === 'barre' ? nf2.format(l.qty) + ' × barre<small>de ' + barTxt() + '</small>' : nf2.format(l.qty) + ' ' + esc(l.unit); }
+  function puHTML(v, unit) { return nf0.format(v) + '<small>/ ' + esc(unit) + '</small>'; }
   function unitOf(u, q) { return u === 'barre' ? (q > 1 ? 'barres' : 'barre') + ' de ' + barTxt() : u; }
   function tiersFor(r) { return E.TIERS.concat(r.sale.mkt ? ['mkt'] : []); }
   function validTier(r, t) { return t && r.sale[t] != null ? t : r.base; }
@@ -939,7 +941,7 @@
       var ls = r.lines.filter(function (l) { return l.cat === c; }); if (!ls.length) return;
       h += '<tr class="grp"><td colspan="3">' + cats[c] + '</td><td class="r num">' + nf0.format(r.byCat[t][c]) + '</td></tr>';
       ls.forEach(function (l) {
-        h += '<tr><td>' + esc(l.name) + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</td><td class="r num">' + qtyHTML(l) + '</td><td class="r num">' + nf0.format(l['pu_' + t]) + '</td><td class="r num">' + nf0.format(l[t]) + '</td></tr>';
+        h += '<tr><td>' + esc(l.name) + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</td><td class="r num">' + qtyHTML(l) + '</td><td class="r num">' + puHTML(l['pu_' + t], l.unit) + '</td><td class="r num">' + nf0.format(l[t]) + '</td></tr>';
       });
     });
     h += '<tr class="grp"><td colspan="3">Coût total</td><td class="r num">' + nf0.format(cost) + '</td></tr></tbody></table></div></details>';
@@ -983,7 +985,7 @@
       seen[l.item] = true;
       h += '<tr><td>' + esc(l.name) + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</td><td class="r num">' + qtyHTML(l) + '</td><td class="r">' +
         (input ? '<div class="qrow-in"><input class="inp num" type="number" inputmode="decimal" step="0.01" min="0" id="pq-' + l.item + '" placeholder="MAD" aria-label="Prix ' + esc(l.name) + ' en MAD HT par ' + esc(l.unit) + '"><button class="btn sm pri" type="button" data-ppsave="' + l.item + '" data-src="pq-">OK</button></div>'
-          : l.unpriced ? '<span class="pill warn">à renseigner</span>' : '<span class="num">' + nf0.format(l['pu_' + curTier()]) + '</span>') + '</td></tr>';
+          : l.unpriced ? '<span class="pill warn">à renseigner</span>' : '<span class="num">' + puHTML(l['pu_' + curTier()], l.unit) + '</span>') + '</td></tr>';
     });
     h += '</tbody></table></div></details>';
     $('result').innerHTML = h;

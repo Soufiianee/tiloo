@@ -600,14 +600,14 @@
           var id = cpTubeId(p.mat, g[0].prof, g[0].D, g[0].t);
           if (!tubes[id]) { tubes[id] = { s: g[0], pieces: [], m: 0, what: [], hand: 0 }; order.push(id); }
           var T = tubes[id];
-          if (g[2]) { T.pieces = T.pieces.concat(g[2]); T.what.push(g[2].length + ' ' + g[1] + ' de ' + fr(h.r2(g[2][0])) + ' m'); }
+          if (g[2]) { T.pieces = T.pieces.concat(g[2]); T.what.push(g[2].length + ' ' + (g[2].length > 1 ? g[1] : g[1].replace(/x$|s$/, '')) + ' × ' + fr(h.r2(g[2][0])) + ' m'); }
           else { T.hand += g[3]; T.what.push(g[1] + ' ' + fr(h.r1(g[3])) + ' m'); }
           T.m += g[3]; total += g[3];
         });
         order.forEach(function (id) {
           var T = tubes[id], k = cpPack(T.pieces, BL), handBars = T.hand ? h.ceil(T.hand / BL - 1e-9) : 0;
           var bars = k.bars + handBars, chute = bars * BL - T.m;
-          L.push({ item: id, qty: bars, comp: 'structure', note: T.what.join(', ') + ', chute ' + fr(h.r1(Math.max(0, chute))) + ' m' + (k.joints ? ', ' + k.joints + ' raboutage' + (k.joints > 1 ? 's' : '') : '') });
+          L.push({ item: id, qty: bars, comp: 'structure', note: 'Découpe : ' + T.what.join(' · ') + ' · chute ' + fr(h.r1(Math.max(0, chute))) + ' m' + (k.joints ? ' · ' + k.joints + ' raboutage' + (k.joints > 1 ? 's' : '') : '') });
           if (k.joints) W.push(cpSectName(T.s) + ' : pièces de plus de ' + fr(BL) + ' m, ' + k.joints + ' raboutage' + (k.joints > 1 ? 's' : '') + ' soudé' + (k.joints > 1 ? 's' : '') + ' à prévoir.');
           if (fin === 'peinture' || fin === 'thermo') L.push({ item: cpFinId(fin, T.s.prof, T.s.D), qty: h.r1(T.m), comp: 'structure', note: fr(h.r1(T.m)) + ' m réellement utilisés' });
         });
