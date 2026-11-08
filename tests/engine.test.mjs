@@ -168,7 +168,7 @@ test('carport : plus de places = plus de poteaux ; adossé sur mur creux = chevi
 
 test('carport au mètre : un prix par dimension de tube, métrages corrigeables', () => {
   const p = C.PRODUCTS.find((x) => x.id === 'abri-voiture'), book = filledBook();
-  const r = E.priceLine(p, { profP: 'rond', dP: 120, tP: 2.5, poutre: 'autre', profB: 'carre', cB: 100, tB: 2 }, book, C.SETTINGS, TODAY, {});
+  const r = E.priceLine(p, { mat: 'acier', profP: 'rond', dP: 120, tP: 2.5, poutre: 'autre', profB: 'carre', cB: 100, tB: 2 }, book, C.SETTINGS, TODAY, {});
   const ids = r.lines.map((l) => l.item);
   assert.ok(ids.includes('cp_t_acier_r120_25') && ids.includes('cp_t_acier_c100_20') && ids.includes('cp_t_acier_c40_15'), ids.join(' '));
   assert.ok(r.lines.filter((l) => l.item.startsWith('cp_t_')).every((l) => l.unit === 'm'));

@@ -248,7 +248,7 @@
   var CP_GROUP = 'Carport (abri voiture)';
   var CP_DIMS = { rond: [90, 100, 110, 120, 130, 140, 150], carre: [80, 100, 120, 150], panne: [40, 50, 60] };
   var CP_EP = [1.5, 2, 2.5, 3, 3.5, 4], CP_EP_PANNE = [1.5, 2];
-  var CP_METALS = { acier: 'acier', alu: 'aluminium', inox: 'inox' };
+  var CP_METALS = { acier: 'acier', galva: 'acier galvanisé', alu: 'aluminium', inox: 'inox' };
   function cpDimKey(prof, D) { return (prof === 'rond' ? 'r' : 'c') + D; }
   function cpDimName(prof, D) { return prof === 'rond' ? 'Ø ' + D : D + ' × ' + D; }
   function cpTubeId(mat, prof, D, t) { return 'cp_t_' + mat + '_' + cpDimKey(prof, D) + '_' + Math.round(t * 10); }
@@ -263,7 +263,7 @@
       });
     });
   });
-  [['peinture', 'Apprêt + peinture'], ['thermo', 'Thermolaquage'], ['galva', 'Galvanisation à chaud']].forEach(function (f) {
+  [['peinture', 'Apprêt + peinture'], ['thermo', 'Thermolaquage']].forEach(function (f) {
     [['rond', CP_DIMS.rond], ['carre', CP_DIMS.carre], ['carre', CP_DIMS.panne]].forEach(function (g) {
       g[1].forEach(function (D) {
         BOOK[cpFinId(f[0], g[0], D)] = { name: f[1] + ' tube ' + cpDimName(g[0], D), unit: 'm', cat: 'equipement', sub: 'Finitions', dim: true, type: 'mad', group: CP_GROUP, hist: [] };
@@ -271,7 +271,7 @@
     });
   });
   [
-    ['cp_fab_acier_m', 'Façonnage et soudure acier', 'm', 'pose', 'Structure'],
+    ['cp_fab_acier_m', 'Façonnage et soudure acier (et galvanisé)', 'm', 'pose', 'Structure'],
     ['cp_fab_alu_m', 'Façonnage et assemblage aluminium', 'm', 'pose', 'Structure'],
     ['cp_fab_inox_m', 'Façonnage et soudure inox', 'm', 'pose', 'Structure'],
     ['cp_bois_120', 'Bois lamellé-collé 120 × 120', 'ml', 'matiere', 'Structure'],
@@ -288,8 +288,6 @@
     ['cp_couv_sandwich_2', 'Panneau sandwich 2e choix', 'm²', 'matiere', 'Toiture'],
     ['cp_couv_dalakit_1', 'Dalle à kit 1er choix', 'm²', 'matiere', 'Toiture'],
     ['cp_couv_dalakit_2', 'Dalle à kit 2e choix', 'm²', 'matiere', 'Toiture'],
-    ['cp_couv_bac_1', 'Bac acier 1er choix', 'm²', 'matiere', 'Toiture'],
-    ['cp_couv_bac_2', 'Bac acier 2e choix', 'm²', 'matiere', 'Toiture'],
     ['cp_gouttiere', 'Gouttière', 'ml', 'equipement', 'Toiture'],
     ['cp_descente', 'Descente d’eau pluviale', 'u', 'equipement', 'Toiture'],
     ['cp_platine', 'Platine métallique', 'u', 'equipement', 'Sol et fixations'],
@@ -450,12 +448,12 @@
     plat: { c: 1.0, f: 1.0, l: 'toit plat (pente 5 %)' }, p1: { c: 1.01, f: 1.0, l: 'toit une pente' },
     p2: { c: 1.04, f: 1.1, l: 'toit deux pentes' }, cintre: { c: 1.08, f: 1.2, l: 'toit cintré' }
   };
-  var CP_COUV = { pvc: 'bâche PVC', toile: 'toile', sandwich: 'panneau sandwich', dalakit: 'dalle à kit', bac: 'bac acier' };
-  var CP_MAT = { acier: 'acier', alu: 'aluminium', bois: 'bois', inox: 'inox' };
-  var CP_FIN = { peinture: 'apprêt + peinture', thermo: 'thermolaqué', galva: 'galvanisé à chaud', brut: 'brut', autoclave: 'autoclave', lasure: 'autoclave + lasure' };
+  var CP_COUV = { pvc: 'bâche PVC', toile: 'toile', sandwich: 'panneau sandwich', dalakit: 'dalle à kit' };
+  var CP_MAT = { acier: 'acier', galva: 'acier galvanisé', alu: 'aluminium', bois: 'bois', inox: 'inox' };
+  var CP_FIN = { peinture: 'apprêt + peinture', thermo: 'thermolaqué', brut: 'brut', sans: 'sans finition', autoclave: 'autoclave', lasure: 'autoclave + lasure' };
   function fr(x) { return String(x).replace('.', ','); }
   function cpMetal(p) { return p.mat !== 'bois'; }
-  function cpFin(p) { return p.mat === 'acier' ? p.finA : p.mat === 'alu' ? p.finL : p.mat === 'bois' ? p.finB : null; }
+  function cpFin(p) { return p.mat === 'acier' ? p.finA : p.mat === 'galva' ? p.finG : p.mat === 'alu' ? p.finL : p.mat === 'bois' ? p.finB : null; }
   /* Section (profil, dimension, épaisseur) d'un groupe de tubes : poteaux 'P' ou poutres 'B'. */
   function cpSect(p, k) {
     if (k === 'B' && p.poutre !== 'autre') k = 'P';
@@ -484,10 +482,12 @@
       { id: 'P', sec: 'Dimensions', label: 'Profondeur', type: 'number', unit: 'm', min: 5, max: 8, step: 0.05, def: 5.5 },
       { id: 'H', sec: 'Dimensions', label: 'Hauteur de passage', type: 'number', unit: 'm', min: 2.1, max: 3.5, step: 0.05, def: 2.4 },
 
-      { id: 'mat', comp: 'structure', sec: 'Structure', label: 'Matériau', type: 'seg', def: 'acier', options: [
-        { v: 'acier', l: 'Acier / fer' }, { v: 'alu', l: 'Aluminium' }, { v: 'bois', l: 'Bois' }, { v: 'inox', l: 'Inox' }] },
-      { id: 'finA', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'galva', showIf: function (p) { return p.mat === 'acier'; }, options: [
-        { v: 'peinture', l: 'Apprêt + peinture' }, { v: 'thermo', l: 'Thermolaquage' }, { v: 'galva', l: 'Galvanisation à chaud' }] },
+      { id: 'mat', comp: 'structure', sec: 'Structure', label: 'Matériau', type: 'seg', def: 'galva', options: [
+        { v: 'acier', l: 'Acier / fer' }, { v: 'galva', l: 'Galvanisé' }, { v: 'alu', l: 'Aluminium' }, { v: 'bois', l: 'Bois' }, { v: 'inox', l: 'Inox' }] },
+      { id: 'finA', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'peinture', showIf: function (p) { return p.mat === 'acier'; }, options: [
+        { v: 'peinture', l: 'Apprêt + peinture' }, { v: 'thermo', l: 'Thermolaquage' }] },
+      { id: 'finG', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'sans', showIf: function (p) { return p.mat === 'galva'; }, options: [
+        { v: 'sans', l: 'Sans finition' }, { v: 'thermo', l: 'Thermolaquage' }] },
       { id: 'finL', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'thermo', showIf: function (p) { return p.mat === 'alu'; }, options: [
         { v: 'thermo', l: 'Thermolaqué' }, { v: 'brut', l: 'Brut / anodisé' }] },
       { id: 'finB', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'lasure', showIf: function (p) { return p.mat === 'bois'; }, options: [
@@ -516,7 +516,7 @@
       { id: 'forme', comp: 'couverture', sec: 'Toiture', label: 'Forme du toit', type: 'seg', def: 'p1', options: [
         { v: 'plat', l: 'Plat (pente 5 %)' }, { v: 'p1', l: 'Une pente' }, { v: 'p2', l: 'Deux pentes' }, { v: 'cintre', l: 'Cintré' }] },
       { id: 'couv', comp: 'couverture', sec: 'Toiture', label: 'Couverture', type: 'seg', def: 'pvc', options: [
-        { v: 'pvc', l: 'Bâche PVC' }, { v: 'toile', l: 'Toile' }, { v: 'sandwich', l: 'Panneau sandwich' }, { v: 'dalakit', l: 'Dalle à kit' }, { v: 'bac', l: 'Bac acier' }] },
+        { v: 'pvc', l: 'Bâche PVC' }, { v: 'toile', l: 'Toile' }, { v: 'sandwich', l: 'Panneau sandwich' }, { v: 'dalakit', l: 'Dalle à kit' }] },
       { id: 'q', comp: 'couverture', sec: 'Toiture', label: 'Qualité', type: 'seg', def: '1', options: [{ v: '1', l: '1er choix' }, { v: '2', l: '2e choix' }] },
       { id: 'gout', comp: 'couverture', sec: 'Toiture', label: 'Gouttière + descente d’eau', type: 'toggle', def: false },
 
@@ -532,8 +532,11 @@
       { id: 'spots', sec: 'Options', label: 'Spots LED', type: 'count', unit: 'u', min: 0, max: 20, def: 0 }
     ]),
     build: function (p, h) {
+      if (!CP_COUV[p.couv]) p.couv = 'pvc'; // option retirée (ex. bac acier)
+      if (!CP_MAT[p.mat]) p.mat = 'galva';
+      if (p.mat === 'acier' && p.finA !== 'peinture' && p.finA !== 'thermo') { p.mat = 'galva'; p.finG = 'sans'; } // ancienne finition « galvanisation »
       var W = [], L = [], n = p.places, Wd = n * p.lp, area = Wd * p.P, auto = p.config === 'autoportante';
-      var R = CP_ROOF[p.forme] || CP_ROOF.p1, rigid = p.couv === 'sandwich' || p.couv === 'dalakit' || p.couv === 'bac', fin = cpFin(p);
+      var R = CP_ROOF[p.forme] || CP_ROOF.p1, rigid = p.couv === 'sandwich' || p.couv === 'dalakit', fin = cpFin(p);
       var spans = Math.max(1, h.ceil(Wd / p.entraxe - 1e-9)), np = auto ? 2 * (spans + 1) : spans + 1;
 
       /* Métrages calculés : poteaux ; poutres (façade + arrière ou lisse murale, faîtage) et portiques ; pannes. */
@@ -565,16 +568,16 @@
           if (!(g[1] > 0)) return;
           total += g[1];
           L.push({ item: cpTubeId(p.mat, g[0].prof, g[0].D, g[0].t), qty: h.r1(g[1]), comp: 'structure', note: g[2] + ' : ' + cpSectName(g[0]) });
-          if (fin === 'peinture' || fin === 'thermo' || fin === 'galva') L.push({ item: cpFinId(fin, g[0].prof, g[0].D), qty: h.r1(g[1]), comp: 'structure', note: g[2] });
+          if (fin === 'peinture' || fin === 'thermo') L.push({ item: cpFinId(fin, g[0].prof, g[0].D), qty: h.r1(g[1]), comp: 'structure', note: g[2] });
         });
-        L.push({ item: 'cp_fab_' + p.mat + '_m', qty: h.r1(total * R.f), comp: 'structure', note: fr(h.r1(total)) + ' m de tube' + (R.f > 1 ? ', ' + R.l + ' : +' + Math.round((R.f - 1) * 100) + ' %' : '') });
+        L.push({ item: 'cp_fab_' + (p.mat === 'galva' ? 'acier' : p.mat) + '_m', qty: h.r1(total * R.f), comp: 'structure', note: fr(h.r1(total)) + ' m de tube' + (R.f > 1 ? ', ' + R.l + ' : +' + Math.round((R.f - 1) * 100) + ' %' : '') });
       } else {
         L.push({ item: 'cp_bois_' + p.sb, qty: h.r1(ml.mlP + ml.mlB), comp: 'structure', note: np + ' poteaux, poutres et portiques ' + p.sb + ' × ' + p.sb });
         L.push({ item: 'cp_bois_chevron', qty: h.r1(ml.mlPan), comp: 'structure' });
         L.push({ item: 'cp_fab_bois_ml', qty: h.r1((ml.mlP + ml.mlB + ml.mlPan) * R.f), comp: 'structure' });
         if (fin === 'lasure') L.push({ item: 'cp_fin_lasure_ml', qty: h.r1(ml.mlP + ml.mlB + ml.mlPan), comp: 'structure' });
       }
-      if (p.expo === 'mer' && fin === 'peinture') W.push('Bord de mer : la peinture seule rouille vite ; préférez la galvanisation ou le thermolaquage.');
+      if (p.expo === 'mer' && fin === 'peinture') W.push('Bord de mer : l’acier peint rouille vite ; préférez le galvanisé ou le thermolaquage.');
       if (p.expo === 'mer' && p.mat === 'inox') W.push('Bord de mer : préférez l’inox 316 au 304.');
 
       /* Toiture */
@@ -615,10 +618,10 @@
       var solN = { dalle: 'sur dalle existante', paves: 'plots sous pavés', plots: 'plots isolés', dalle_neuve: 'dalle béton coulée' }[p.sol];
       var structN = cpMetal(p) ? 'poteaux ' + cpSectName(sP) + (p.poutre === 'autre' ? ', poutres ' + cpSectName(sB) : '') : 'section ' + p.sb + ' × ' + p.sb;
       return { lines: L, warnings: W, laborDays: days, area: area, metrage: auto3,
-        details: [CP_MAT[p.mat] + (fin ? ' ' + CP_FIN[fin] : '') + ', ' + structN, CP_COUV[p.couv] + (p.q === '2' ? ' 2e choix' : ' 1er choix') + ', ' + R.l, solN]
+        details: [CP_MAT[p.mat] + (fin && fin !== 'sans' ? ' ' + CP_FIN[fin] : '') + ', ' + structN, CP_COUV[p.couv] + (p.q === '2' ? ' 2e choix' : ' 1er choix') + ', ' + R.l, solN]
           .concat(p.gout ? ['gouttière'] : []).concat(closed ? ['côtés fermés'] : []).concat(p.lamb ? ['lambrequin'] : []).concat(p.spots ? [p.spots + ' spots LED'] : []),
         summary: n + ' place' + (n > 1 ? 's' : '') + ', ' + fr(h.r2(Wd)) + ' × ' + fr(p.P) + ' m, ' + (auto ? 'autoportant' : 'adossé') + ', ' + np + ' poteaux',
-        geo: { kind: 'plan', L: Wd, P: p.P, H: p.H, ral: p.mat === 'bois' ? 'special' : p.mat === 'acier' && fin === 'galva' || p.mat === 'inox' ? 'sable' : 'standard',
+        geo: { kind: 'plan', L: Wd, P: p.P, H: p.H, ral: p.mat === 'bois' ? 'special' : (p.mat === 'galva' && fin !== 'thermo') || p.mat === 'inox' ? 'sable' : 'standard',
           wall: !auto, posts: posts(Wd, p.P, spans, auto), roof: 'chevrons', pitch: rigid ? 0.9 : 1.2,
           couv: rigid ? 'sandwich_40' : 'poly_16', sides: [], cars: n, spots: p.spots } };
     }
@@ -1135,7 +1138,7 @@
   var VERSIONS = {
     'abri-voiture': function (p) {
       return { A: { mat: 'acier', finA: 'peinture', profP: 'rond', dP: 90, tP: 2, poutre: 'idem', couv: 'pvc', q: '2', gout: false, lamb: false, spots: 0 },
-        B: { mat: 'acier', finA: 'galva', profP: 'rond', dP: 100, tP: 2.5, poutre: 'idem', couv: 'pvc', q: '1', gout: false, lamb: true, spots: 0 },
+        B: { mat: 'galva', finG: 'sans', profP: 'rond', dP: 100, tP: 2.5, poutre: 'idem', couv: 'pvc', q: '1', gout: false, lamb: true, spots: 0 },
         C: { mat: 'alu', finL: 'thermo', profP: 'carre', cP: 120, tP: 3, poutre: 'idem', couv: 'sandwich', q: '1', gout: true, lamb: true, spots: Math.max(p.spots, 4) } };
     },
     'pergola-bioclimatique': function (p) {
