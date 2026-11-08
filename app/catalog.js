@@ -251,6 +251,20 @@
   var CP_METALS = { acier: 'acier', galva: 'acier galvanisé', alu: 'aluminium', inox: 'inox' };
   function cpDimKey(prof, D) { return (prof === 'rond' ? 'r' : 'c') + D; }
   function cpDimName(prof, D) { return prof === 'rond' ? 'Ø ' + D : D + ' × ' + D; }
+  /* Découpe en barres : rangement « plus grandes pièces d'abord » dans des barres de longueur L.
+   * Une pièce plus longue qu'une barre est raboutée (barres entières + reste, une soudure par raccord). */
+  function cpPack(pieces, L) {
+    var bins = [], full = 0, joints = 0, used = 0;
+    pieces.slice().sort(function (a, b) { return b - a; }).forEach(function (len) {
+      used += len;
+      while (len > L + 1e-9) { full++; len -= L; joints++; }
+      if (len < 1e-9) return;
+      for (var i = 0; i < bins.length; i++) if (bins[i] + len <= L + 1e-9) { bins[i] += len; return; }
+      bins.push(len);
+    });
+    var bars = full + bins.length;
+    return { bars: bars, used: used, chute: Math.max(0, bars * L - used), joints: joints };
+  }
   function cpTubeId(mat, prof, D, t) { return 'cp_t_' + mat + '_' + cpDimKey(prof, D) + '_' + Math.round(t * 10); }
   function cpFinId(fin, prof, D) { return 'cp_f_' + fin + '_' + cpDimKey(prof, D); }
   function cpEp(t) { return String(t).replace('.', ',') + ' mm'; }
@@ -258,7 +272,8 @@
     [['rond', CP_DIMS.rond, CP_EP], ['carre', CP_DIMS.carre, CP_EP], ['carre', CP_DIMS.panne, CP_EP_PANNE]].forEach(function (g) {
       g[1].forEach(function (D) {
         g[2].forEach(function (t) {
-          BOOK[cpTubeId(m, g[0], D, t)] = { name: 'Tube ' + CP_METALS[m] + ' ' + (g[0] === 'rond' ? 'rond ' : 'carré ') + cpDimName(g[0], D) + ' × ' + cpEp(t), unit: 'm', cat: 'matiere', sub: 'Structure', dim: true, type: 'mad', group: CP_GROUP, hist: [] };
+          BOOK[cpTubeId(m, g[0], D, t)] = { name: 'Tube ' + CP_METALS[m] + ' ' + (g[0] === 'rond' ? 'rond ' : 'carré ') + cpDimName(g[0], D) + ' × ' + cpEp(t), unit: 'barre', cat: 'matiere', sub: 'Structure', dim: true, noWaste: true, type: 'mad', group: CP_GROUP, hist: [],
+            note: 'Prix d’une barre entière (6 m par défaut, voir Réglages). Le devis compte des barres entières, selon la découpe.' };
         });
       });
     });
@@ -309,6 +324,7 @@
     landedEur: 0.25,
     tva: 0.20,
     rounding: 50,
+    barLength: 6,
     validityDays: 15,
     staleDays: 60,
     lodgingPerNight: 700,
@@ -453,6 +469,7 @@
   var CP_FIN = { peinture: 'apprêt + peinture', thermo: 'thermolaqué', brut: 'brut', sans: 'sans finition', autoclave: 'autoclave', lasure: 'autoclave + lasure' };
   function fr(x) { return String(x).replace('.', ','); }
   function cpMetal(p) { return p.mat !== 'bois'; }
+  function rep(n, v) { var a = []; for (var i = 0; i < n; i++) a.push(v); return a; }
   function cpFin(p) { return p.mat === 'acier' ? p.finA : p.mat === 'galva' ? p.finG : p.mat === 'alu' ? p.finL : p.mat === 'bois' ? p.finB : null; }
   /* Section (profil, dimension, épaisseur) d'un groupe de tubes : poteaux 'P' ou poutres 'B'. */
   function cpSect(p, k) {
@@ -531,7 +548,7 @@
       { id: 'lamb', sec: 'Options', label: 'Lambrequin (bandeau de façade)', type: 'toggle', def: false },
       { id: 'spots', sec: 'Options', label: 'Spots LED', type: 'count', unit: 'u', min: 0, max: 20, def: 0 }
     ]),
-    build: function (p, h) {
+    build: function (p, h, ctx) {
       if (!CP_COUV[p.couv]) p.couv = 'pvc'; // option retirée (ex. bac acier)
       if (!CP_MAT[p.mat]) p.mat = 'galva';
       if (p.mat === 'acier' && p.finA !== 'peinture' && p.finA !== 'thermo') { p.mat = 'galva'; p.finG = 'sans'; } // ancienne finition « galvanisation »
@@ -563,14 +580,35 @@
       if (hand) W.push('Métrages corrigés à la main (calcul : poteaux ' + fr(auto3.mlP) + ' m, poutres ' + fr(auto3.mlB) + ' m, pannes ' + fr(auto3.mlPan) + ' m).');
 
       if (cpMetal(p)) {
-        var sPan = { prof: 'carre', D: p.cPan, t: p.tPan }, total = 0;
-        [[sP, ml.mlP, 'poteaux (' + np + ')'], [sB, ml.mlB, 'poutres et portiques'], [sPan, ml.mlPan, 'pannes']].forEach(function (g) {
-          if (!(g[1] > 0)) return;
-          total += g[1];
-          L.push({ item: cpTubeId(p.mat, g[0].prof, g[0].D, g[0].t), qty: h.r1(g[1]), comp: 'structure', note: g[2] + ' : ' + cpSectName(g[0]) });
-          if (fin === 'peinture' || fin === 'thermo') L.push({ item: cpFinId(fin, g[0].prof, g[0].D), qty: h.r1(g[1]), comp: 'structure', note: g[2] });
+        /* Pièces réelles de chaque groupe, puis découpe en barres entières par dimension de tube
+         * (poteaux et poutres de même section partagent les barres). Métrage corrigé à la main :
+         * on ne connaît plus les pièces, on arrondit le total au nombre de barres supérieur. */
+        var BL = (ctx && ctx.settings && ctx.settings.barLength) || 6;
+        var sPan = { prof: 'carre', D: p.cPan, t: p.tPan }, total = 0, tubes = {}, order = [];
+        var panN = h.ceil(p.P / (rigid ? 1.2 : 1.5)) + 1;
+        var groups = [
+          [sP, 'poteaux', hand ? null : rep(np, p.H + 0.15), ml.mlP],
+          [sB, 'poutres', hand ? null : rep(2 + (p.forme === 'p2' ? 1 : 0), Wd), hand ? ml.mlB : (2 + (p.forme === 'p2' ? 1 : 0)) * Wd],
+          [sB, 'portiques', hand ? null : rep(spans + 1, p.P * R.c), hand ? 0 : (spans + 1) * p.P * R.c],
+          [sPan, 'pannes', hand ? null : rep(panN, Wd), ml.mlPan]
+        ];
+        groups.forEach(function (g) {
+          if (!(g[3] > 0)) return;
+          var id = cpTubeId(p.mat, g[0].prof, g[0].D, g[0].t);
+          if (!tubes[id]) { tubes[id] = { s: g[0], pieces: [], m: 0, what: [], hand: 0 }; order.push(id); }
+          var T = tubes[id];
+          if (g[2]) { T.pieces = T.pieces.concat(g[2]); T.what.push(g[2].length + ' ' + g[1] + ' de ' + fr(h.r2(g[2][0])) + ' m'); }
+          else { T.hand += g[3]; T.what.push(g[1] + ' ' + fr(h.r1(g[3])) + ' m'); }
+          T.m += g[3]; total += g[3];
         });
-        L.push({ item: 'cp_fab_' + (p.mat === 'galva' ? 'acier' : p.mat) + '_m', qty: h.r1(total * R.f), comp: 'structure', note: fr(h.r1(total)) + ' m de tube' + (R.f > 1 ? ', ' + R.l + ' : +' + Math.round((R.f - 1) * 100) + ' %' : '') });
+        order.forEach(function (id) {
+          var T = tubes[id], k = cpPack(T.pieces, BL), handBars = T.hand ? h.ceil(T.hand / BL - 1e-9) : 0;
+          var bars = k.bars + handBars, chute = bars * BL - T.m;
+          L.push({ item: id, qty: bars, comp: 'structure', note: T.what.join(', ') + ' → ' + bars + ' barre' + (bars > 1 ? 's' : '') + ' de ' + fr(BL) + ' m, chute ' + fr(h.r1(Math.max(0, chute))) + ' m' + (k.joints ? ', ' + k.joints + ' raboutage' + (k.joints > 1 ? 's' : '') : '') });
+          if (k.joints) W.push(cpSectName(T.s) + ' : pièces de plus de ' + fr(BL) + ' m, ' + k.joints + ' raboutage' + (k.joints > 1 ? 's' : '') + ' soudé' + (k.joints > 1 ? 's' : '') + ' à prévoir.');
+          if (fin === 'peinture' || fin === 'thermo') L.push({ item: cpFinId(fin, T.s.prof, T.s.D), qty: h.r1(T.m), comp: 'structure', note: fr(h.r1(T.m)) + ' m réellement utilisés' });
+        });
+        L.push({ item: 'cp_fab_' + (p.mat === 'galva' ? 'acier' : p.mat) + '_m', qty: h.r1(total * R.f), comp: 'structure', note: fr(h.r1(total)) + ' m de tube utilisés' + (R.f > 1 ? ', ' + R.l + ' : +' + Math.round((R.f - 1) * 100) + ' %' : '') });
       } else {
         L.push({ item: 'cp_bois_' + p.sb, qty: h.r1(ml.mlP + ml.mlB), comp: 'structure', note: np + ' poteaux, poutres et portiques ' + p.sb + ' × ' + p.sb });
         L.push({ item: 'cp_bois_chevron', qty: h.r1(ml.mlPan), comp: 'structure' });

@@ -171,9 +171,24 @@ test('carport au mètre : un prix par dimension de tube, métrages corrigeables'
   const r = E.priceLine(p, { mat: 'acier', profP: 'rond', dP: 120, tP: 2.5, poutre: 'autre', profB: 'carre', cB: 100, tB: 2 }, book, C.SETTINGS, TODAY, {});
   const ids = r.lines.map((l) => l.item);
   assert.ok(ids.includes('cp_t_acier_r120_25') && ids.includes('cp_t_acier_c100_20') && ids.includes('cp_t_acier_c40_15'), ids.join(' '));
-  assert.ok(r.lines.filter((l) => l.item.startsWith('cp_t_')).every((l) => l.unit === 'm'));
-  const auto = r.metrage, hand = E.priceLine(p, { mlEdit: true, mlP: auto.mlP + 10, mlB: auto.mlB, mlPan: auto.mlPan }, book, C.SETTINGS, TODAY, {});
-  const base = E.priceLine(p, {}, book, C.SETTINGS, TODAY, {});
+  assert.ok(r.lines.filter((l) => l.item.startsWith('cp_t_')).every((l) => l.unit === 'barre' && Number.isInteger(l.qty)));
   const q = (x, pre) => x.lines.filter((l) => l.item.startsWith(pre)).reduce((a, l) => a + l.qty, 0);
-  assert.ok(Math.abs(q(hand, 'cp_t_') - q(base, 'cp_t_') - 10) < 0.2);
+  const auto = r.metrage, hand = E.priceLine(p, { mlEdit: true, mlP: 30, mlB: 6, mlPan: 6 }, book, C.SETTINGS, TODAY, {});
+  assert.equal(q(hand, 'cp_t_'), 7, '36 m (poteaux + poutres) = 6 barres, 6 m de pannes = 1 barre');
+  assert.ok(auto.mlP > 0);
+});
+
+test('barres de 6 m : on compte par la découpe, pas par le total des mètres', () => {
+  const p = C.PRODUCTS.find((x) => x.id === 'abri-voiture');
+  // 2 places de 3 m, entraxe 3 m, autoportant : 6 poteaux de 3,20 m (H 3,05 + 0,15)
+  const r = E.priceLine(p, { places: 2, lp: 3, entraxe: 3, H: 3.05, profP: 'rond', dP: 100, tP: 2, poutre: 'autre', profB: 'rond', dB: 90, tB: 2 }, C.BOOK, C.SETTINGS, TODAY, {});
+  const post = r.lines.find((l) => l.item === 'cp_t_galva_r100_20');
+  assert.equal(post.qty, 6, '19,2 m de poteaux = 6 barres (un poteau par barre), pas 4');
+  // barre de 12 m : 3 poteaux de 3,20 m par barre → 2 barres
+  const s12 = Object.assign(clone(C.SETTINGS), { barLength: 12 });
+  const r12 = E.priceLine(p, { places: 2, lp: 3, entraxe: 3, H: 3.05, poutre: 'autre', dB: 90 }, C.BOOK, s12, TODAY, {});
+  assert.equal(r12.lines.find((l) => l.item === 'cp_t_galva_r100_20').qty, 2);
+  // pièce de 9 m (3 places) : raboutage signalé
+  const r3 = E.priceLine(p, { places: 3 }, C.BOOK, C.SETTINGS, TODAY, {});
+  assert.ok(r3.warnings.some((w) => w.includes('raboutage')));
 });

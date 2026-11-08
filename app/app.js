@@ -14,6 +14,7 @@
   /* Produit archivé : retiré du catalogue (réactivable dans Réglages), toujours lisible dans les anciens devis. */
   function isArchived(p) { var a = (S && S.settings && S.settings.archived) || {}; return a[p.id] != null ? !!a[p.id] : !!p.archived; }
   function activeProducts() { return PRODUCTS.filter(function (p) { return !isArchived(p); }); }
+  function unitOf(u, q) { return u === 'barre' && q > 1 ? 'barres' : u; }
   function tiersFor(r) { return E.TIERS.concat(r.sale.mkt ? ['mkt'] : []); }
   function validTier(r, t) { return t && r.sale[t] != null ? t : r.base; }
 
@@ -936,7 +937,7 @@
       var ls = r.lines.filter(function (l) { return l.cat === c; }); if (!ls.length) return;
       h += '<tr class="grp"><td colspan="3">' + cats[c] + '</td><td class="r num">' + nf0.format(r.byCat[t][c]) + '</td></tr>';
       ls.forEach(function (l) {
-        h += '<tr><td>' + esc(l.name) + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</td><td class="r num">' + nf2.format(l.qty) + ' ' + esc(l.unit) + '</td><td class="r num">' + nf0.format(l['pu_' + t]) + '</td><td class="r num">' + nf0.format(l[t]) + '</td></tr>';
+        h += '<tr><td>' + esc(l.name) + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</td><td class="r num">' + nf2.format(l.qty) + ' ' + esc(unitOf(l.unit, l.qty)) + '</td><td class="r num">' + nf0.format(l['pu_' + t]) + '</td><td class="r num">' + nf0.format(l[t]) + '</td></tr>';
       });
     });
     h += '<tr class="grp"><td colspan="3">Coût total</td><td class="r num">' + nf0.format(cost) + '</td></tr></tbody></table></div></details>';
@@ -978,8 +979,8 @@
     r.lines.forEach(function (l) {
       var input = l.unpriced && !seen[l.item];
       seen[l.item] = true;
-      h += '<tr><td>' + esc(l.name) + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</td><td class="r num">' + nf2.format(l.qty) + ' ' + esc(l.unit) + '</td><td class="r">' +
-        (input ? '<div class="qrow-in"><input class="inp num" type="number" inputmode="decimal" step="0.01" min="0" id="pq-' + l.item + '" placeholder="MAD/' + esc(l.unit) + '" aria-label="Prix ' + esc(l.name) + ' en MAD HT par ' + esc(l.unit) + '"><button class="btn sm pri" type="button" data-ppsave="' + l.item + '" data-src="pq-">OK</button></div>'
+      h += '<tr><td>' + esc(l.name) + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</td><td class="r num">' + nf2.format(l.qty) + ' ' + esc(unitOf(l.unit, l.qty)) + '</td><td class="r">' +
+        (input ? '<div class="qrow-in"><input class="inp num" type="number" inputmode="decimal" step="0.01" min="0" id="pq-' + l.item + '" placeholder="MAD" aria-label="Prix ' + esc(l.name) + ' en MAD HT par ' + esc(l.unit) + '"><button class="btn sm pri" type="button" data-ppsave="' + l.item + '" data-src="pq-">OK</button></div>'
           : l.unpriced ? '<span class="pill warn">à renseigner</span>' : '<span class="num">' + nf0.format(l['pu_' + curTier()]) + '</span>') + '</td></tr>';
     });
     h += '</tbody></table></div></details>';
@@ -1926,6 +1927,7 @@
     's-stale': [function () { return S.settings.staleDays; }, function (v) { S.settings.staleDays = Math.max(1, Math.round(v)); }],
     's-round': [function () { return S.settings.rounding; }, function (v) { S.settings.rounding = Math.max(0, v); }],
     's-tva': [function () { return +(S.settings.tva * 100).toFixed(2); }, function (v) { S.settings.tva = v / 100; }],
+    's-bar': [function () { return S.settings.barLength || 6; }, function (v) { if (v >= 1) S.settings.barLength = v; }],
     's-lodge': [function () { return S.settings.lodgingPerNight; }, function (v) { S.settings.lodgingPerNight = Math.max(0, v); }]
   };
   function renderSettings() {

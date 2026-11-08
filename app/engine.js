@@ -107,7 +107,7 @@
   function priceLine(product, params, book, settings, today, ctx) {
     ctx = ctx || {};
     var p = fullParams(product, params);
-    var b = product.build(p, H, ctx);
+    var b = product.build(p, H, Object.assign({}, ctx, { settings: settings }));
     var accessMult = settings.access[ctx.access || 'normal'] || 1;
     var margin = settings.margins[product.id] != null ? settings.margins[product.id] : product.margin;
     var waste = product.waste != null ? product.waste : 0.05;
@@ -122,7 +122,7 @@
       var item = book[l.item];
       if (!item) { missing.push(l.item); return; }
       var uc = unitCost(item, book, settings, today);
-      var mult = (item.type === 'alu' ? aluAdj : 1) * (item.cat === 'pose' ? accessMult : item.cat === 'matiere' ? 1 + waste : 1);
+      var mult = (item.type === 'alu' ? aluAdj : 1) * (item.cat === 'pose' ? accessMult : item.cat === 'matiere' && !item.noWaste ? 1 + waste : 1);
       var line = { item: l.item, name: item.name, unit: item.unit, cat: item.cat, group: item.group || '', comp: l.comp || null, qty: l.qty, note: l.note || '', stale: uc.stale, unpriced: uc.unpriced };
       if (uc.unpriced && unpriced.indexOf(l.item) < 0) unpriced.push(l.item);
       TIERS.forEach(function (t) {
