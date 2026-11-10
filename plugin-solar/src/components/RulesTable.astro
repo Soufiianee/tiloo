@@ -1,0 +1,27 @@
+---
+import type { State } from '../lib/schema';
+import { RULE_NAMES, ruleValue } from '../lib/labels';
+interface Props { state: State }
+const { state } = Astro.props;
+const keys = Object.keys(RULE_NAMES) as (keyof State['rules'])[];
+// Unverified records: never show the unofficial copy's wording as if it were the rule.
+const held = state.verification === 'secondary_only';
+---
+<div class="table-wrap">
+  <table class="stack">
+    <caption class="visually-hidden">Plug-in solar rules in {state.name}</caption>
+    <thead><tr><th scope="col">Rule</th><th scope="col">What the law says</th><th scope="col">Source</th></tr></thead>
+    <tbody>
+      {keys.map((k) => {
+        const r = state.rules[k];
+        return (
+          <tr>
+            <th scope="row">{RULE_NAMES[k]}</th>
+            <td><strong>{ruleValue(k, r.value)}</strong><br /><span class="small muted">{held && r.value === 'unknown' ? 'Awaiting confirmation on the official legislature website.' : r.detail}</span></td>
+            <td class="src">{held ? '—' : r.rule_sources.length ? r.rule_sources.map((s, i) => <><a href={s.url} rel="noopener" title={s.title}>{s.type === 'secondary_mirror' ? 'Unofficial copy' : `Source${r.rule_sources.length > 1 ? ' ' + (i + 1) : ''}`}</a><br /></>) : '—'}</td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+</div>

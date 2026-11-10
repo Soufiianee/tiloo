@@ -1,0 +1,19 @@
+---
+import Base from '../../layouts/Base.astro';
+import StatusPill from '../../components/StatusPill.astro';
+import { states, STATUS } from '../../lib/data';
+const groups = Object.entries(STATUS)
+  .sort((a, b) => a[1].order - b[1].order)
+  .map(([k, v]) => ({ v, list: states.filter((s) => s.status === k).sort((a, b) => a.name.localeCompare(b.name)) }))
+  .filter((g) => g.list.length);
+---
+<Base title="Plug-in solar laws by state" description="All 50 states and DC grouped by plug-in solar status: laws in effect, laws passed, active bills, failed bills and no bill found." crumbs={[{ name: 'States', href: '/states/' }]}>
+  <h1>Plug-in solar laws by state</h1>
+  <p class="prose">Every state and DC, grouped by status. Each page lists the rules, the official sources and how kits fit.</p>
+  {groups.map((g) => (
+    <section>
+      <h2>{g.v.label} ({g.list.length})</h2>
+      <ul>{g.list.map((s) => <li><a href={`/states/${s.slug}/`}>{s.name}</a> <StatusPill state={s} short /></li>)}</ul>
+    </section>
+  ))}
+</Base>

@@ -1,0 +1,151 @@
+---
+import Base from '../layouts/Base.astro';
+import TileMap from '../components/TileMap.astro';
+import StatusPill from '../components/StatusPill.astro';
+import Disclaimer from '../components/Disclaimer.astro';
+import {
+  states, kits, updates, STATUS, statusLabel, effectiveDate, mainBill, kitVerdict, isEnacted, priceFor, yieldFor,
+  prices, yields, fmtDate, absUrl, site,
+} from '../lib/data';
+import { verdictLabel, needsSystemCert } from '../lib/compat';
+import { RULE_NAMES, ruleValue } from '../lib/labels';
+
+const enacted = states.filter(isEnacted);
+const ruleKeys = ['max_watts_ac', 'utility_notification_required', 'utility_approval_required', 'landlord_provisions', 'hoa_provisions', 'certification_required', 'battery_allowed', 'net_metering_excluded'] as const;
+
+// compact payload for the browser tool
+const toolData = {
+  pricePeriod: prices.period,
+  states: Object.fromEntries(states.map((s) => {
+    const b = mainBill(s);
+    return [s.code, {
+      n: s.name, slug: s.slug, st: statusLabel(s), cls: STATUS[s.status].cls, enacted: isEnacted(s),
+      eff: effectiveDate(s), effDerived: s.bills.some((x) => x.effective_date_basis === 'derived'),
+      bill: b ? `${b.id}: ${b.title}` : null, summary: s.summary_plain, checked: s.last_checked,
+      strict: isEnacted(s) && needsSystemCert(s.rules.certification_required.value),
+      rules: isEnacted(s) ? ruleKeys.map((k) => [RULE_NAMES[k], ruleValue(k, s.rules[k].value), s.rules[k].rule_sources[0]?.url ?? null]) : [],
+      price: priceFor(s.code), y: yieldFor(s.code),
+      kits: kits.map((k) => kitVerdict(s, k)),
+    }];
+  })),
+  kits: kits.map((k) => ({ slug: k.slug, name: `${k.brand} ${k.model}`, ac: k.ac_output_w, est: k.ac_output_basis === 'estimated', panel: typeof k.panel_w_total === 'number' ? k.panel_w_total : null, price: typeof k.price_usd === 'number' ? k.price_usd : null })),
+  verdictLabel,
+};
+const latest = updates.slice(0, 5);
+const sorted = [...states].sort((a, b) => a.name.localeCompare(b.name));
+
+const datasetLd = {
+  '@context': 'https://schema.org', '@type': 'Dataset',
+  name: 'US plug-in (balcony) solar state law tracker',
+  description: 'Status of plug-in solar legislation in all 50 US states and DC, with enacted rules (size limits, utility notification, landlord and HOA provisions, certification requirements) traced to official legislature sources, and kit certification status.',
+  url: absUrl('/'), isAccessibleForFree: true, dateModified: states.map((s) => s.last_checked).sort().reverse()[0],
+  spatialCoverage: 'United States', creator: { '@type': 'Organization', name: site.SITE_NAME === 'TBD' ? 'Plug-in Solar Tracker' : site.SITE_NAME },
+  variableMeasured: ['legal status', 'maximum watts', 'utility notification', 'certification requirement'],
+};
+---
+<Base title="Is plug-in solar legal in your state?" description={`State-by-state plug-in (balcony) solar laws, checked against official sources: ${enacted.length} states have laws. See the rules, the effective dates, and which kits are confirmed to fit.`} jsonLd={[datasetLd]}>
+  <section class="hero">
+    <h1>Is plug-in solar legal in your state?</h1>
+    <p class="lede">Pick your state to see the law, the size limit, what you must tell your utility or landlord, and which kits are confirmed to qualify. Every rule links to the official source.</p>
+  </section>
+
+  <section id="tool" aria-labelledby="tool-h">
+    <h2 id="tool-h" class="visually-hidden">State checker</h2>
+    <div class="grid-2">
+      <div>
+        <div class="field">
+          <label for="state-select">Your state</label>
+          <select id="state-select">
+            <option value="">Choose a state…</option>
+            {sorted.map((s) => <option value={s.code}>{s.name}</option>)}
+          </select>
+          <p class="hint">Type a letter to jump. You can also pick a state on the map or in the list below.</p>
+        </div>
+        <TileMap mode="tool" />
+        <details>
+          <summary>List of all states</summary>
+          <ul class="small" style="columns:2;margin-top:0.6rem">
+            {sorted.map((s) => <li><a href={`#state-${s.code.toLowerCase()}`}>{s.name}</a> <span class="muted">({STATUS[s.status].short})</span></li>)}
+          </ul>
+        </details>
+      </div>
+      <div>
+        <div id="result" class="card" aria-live="polite" tabindex="-1">
+          <p class="muted" style="margin:0">Choose a state to see its rules and kits.</p>
+        </div>
+      </div>
+    </div>
+
+    <section class="card" style="margin-top:1rem" aria-labelledby="calc-h">
+      <h2 id="calc-h" style="margin-top:0">Savings estimate</h2>
+      <form id="calc" class="grid-2" onsubmit="return false">
+        <div>
+          <div class="field"><label for="c-kit">Kit (optional)</label>
+            <select id="c-kit"><option value="">Custom size</option>{kits.map((k) => <option value={k.slug}>{k.brand} {k.model}</option>)}</select>
+            <p class="hint">Fills in panel size and price where the seller lists them.</p></div>
+          <div class="field"><label for="c-watts">Panel size (watts, DC)</label><input id="c-watts" type="number" inputmode="numeric" min="1" max="5000" step="1" value="800" /></div>
+          <div class="field"><label for="c-cost">Kit cost ($, optional)</label><input id="c-cost" type="number" inputmode="decimal" min="0" step="1" /></div>
+        </div>
+        <div>
+          <div class="field"><label for="c-price">Your electricity price (¢/kWh)</label><input id="c-price" type="number" inputmode="decimal" min="1" max="200" step="0.01" />
+            <p class="hint" id="c-price-hint">Defaults to your state's average once you choose a state.</p></div>
+          <div class="field"><label for="c-share">Share of the power you use at home (%)</label><input id="c-share" type="number" inputmode="numeric" min="0" max="100" step="1" value="100" />
+            <p class="hint">Power you send to the grid usually earns nothing under these laws.</p></div>
+        </div>
+      </form>
+      <div id="calc-out" aria-live="polite"><p class="muted">Choose a state to see an estimate.</p></div>
+      <details>
+        <summary>How we calculate</summary>
+        <p><strong>Yearly kWh</strong> = panel watts ÷ 1,000 × the state's yearly output per kW of panels.<br />
+          <strong>Yearly savings</strong> = yearly kWh × share used at home × your price.<br />
+          <strong>Payback</strong> = kit cost ÷ yearly savings. The range runs from the "ideal tilt" case to the "vertical railing" case.</p>
+        <p>Output per kW comes from {yields.model}, run for each state capital with {yields.common.losses_pct}% system losses: "ideal tilt" is 20° facing south; "vertical railing" is 90° facing south. Real balconies face other directions, get shade, and are often limited by the inverter, so your output may be lower.</p>
+        <p>Default prices are EIA's residential averages for {prices.period}. We assume no payment for power sent to the grid, no incentives, and no price changes. Where a figure is missing, we show no estimate rather than guess.</p>
+      </details>
+    </section>
+  </section>
+
+  <section aria-labelledby="table-h">
+    <h2 id="table-h">All states at a glance</h2>
+    <div class="table-wrap">
+      <table id="state-table">
+        <caption class="visually-hidden">Plug-in solar status by state. Column headers sort the table.</caption>
+        <thead><tr>
+          <th scope="col" aria-sort="ascending"><button class="sort" data-k="0" type="button">State</button></th>
+          <th scope="col"><button class="sort" data-k="1" type="button">Status</button></th>
+          <th scope="col"><button class="sort" data-k="2" type="button">Effective</button></th>
+          <th scope="col"><button class="sort" data-k="3" type="button">Max W</button></th>
+          <th scope="col">Bill</th>
+        </tr></thead>
+        <tbody>
+          {sorted.map((s) => {
+            const b = mainBill(s); const e = effectiveDate(s); const cap = s.rules.max_watts_ac.value;
+            return (
+              <tr>
+                <th scope="row" data-v={s.name}><a href={`/states/${s.slug}/`}>{s.name}</a></th>
+                <td data-v={STATUS[s.status].order}><StatusPill state={s} short /></td>
+                <td data-v={e ?? '9999'} class="num">{e ? fmtDate(e) : '—'}</td>
+                <td data-v={typeof cap === 'number' ? cap : 0} class="num">{typeof cap === 'number' ? cap.toLocaleString('en-US') : cap === 'unknown' ? 'Unknown' : '—'}</td>
+                <td class="small">{b ? b.id : '—'}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="latest-h">
+    <h2 id="latest-h">Latest law changes</h2>
+    <ul>
+      {latest.map((u) => <li><strong>{fmtDate(u.date)}</strong>: {u.state ? <a href={`/states/${states.find((s) => s.code === u.state)!.slug}/`}>{u.title}</a> : u.title}</li>)}
+    </ul>
+    <p><a href="/updates/">All updates</a> · <a href="/updates/rss.xml">RSS feed</a></p>
+  </section>
+  <Disclaimer />
+
+  <script type="application/json" id="tool-data" set:html={JSON.stringify(toolData)} />
+  <script>
+    import './../scripts/tool.ts';
+  </script>
+</Base>

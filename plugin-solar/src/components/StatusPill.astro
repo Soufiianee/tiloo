@@ -1,0 +1,9 @@
+---
+import { STATUS, statusLabel } from '../lib/data';
+import type { State } from '../lib/schema';
+interface Props { state: State; short?: boolean }
+const { state, short = false } = Astro.props;
+const s = STATUS[state.status];
+const text = short && !state.status_label ? s.short : statusLabel(state);
+---
+<span class={`pill ${s.cls}`}>{text}</span>

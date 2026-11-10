@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro';
+import { states, isEnacted, site } from '../lib/data';
+const name = site.SITE_NAME === 'TBD' ? 'Plug-in Solar Tracker' : site.SITE_NAME;
+---
+<Base title="About" description={`${name} tracks US plug-in (balcony) solar laws and kit certification, checked against official sources.`} crumbs={[{ name: 'About', href: '/about/' }]}>
+  <article class="prose">
+    <h1>About {name}</h1>
+    <p>Plug-in solar, also called balcony solar, means a small solar panel that plugs into an ordinary outlet. {states.filter(isEnacted).length} states have now passed laws that say when you can use one without a utility interconnection agreement. Each law is different: size limits, notices to utilities and landlords, and the safety certification a kit needs.</p>
+    <p>This site answers one question: is plug-in solar legal where you live, what are the rules, and which kits qualify? We keep a state-by-state record of the laws and a record of which kits have the certificates those laws require. Every fact links to its official source.</p>
+    <h2>Independence</h2>
+    <p>We are an independent information site. We are not a government agency, a utility, or a solar company, and we are not affiliated with any of them. We may later earn commissions from some retailer links. Those links will be marked, and they will never change what we publish about a law or a kit. See our <a href="/affiliate-disclosure/">affiliate disclosure</a>.</p>
+    <h2>What we are not</h2>
+    <p>We do not give legal or electrical advice. Read the <a href="/disclaimer/">disclaimer</a> and <a href="/how-we-verify/">how we verify</a>.</p>
+  </article>
+</Base>

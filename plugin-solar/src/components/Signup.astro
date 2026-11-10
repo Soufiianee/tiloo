@@ -1,0 +1,13 @@
+---
+import { site } from '../lib/data';
+interface Props { kind?: 'cert' | 'general'; heading?: string }
+const { kind = 'cert', heading = 'Tell me when a certified kit is legal in my state' } = Astro.props;
+const url = kind === 'cert' ? site.CERT_WATCH_SIGNUP_EMBED_URL : site.EMAIL_SIGNUP_EMBED_URL;
+---
+{url && (
+  <section class="card" aria-labelledby={`signup-${kind}`}>
+    <h2 id={`signup-${kind}`} style="margin-top:0">{heading}</h2>
+    <p class="small muted">The form is run by our email provider. We only use your address to send these alerts. See our <a href="/privacy/">privacy page</a>.</p>
+    <iframe src={url} title={heading} loading="lazy" style="width:100%;min-height:260px;border:0"></iframe>
+  </section>
+)}

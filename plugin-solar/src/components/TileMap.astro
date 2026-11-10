@@ -1,0 +1,34 @@
+---
+import { states, STATUS, statusLabel } from '../lib/data';
+import { TILES } from '../lib/geo';
+interface Props { mode?: 'tool' | 'pages'; current?: string }
+const { mode = 'pages', current } = Astro.props;
+const S = 52, G = 4;
+const W = 12 * (S + G), H = 8 * (S + G);
+const colour: Record<string, [string, string]> = {
+  'st-effect': ['var(--st-effect-bg)', 'var(--st-effect)'], 'st-passed': ['var(--st-passed-bg)', 'var(--st-passed)'],
+  'st-active': ['var(--st-active-bg)', 'var(--st-active)'], 'st-dead': ['var(--st-dead-bg)', 'var(--st-dead)'],
+  'st-none': ['var(--st-none-bg)', 'var(--st-none)'], 'st-unknown': ['var(--st-unknown-bg)', 'var(--st-unknown)'],
+};
+const legend = Object.entries(STATUS).sort((a, b) => a[1].order - b[1].order);
+---
+<figure style="margin:0">
+  <svg class="tilemap" viewBox={`0 0 ${W} ${H}`} role="group" aria-label="Map of US states coloured by plug-in solar status. Each square is one state; select a state to see details.">
+    {states.map((s) => {
+      const [c, r] = TILES[s.code];
+      const [fill, ink] = colour[STATUS[s.status].cls];
+      const href = mode === 'tool' ? `#state-${s.code.toLowerCase()}` : `/states/${s.slug}/`;
+      const isCur = current === s.code;
+      return (
+        <a href={href} data-state={s.code} aria-label={`${s.name}: ${statusLabel(s)}`}>
+          <rect x={c * (S + G)} y={r * (S + G)} width={S} height={S} rx="5" fill={fill} stroke={ink} stroke-width={isCur ? 4 : 1.5} stroke-dasharray={s.status === 'unknown' ? '4 3' : undefined} />
+          <text x={c * (S + G) + S / 2} y={r * (S + G) + S / 2 + 5} text-anchor="middle" fill={ink}>{s.code}</text>
+        </a>
+      );
+    })}
+  </svg>
+  <figcaption>
+    <ul class="legend">{legend.map(([, v]) => <li><span class={`pill ${v.cls}`}>{v.label}</span></li>)}</ul>
+    <span class="small muted">Squares are arranged roughly by geography; sizes are not to scale. A dashed outline means status not yet confirmed.</span>
+  </figcaption>
+</figure>

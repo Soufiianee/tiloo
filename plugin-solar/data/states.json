@@ -89,7 +89,18 @@
         "last_action": "Current status (H) ENE, then CRA; no action after referral",
         "last_action_date": "2026-01-20",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable",
+        "session_end": {
+          "date": "2026-05-20",
+          "detail": "The Alaska House journal records that the 34th Legislature, Second Session, adjourned sine die at 9:43 p.m., May 20, 2026.",
+          "source": {
+            "title": "Alaska House Journal, May 20, 2026",
+            "url": "https://www.akleg.gov/pdf/34/J/H2026-05-20.PDF",
+            "accessed": "2026-11-10",
+            "type": "legislature_other"
+          }
+        }
       }
     ],
     "rules": {
@@ -148,6 +159,12 @@
         "url": "https://www.akleg.gov/basis/Bill/Detail/34?Root=HB257",
         "accessed": "2026-11-10",
         "type": "legislature_bill_page"
+      },
+      {
+        "title": "Alaska House Journal, May 20, 2026",
+        "url": "https://www.akleg.gov/pdf/34/J/H2026-05-20.PDF",
+        "accessed": "2026-11-10",
+        "type": "legislature_other"
       }
     ],
     "last_checked": "2026-11-10"
@@ -311,7 +328,9 @@
         "last_action_date": "2026-09-30",
         "signed_date": "2026-09-30",
         "effective_date": "2027-01-01",
-        "chapter": "Chapter 985, Statutes of 2026"
+        "chapter": "Chapter 985, Statutes of 2026",
+        "effective_date_basis": "derived",
+        "effective_date_note": "Derived: the law has no urgency or operative-date clause, so it takes effect January 1 of the following year under the California Constitution (art. IV, sec. 8(c))."
       }
     ],
     "rules": {
@@ -471,7 +490,9 @@
         "last_action": "Became Law (Signed Act dated 05/07/2026)",
         "last_action_date": "2026-05-07",
         "signed_date": "2026-05-07",
-        "effective_date": "2026-08-12"
+        "effective_date": "2026-08-12",
+        "effective_date_basis": "derived",
+        "effective_date_note": "Derived from the act's effective-date clause: 90 days after adjournment (session adjourned sine die May 13, 2026, per the legislature homepage). No referendum on HB26-1007 appears on the Secretary of State's list of 2026 ballot measures."
       }
     ],
     "rules": {
@@ -605,10 +626,17 @@
         "url": "https://leg.colorado.gov/",
         "accessed": "2026-11-10",
         "type": "legislature_other"
+      },
+      {
+        "title": "Colorado Secretary of State: Amendments and Propositions on the 2026 Ballot",
+        "url": "https://www.sos.state.co.us/pubs/elections/Initiatives/ballot/contacts/2026.html",
+        "accessed": "2026-11-10",
+        "type": "legislature_other",
+        "note": "State election office list; no referendum on HB26-1007 appears."
       }
     ],
     "last_checked": "2026-11-10",
-    "notes": "Effective date: the act takes effect 90 days after adjournment (August 12, 2026, given the May 13, 2026 sine die confirmed on the legislature homepage), unless a referendum petition was filed. We found no sign of a petition but did not check with the Secretary of State."
+    "notes": "Effective August 12, 2026: 90 days after the May 13, 2026 adjournment (legislature homepage). We checked the Secretary of State's list of 2026 ballot measures: no referendum on HB26-1007 appears, so the act was not suspended by a petition."
   },
   {
     "code": "CT",
@@ -627,7 +655,8 @@
         "last_action_date": "2026-06-04",
         "signed_date": "2026-06-04",
         "effective_date": "2026-10-01",
-        "chapter": "Public Act 26-127"
+        "chapter": "Public Act 26-127",
+        "effective_date_basis": "stated_in_law"
       }
     ],
     "rules": {
@@ -855,7 +884,8 @@
         "last_action": "Committee mark-up by the Committee on Transportation and the Environment; placement on the November 10, 2026 legislative meeting agenda requested",
         "last_action_date": "2026-11-04",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable"
       }
     ],
     "rules": {
@@ -1015,7 +1045,18 @@
         "last_action": "House Second Readers (Energy, Utilities & Telecommunications Committee)",
         "last_action_date": "2026-02-18",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable",
+        "session_end": {
+          "date": "2026-04-02",
+          "detail": "House Status No. 40 (Legislative Day 40, April 2, 2026): \"House adjourned sine die\". Bills of the 2025-2026 term die at the end of the term.",
+          "source": {
+            "title": "Georgia House Status No. 40, April 2, 2026",
+            "url": "https://www.legis.ga.gov/api/document/docs/default-source/house-calendars/20252026/04022026.pdf?sfvrsn=fd20dc49_2",
+            "accessed": "2026-11-10",
+            "type": "legislature_other"
+          }
+        }
       }
     ],
     "rules": {
@@ -1074,6 +1115,12 @@
         "url": "https://www.legis.ga.gov/legislation/73191",
         "accessed": "2026-11-10",
         "type": "legislature_bill_page"
+      },
+      {
+        "title": "Georgia House Status No. 40, April 2, 2026",
+        "url": "https://www.legis.ga.gov/api/document/docs/default-source/house-calendars/20252026/04022026.pdf?sfvrsn=fd20dc49_2",
+        "accessed": "2026-11-10",
+        "type": "legislature_other"
       }
     ],
     "last_checked": "2026-11-10"
@@ -1162,7 +1209,18 @@
         "last_action": "Reported Printed and Referred to State Affairs",
         "last_action_date": "2026-02-11",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable",
+        "session_end": {
+          "date": "2026-04-02",
+          "detail": "Idaho Senate Journal, April 2, 2026: the Senate adjourned sine die (the House the same evening).",
+          "source": {
+            "title": "Idaho Senate Journal, April 2, 2026 (day 81)",
+            "url": "https://legislature.idaho.gov/wp-content/uploads/sessioninfo/2026/journals/sday81.pdf",
+            "accessed": "2026-11-10",
+            "type": "legislature_other"
+          }
+        }
       }
     ],
     "rules": {
@@ -1221,6 +1279,12 @@
         "url": "https://legislature.idaho.gov/sessioninfo/2026/legislation/H0612/",
         "accessed": "2026-11-10",
         "type": "legislature_bill_page"
+      },
+      {
+        "title": "Idaho Senate Journal, April 2, 2026 (day 81)",
+        "url": "https://legislature.idaho.gov/wp-content/uploads/sessioninfo/2026/journals/sday81.pdf",
+        "accessed": "2026-11-10",
+        "type": "legislature_other"
       }
     ],
     "last_checked": "2026-11-10",
@@ -1317,7 +1381,8 @@
         "last_action": "First reading: referred to Committee on Utilities",
         "last_action_date": "2025-12-08",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable"
       }
     ],
     "rules": {
@@ -1396,7 +1461,18 @@
         "last_action": "Introduced; no further action recorded",
         "last_action_date": "2026-01-14",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable",
+        "session_end": {
+          "date": "2026-05-02",
+          "detail": "Iowa House Journal, Saturday, May 2, 2026: the 2026 Regular Session of the 91st General Assembly was declared adjourned sine die at 6:11 p.m. (H.C.R. 104).",
+          "source": {
+            "title": "Iowa House Journal, May 2, 2026",
+            "url": "https://www.legis.iowa.gov/docs/publications/HJNL/20260502_HJNL.pdf",
+            "accessed": "2026-11-10",
+            "type": "legislature_other"
+          }
+        }
       }
     ],
     "rules": {
@@ -1455,6 +1531,12 @@
         "url": "https://www.legis.iowa.gov/legislation/billTracking/billHistory?billName=HF%202046&ga=91",
         "accessed": "2026-11-10",
         "type": "legislature_bill_page"
+      },
+      {
+        "title": "Iowa House Journal, May 2, 2026",
+        "url": "https://www.legis.iowa.gov/docs/publications/HJNL/20260502_HJNL.pdf",
+        "accessed": "2026-11-10",
+        "type": "legislature_other"
       }
     ],
     "last_checked": "2026-11-10"
@@ -1698,7 +1780,9 @@
         "last_action_date": "2026-04-06",
         "signed_date": "2026-04-06",
         "effective_date": "2026-07-29",
-        "chapter": "Public Law 2025, chapter 644"
+        "chapter": "Public Law 2025, chapter 644",
+        "effective_date_basis": "derived",
+        "effective_date_note": "Derived: the law has no emergency clause, so it took effect on the general effective date for the session (July 29, 2026), as published by the Maine Legislature."
       }
     ],
     "rules": {
@@ -1875,7 +1959,8 @@
         "last_action_date": "2026-05-12",
         "signed_date": "2026-05-12",
         "effective_date": "2026-07-01",
-        "chapter": "Chapter 353, 2026 Laws of Maryland"
+        "chapter": "Chapter 353, 2026 Laws of Maryland",
+        "effective_date_basis": "stated_in_law"
       }
     ],
     "rules": {
@@ -2033,7 +2118,8 @@
         "last_action": "Committee of conference appointed (Cusack-Michlewitz-Jones; Barrett-Creem-Tarr)",
         "last_action_date": "2026-07-16",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable"
       }
     ],
     "rules": {
@@ -2124,7 +2210,8 @@
         "last_action": "Referred to Committee on Energy",
         "last_action_date": "2026-03-19",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable"
       }
     ],
     "rules": {
@@ -2204,7 +2291,8 @@
         "last_action": "Passed Senate 35-32; received by House and referred to Energy Finance and Policy",
         "last_action_date": "2026-05-12",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable"
       }
     ],
     "rules": {
@@ -2358,7 +2446,18 @@
         "last_action": "Referred: Emerging Issues (H)",
         "last_action_date": "2026-05-15",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable",
+        "session_end": {
+          "date": "2026-05-28",
+          "detail": "Missouri Senate Journal, Seventieth Day, Thursday, May 28, 2026: the Senate adjourned sine die pursuant to the Constitution. HB 2528 was only referred to committee on May 15, the final day for passing bills.",
+          "source": {
+            "title": "Missouri Senate Journal, May 28, 2026 (Seventieth Day)",
+            "url": "https://www.senate.mo.gov/26info/Journals/RDay7005281892-1909.pdf",
+            "accessed": "2026-11-10",
+            "type": "legislature_other"
+          }
+        }
       }
     ],
     "rules": {
@@ -2417,6 +2516,12 @@
         "url": "https://house.mo.gov/BillActions.aspx?bill=HB2528&year=2026&code=R",
         "accessed": "2026-11-10",
         "type": "legislature_bill_page"
+      },
+      {
+        "title": "Missouri Senate Journal, May 28, 2026 (Seventieth Day)",
+        "url": "https://www.senate.mo.gov/26info/Journals/RDay7005281892-1909.pdf",
+        "accessed": "2026-11-10",
+        "type": "legislature_other"
       }
     ],
     "last_checked": "2026-11-10",
@@ -2661,7 +2766,8 @@
         "last_action_date": "unknown",
         "signed_date": "unknown",
         "effective_date": "unknown",
-        "chapter": "Chapter 262 (unconfirmed)"
+        "chapter": "Chapter 262 (unconfirmed)",
+        "effective_date_basis": "unknown"
       }
     ],
     "rules": {
@@ -2783,7 +2889,7 @@
         ]
       }
     },
-    "summary_plain": "News reports and a copy of the final bill say New Hampshire enacted SB 540 as Chapter 262 in July 2026, effective January 1, 2027, allowing one plug-in system up to 1,200 watts per metered customer. We have not yet confirmed this on the state's own legislature website, so we show the details as unverified.",
+    "summary_plain": "News reports and a copy of the final bill say New Hampshire enacted SB 540 as Chapter 262 in July 2026, with most of it taking effect January 1, 2027. We have not been able to confirm the law on the state legislature's website, so every rule below is marked unknown until we do.",
     "watch_notes": "Confirm Chapter 262 text, signing date and the January 1, 2027 effective date on gc.nh.gov. The building-code section takes effect only when the Department of Energy certifies a national standard exists.",
     "next_key_date": "2027-01-01",
     "sources": [
@@ -2809,7 +2915,8 @@
       }
     ],
     "last_checked": "2026-11-10",
-    "notes": "Status kept as enacted_not_yet_effective because the mirror reproduces the final chaptered text (\"Approved: July 02, 2026\"; \"Remainder effective January 1, 2027\") and news reports agree, but every rule is held as \"unknown\" until gc.nh.gov can be checked. energy.nh.gov and governor.nh.gov also returned 403."
+    "notes": "Status kept as enacted_not_yet_effective because the mirror reproduces the final chaptered text (\"Approved: July 02, 2026\"; \"Remainder effective January 1, 2027\") and news reports agree, but every rule is held as \"unknown\" until gc.nh.gov can be checked. energy.nh.gov and governor.nh.gov also returned 403.",
+    "status_label": "Signed — details being verified"
   },
   {
     "code": "NJ",
@@ -2828,7 +2935,9 @@
         "last_action_date": "2026-09-01",
         "signed_date": "2026-09-01",
         "effective_date": "2027-03-01",
-        "chapter": "P.L.2026, c.82"
+        "chapter": "P.L.2026, c.82",
+        "effective_date_basis": "derived",
+        "effective_date_note": "Derived from the law's effective-date clause: \"six months after the date of enactment\" (approved September 1, 2026)."
       }
     ],
     "rules": {
@@ -2976,7 +3085,7 @@
     "name": "New Mexico",
     "slug": "new-mexico",
     "status": "bill_failed_or_dead",
-    "verification": "primary",
+    "verification": "partial",
     "bills": [
       {
         "id": "SB 157",
@@ -2987,7 +3096,13 @@
         "last_action": "Sent to SCC - Referrals: SCC/SJC/STBTC",
         "last_action_date": "2026-01-26",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable",
+        "session_end": {
+          "date": "unknown",
+          "detail": "Not confirmed on an official calendar: we could not locate the 2026 journals on nmlegis.gov. The New Mexico Constitution limits even-year sessions to 30 days, and the bill had no action after its January 26, 2026 referral.",
+          "source": null
+        }
       }
     ],
     "rules": {
@@ -3066,7 +3181,8 @@
         "last_action": "Passed Senate (substituted for S8512C); returned to Assembly",
         "last_action_date": "2026-05-28",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable"
       }
     ],
     "rules": {
@@ -3146,7 +3262,8 @@
         "last_action": "Ref To Com On Rules, Calendar, and Operations of the House",
         "last_action_date": "2026-04-30",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable"
       },
       {
         "id": "S957",
@@ -3157,7 +3274,8 @@
         "last_action": "Ref To Com On Rules and Operations of the Senate",
         "last_action_date": "2026-05-04",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable"
       }
     ],
     "rules": {
@@ -3392,7 +3510,18 @@
         "last_action": "Second Reading referred to Senate Energy; coauthor added",
         "last_action_date": "2026-04-16",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable",
+        "session_end": {
+          "date": "2026-05-14",
+          "detail": "Oklahoma Senate Journal, Fifty-fourth Legislative Day, Thursday, May 14, 2026: the Senate adjourned sine die at 4:15 p.m.",
+          "source": {
+            "title": "Oklahoma Senate Journal, May 14, 2026",
+            "url": "https://www.oksenate.gov/sites/default/files/2026-07/sj20260514.pdf",
+            "accessed": "2026-11-10",
+            "type": "legislature_other"
+          }
+        }
       }
     ],
     "rules": {
@@ -3451,6 +3580,12 @@
         "url": "https://www.oklegislature.gov/BillInfo.aspx?Bill=HB4060&Session=2600",
         "accessed": "2026-11-10",
         "type": "legislature_bill_page"
+      },
+      {
+        "title": "Oklahoma Senate Journal, May 14, 2026",
+        "url": "https://www.oksenate.gov/sites/default/files/2026-07/sj20260514.pdf",
+        "accessed": "2026-11-10",
+        "type": "legislature_other"
       }
     ],
     "last_checked": "2026-11-10"
@@ -3471,7 +3606,8 @@
         "last_action": "Current location: In House Committee On Climate, Energy, and Environment",
         "last_action_date": "unknown",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable"
       }
     ],
     "rules": {
@@ -3551,7 +3687,8 @@
         "last_action": "Referred to Energy",
         "last_action_date": "2025-10-28",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable"
       }
     ],
     "rules": {
@@ -3705,7 +3842,18 @@
         "last_action": "Referred to Committee on Labor, Commerce and Industry",
         "last_action_date": "2026-01-13",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable",
+        "session_end": {
+          "date": "2026-05-14",
+          "detail": "South Carolina House Journal, May 14, 2026: at 5:00 p.m. on the second Thursday in May the House adjourned sine die (the General Assembly may return under its sine die resolution only for limited matters).",
+          "source": {
+            "title": "South Carolina House Journal, May 14, 2026",
+            "url": "https://www.scstatehouse.gov/sess126_2025-2026/hj26/20260514.htm",
+            "accessed": "2026-11-10",
+            "type": "legislature_other"
+          }
+        }
       }
     ],
     "rules": {
@@ -3764,6 +3912,12 @@
         "url": "https://www.scstatehouse.gov/sess126_2025-2026/bills/4579.htm",
         "accessed": "2026-11-10",
         "type": "legislature_bill_page"
+      },
+      {
+        "title": "South Carolina House Journal, May 14, 2026",
+        "url": "https://www.scstatehouse.gov/sess126_2025-2026/hj26/20260514.htm",
+        "accessed": "2026-11-10",
+        "type": "legislature_other"
       }
     ],
     "last_checked": "2026-11-10"
@@ -4007,7 +4161,8 @@
         "last_action_date": "2025-03-25",
         "signed_date": "2025-03-25",
         "effective_date": "2025-05-07",
-        "chapter": "Laws of Utah 2025, Chapter 250"
+        "chapter": "Laws of Utah 2025, Chapter 250",
+        "effective_date_basis": "stated_in_law"
       }
     ],
     "rules": {
@@ -4172,7 +4327,8 @@
         "last_action_date": "2026-06-16",
         "signed_date": "2026-06-16",
         "effective_date": "2026-07-01",
-        "chapter": "Act 149 of 2026"
+        "chapter": "Act 149 of 2026",
+        "effective_date_basis": "stated_in_law"
       }
     ],
     "rules": {
@@ -4321,7 +4477,8 @@
         "last_action_date": "2026-04-22",
         "signed_date": "2026-04-22",
         "effective_date": "2027-01-01",
-        "chapter": "Acts of Assembly Chapter 1052"
+        "chapter": "Acts of Assembly Chapter 1052",
+        "effective_date_basis": "stated_in_law"
       },
       {
         "id": "SB 250",
@@ -4333,7 +4490,8 @@
         "last_action_date": "2026-04-22",
         "signed_date": "2026-04-22",
         "effective_date": "2027-01-01",
-        "chapter": "Acts of Assembly Chapter 998"
+        "chapter": "Acts of Assembly Chapter 998",
+        "effective_date_basis": "stated_in_law"
       }
     ],
     "rules": {
@@ -4498,7 +4656,8 @@
         "last_action_date": "2026-03-23",
         "signed_date": "2026-03-23",
         "effective_date": "2026-06-11",
-        "chapter": "Chapter 136, Laws of 2026"
+        "chapter": "Chapter 136, Laws of 2026",
+        "effective_date_basis": "stated_in_law"
       },
       {
         "id": "SB 6050",
@@ -4509,7 +4668,8 @@
         "last_action": "No action after committee stage",
         "last_action_date": "2026-02-26",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable"
       }
     ],
     "rules": {
@@ -4608,7 +4768,8 @@
         "last_action": "Motion to table motion to discharge from committee adopted (Roll No. 230)",
         "last_action_date": "2026-03-02",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable"
       }
     ],
     "rules": {
@@ -4762,7 +4923,8 @@
         "last_action": "H: Died in Committee, Returned Bill Pursuant to HR 5-4",
         "last_action_date": "2026-03-03",
         "signed_date": "not_applicable",
-        "effective_date": "not_applicable"
+        "effective_date": "not_applicable",
+        "effective_date_basis": "not_applicable"
       }
     ],
     "rules": {

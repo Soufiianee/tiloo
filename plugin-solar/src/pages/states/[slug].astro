@@ -1,0 +1,127 @@
+---
+import Base from '../../layouts/Base.astro';
+import StatusPill from '../../components/StatusPill.astro';
+import RulesTable from '../../components/RulesTable.astro';
+import KitTable from '../../components/KitTable.astro';
+import StateSavings from '../../components/StateSavings.astro';
+import SourceList from '../../components/SourceList.astro';
+import Disclaimer from '../../components/Disclaimer.astro';
+import { states, byCode, isEnacted, statusLabel, effectiveDate, fmtDate, kits, kitVerdict, prices, priceFor } from '../../lib/data';
+import { neighbours } from '../../lib/geo';
+import { STAGE, ruleValue } from '../../lib/labels';
+import type { State } from '../../lib/schema';
+
+export function getStaticPaths() {
+  return states.map((s) => ({ params: { slug: s.slug }, props: { state: s } }));
+}
+const { state } = Astro.props as { state: State };
+const s = state;
+const enacted = isEnacted(s);
+const eff = effectiveDate(s);
+const r = s.rules;
+const nb = neighbours(s.code).map((c) => byCode[c]);
+const anyCompatible = kits.some((k) => kitVerdict(s, k) === 'compatible');
+const price = priceFor(s.code);
+
+// FAQ built only from verified values
+const faq: { q: string; a: string }[] = [];
+const v = (k: keyof State['rules']) => r[k].value;
+if (enacted && s.verification !== 'secondary_only') {
+  faq.push({ q: `Is plug-in solar legal in ${s.name}?`, a: `Yes. ${s.summary_plain}` });
+  if (typeof v('max_watts_ac') === 'number') faq.push({ q: `How big can a plug-in solar system be in ${s.name}?`, a: r.max_watts_ac.detail });
+  if (v('utility_notification_required') !== 'unknown') faq.push({ q: `Do I have to tell my utility in ${s.name}?`, a: `${ruleValue('utility_notification_required', v('utility_notification_required'))}. ${r.utility_notification_required.detail}` });
+  if (v('landlord_provisions') !== 'unknown') faq.push({ q: `Can my landlord stop me from using plug-in solar in ${s.name}?`, a: v('landlord_provisions') === 'not_addressed' ? `The ${s.name} law does not mention landlords, so your lease still governs. ${r.landlord_provisions.detail}` : r.landlord_provisions.detail });
+  if (v('certification_required') !== 'unknown') faq.push({ q: `What certification does a kit need in ${s.name}?`, a: r.certification_required.detail });
+  faq.push({ q: `Which kits are confirmed to qualify in ${s.name}?`, a: anyCompatible ? 'See the kit table on this page.' : `None yet. We have not seen a certificate covering a complete kit, so no kit is marked compatible in ${s.name}.` });
+} else if (s.status === 'no_bill_found' || s.status === 'bill_failed_or_dead' || s.status === 'bill_active') {
+  faq.push({ q: `Is plug-in solar legal in ${s.name}?`, a: `${s.name} has no plug-in solar law${s.status === 'bill_active' ? ' yet, though a bill is pending' : ''}. Without one, small plug-in systems fall under your utility's own interconnection rules. Ask your utility before you connect anything.` });
+}
+const faqLd = faq.length ? [{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) }] : [];
+const title = `Plug-in solar in ${s.name}: ${statusLabel(s)}`;
+const capText = typeof r.max_watts_ac.value === 'number' ? ` Limit: ${r.max_watts_ac.value.toLocaleString('en-US')} W.` : '';
+const description = `${s.name} plug-in (balcony) solar law: ${statusLabel(s).toLowerCase()}.${eff ? ` Effective ${fmtDate(eff)}.` : ''}${capText} Rules, sources and kit compatibility, checked ${fmtDate(s.last_checked)}.`.slice(0, 300);
+const VER: Record<string, string> = {
+  secondary_only: 'We could not confirm this on an official source yet. Details are held as unknown.',
+  partial: 'Some details on this page are confirmed on official sources and some are not; see the notes.',
+  not_checked_on_primary: 'We found no bill, but we have not yet searched this legislature\'s own bill database; see the notes.',
+};
+---
+<Base title={title} description={description} crumbs={[{ name: 'States', href: '/states/' },{ name: s.name, href: `/states/${s.slug}/` }]} ogImage={`/og/${s.slug}.png`} jsonLd={faqLd}>
+  <article>
+    <h1>Plug-in solar in {s.name}</h1>
+    <p><StatusPill state={s} /> <span class="small muted">Checked {fmtDate(s.last_checked)}</span></p>
+    {VER[s.verification] && <div class="note"><strong>{s.verification === 'secondary_only' ? 'Being verified.' : 'Note.'}</strong> {VER[s.verification]}</div>}
+    <p class="prose" style="font-size:1.1rem">{s.summary_plain}</p>
+    {eff && (
+      <p><strong>Effective date:</strong> {fmtDate(eff)}
+        {s.bills.find((b) => b.effective_date_basis === 'derived') && <span class="small muted"> (derived from the law's effective-date clause)</span>}</p>
+    )}
+
+    {s.bills.length > 0 && (
+      <section aria-labelledby="bills-h">
+        <h2 id="bills-h">{enacted ? 'The law' : 'Bills'}</h2>
+        <div class="table-wrap"><table class="stack">
+          <thead><tr><th scope="col">Bill</th><th scope="col">Stage</th><th scope="col">Last action</th><th scope="col">Dates</th></tr></thead>
+          <tbody>{s.bills.map((b) => (
+            <tr>
+              <th scope="row"><a href={b.url} rel="noopener">{b.id}</a><br /><span class="small muted">{b.title}</span>{b.chapter && <><br /><span class="small">{b.chapter}</span></>}</th>
+              <td data-label="Stage">{STAGE[b.stage]}</td>
+              <td data-label="Last action" class="small">{b.last_action}{b.last_action_date !== 'unknown' && <> ({fmtDate(b.last_action_date)})</>}</td>
+              <td class="small">
+                {b.signed_date !== 'not_applicable' && <>Signed: {fmtDate(b.signed_date)}<br /></>}
+                {b.effective_date !== 'not_applicable' && <>Effective: {fmtDate(b.effective_date)}{b.effective_date_basis === 'derived' && ' (derived)'}<br /></>}
+                {b.session_end && <>Session ended: {fmtDate(b.session_end.date)}{b.session_end.source && <> (<a href={b.session_end.source.url} rel="noopener">record</a>)</>}</>}
+              </td>
+            </tr>
+          ))}</tbody>
+        </table></div>
+        {s.bills.map((b) => b.effective_date_note && <p class="small muted">{b.effective_date_note}</p>)}
+        {s.bills.map((b) => b.session_end && <p class="small muted">{b.session_end.detail}</p>)}
+      </section>
+    )}
+
+    <section aria-labelledby="rules-h">
+      <h2 id="rules-h">The rules</h2>
+      {enacted ? <RulesTable state={s} /> : <p>{s.name} has no enacted plug-in solar law. There are no state rules to list; your utility's interconnection rules apply.</p>}
+    </section>
+
+    <section aria-labelledby="next-h">
+      <h2 id="next-h">What's next</h2>
+      <p>{s.watch_notes}</p>
+    </section>
+
+    {enacted && (
+      <section aria-labelledby="kits-h">
+        <h2 id="kits-h">Kits in {s.name}</h2>
+        <KitTable state={s} />
+        {!anyCompatible && <p><a class="btn secondary" href="/certification-watch/">Get alerts when a certified kit qualifies</a></p>}
+      </section>
+    )}
+
+    <section aria-labelledby="save-h">
+      <h2 id="save-h">What could it save?</h2>
+      <StateSavings state={s} />
+      {typeof price === 'number' && <p class="small muted">Price source: EIA residential average, {prices.period}.</p>}
+    </section>
+
+    {faq.length > 0 && (
+      <section aria-labelledby="faq-h">
+        <h2 id="faq-h">Questions</h2>
+        {faq.map((f) => <><h3>{f.q}</h3><p class="prose">{f.a}</p></>)}
+      </section>
+    )}
+
+    <section aria-labelledby="nb-h">
+      <h2 id="nb-h">Neighbouring states</h2>
+      {nb.length ? <ul>{nb.map((n) => <li><a href={`/states/${n.slug}/`}>{n.name}</a>: <span class="small">{statusLabel(n)}</span></li>)}</ul> : <p>{s.name} shares no land border with another state. <a href="/#table-h">See all states</a>.</p>}
+      <p class="small">Related: <a href="/kits/">all kits</a> · <a href="/certification-watch/">Certification watch</a> · <a href="/how-we-verify/">how we verify</a></p>
+    </section>
+
+    <section aria-labelledby="src-h">
+      <h2 id="src-h">Sources</h2>
+      <SourceList sources={s.sources} />
+      {s.notes && <p class="small muted">Research note: {s.notes}</p>}
+    </section>
+    <Disclaimer />
+  </article>
+</Base>

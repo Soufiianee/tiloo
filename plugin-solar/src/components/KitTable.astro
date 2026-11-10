@@ -1,0 +1,39 @@
+---
+import type { State } from '../lib/schema';
+import { kits, kitVerdict, ul3700, isEnacted } from '../lib/data';
+import { verdictLabel, needsSystemCert } from '../lib/compat';
+import { CERT_STATUS, SCOPE } from '../lib/labels';
+interface Props { state: State }
+const { state } = Astro.props;
+const rows = kits.map((k) => ({ k, v: kitVerdict(state, k), u: ul3700(k) }));
+const order = ['compatible', 'check_with_seller', 'unverified_claim', 'no_evidence', 'output_unknown', 'over_cap', 'rules_unknown', 'no_state_law'];
+rows.sort((a, b) => order.indexOf(a.v) - order.indexOf(b.v));
+const anyCompatible = rows.some((r) => r.v === 'compatible');
+const strict = isEnacted(state) && needsSystemCert(state.rules.certification_required.value);
+---
+{isEnacted(state) && !anyCompatible && (
+  <div class="note">
+    <strong>No kit is confirmed compatible in {state.name} yet.</strong>
+    {strict
+      ? ` ${state.name}'s law requires ${state.rules.certification_required.value === 'plug_in_system_certification' ? 'certification as a complete plug-in system' : 'UL 3700 (or a comparable standard)'}, and we have not seen that certificate for any complete kit.`
+      : ' We have not seen a certificate covering a complete kit. A certificate for a single component (like the inverter) is not enough for us to call a kit compatible.'}
+    {' '}<a href="/certification-watch/">Follow Certification watch</a>.
+  </div>
+)}
+<div class="table-wrap">
+  <table class="stack">
+    <caption class="visually-hidden">Kits checked against {state.name}'s rules</caption>
+    <thead><tr><th scope="col">Kit</th><th scope="col">AC output</th><th scope="col">UL 3700</th><th scope="col">Fit in {state.name}</th></tr></thead>
+    <tbody>
+      {rows.map(({ k, v, u }) => (
+        <tr>
+          <th scope="row"><a href={`/kits/${k.slug}/`}>{k.brand} {k.model}</a></th>
+          <td data-label="AC output" class="num">{typeof k.ac_output_w === 'number' ? `${k.ac_output_w.toLocaleString('en-US')} W${k.ac_output_basis === 'estimated' ? ' (estimated)' : ''}` : 'Not stated'}</td>
+          <td data-label="UL 3700" class="small">{u ? `${CERT_STATUS[u.status]}${u.status === 'certified' ? ', ' + SCOPE[u.scope] : ''}` : 'Unknown'}</td>
+          <td data-label="Fit" class={`v-${v}`}><strong>{verdictLabel[v]}</strong></td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+<p class="small muted">"Check with seller" means a certificate exists for a part of the kit only. "Compatible" requires a certificate for the complete system and output within the state's limit. <a href="/how-we-verify/#kits">How we judge kits</a>.</p>

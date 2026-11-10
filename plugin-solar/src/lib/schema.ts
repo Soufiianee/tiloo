@@ -94,7 +94,14 @@ export const bill = z.object({
   last_action_date: z.union([isoDate, UNKNOWN]),
   signed_date: z.union([isoDate, UNKNOWN, z.literal(NA)]),
   effective_date: z.union([isoDate, UNKNOWN, z.literal(NA)]),
+  /** how the effective date was obtained: printed in the law, or derived from its clause / a constitutional default */
+  effective_date_basis: z.enum(['stated_in_law', 'derived', NA, 'unknown']),
+  effective_date_note: z.string().optional(),
   chapter: z.string().optional(),
+  /** for dead bills: the official end of the session in which the bill died */
+  session_end: z
+    .object({ date: z.union([isoDate, UNKNOWN]), detail: z.string(), source: z.union([source, z.null()]) })
+    .optional(),
 });
 
 export const stateStatus = z.enum([
@@ -119,6 +126,8 @@ export const state = z
     name: z.string().min(4),
     slug: z.string().regex(/^[a-z-]+$/),
     status: stateStatus,
+    /** optional human label that overrides the default status wording (e.g. NH) */
+    status_label: z.string().optional(),
     verification,
     bills: z.array(bill),
     rules,
@@ -171,6 +180,7 @@ export const kit = z
     slug: z.string().regex(/^[a-z0-9-]+$/),
     product_type: z.enum(['complete_kit', 'inverter_only', 'inverter_with_battery']),
     ac_output_w: z.union([z.number().int().positive(), UNKNOWN]),
+    ac_output_basis: z.enum(['manufacturer_stated', 'estimated', 'unknown']),
     panel_w_total: z.union([z.number().int().nonnegative(), UNKNOWN, z.literal('not_included')]),
     inverter: z.string().min(2),
     battery_included: z.union([z.boolean(), UNKNOWN]),
@@ -197,6 +207,9 @@ export const kitsFile = z.array(kit).min(1);
 export const pricesFile = z.object({
   dataset: z.string(),
   period: z.string(),
+  period_start: z.string().regex(/^\d{4}-\d{2}$/),
+  period_end: z.string().regex(/^\d{4}-\d{2}$/),
+  method: z.string(),
   unit: z.literal('cents_per_kwh'),
   source: source,
   states: z.record(z.string().regex(/^[A-Z]{2}$/), z.union([z.number().positive(), UNKNOWN])),
@@ -204,23 +217,23 @@ export const pricesFile = z.object({
 });
 
 // ---------- solar yield ----------
-export const yieldRecord = z.object({
+export const yieldScenario = z.object({
   kwh_per_kw_year: z.union([z.number().positive(), UNKNOWN]),
-  location: z.string(),
-  lat: z.number().optional(),
-  lon: z.number().optional(),
-  method: z.string(),
   source: z.union([source, z.null()]),
 });
+export const yieldRecord = z.object({
+  location: z.string(),
+  lat: z.number(),
+  lon: z.number(),
+  scenarios: z.object({ ideal: yieldScenario, vertical: yieldScenario }),
+});
 export const yieldFile = z.object({
-  assumptions: z.object({
-    model: z.string(),
-    system_capacity_kw_dc: z.number(),
-    tilt_deg: z.number(),
-    azimuth_deg: z.number(),
-    array_type: z.string(),
-    losses_pct: z.number(),
+  model: z.string(),
+  scenario_definitions: z.object({
+    ideal: z.object({ label: z.string(), tilt_deg: z.number(), azimuth_deg: z.number() }),
+    vertical: z.object({ label: z.string(), tilt_deg: z.number(), azimuth_deg: z.number() }),
   }),
+  common: z.object({ system_capacity_kw_dc: z.number(), array_type: z.string(), module_type: z.string(), losses_pct: z.number() }),
   fallback_note: z.string(),
   states: z.record(z.string().regex(/^[A-Z]{2}$/), yieldRecord),
   last_checked: isoDate,
@@ -240,12 +253,20 @@ export const updatesFile = z.array(update);
 // ---------- config ----------
 export const affiliatesFile = z.record(
   z.string(),
-  z.object({ label: z.string(), program: z.string(), affiliate_id: z.string(), notes: z.string().optional() }),
+  z.object({
+    label: z.string(),
+    program: z.string(),
+    affiliate_id: z.string(),
+    /** e.g. "{raw_url}?ref={id}"; links stay plain until BOTH affiliate_id and link_template are set */
+    link_template: z.string(),
+    notes: z.string().optional(),
+  }),
 );
 export const siteFile = z.object({
   SITE_NAME: z.string(),
   BASE_URL: z.string().url(),
   CONTACT_EMAIL: z.string(),
   EMAIL_SIGNUP_EMBED_URL: z.string(),
+  CERT_WATCH_SIGNUP_EMBED_URL: z.string(),
   ANALYTICS: z.object({ provider: z.string(), key: z.string() }),
 });

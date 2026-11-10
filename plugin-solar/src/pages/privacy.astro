@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../lib/data';
+const analytics = Boolean(site.ANALYTICS.key);
+const signup = Boolean(site.CERT_WATCH_SIGNUP_EMBED_URL || site.EMAIL_SIGNUP_EMBED_URL);
+---
+<Base title="Privacy" description="No accounts, no cookies, no personal data collected by this site." crumbs={[{ name: 'Privacy', href: '/privacy/' }]}>
+  <article class="prose">
+    <h1>Privacy</h1>
+    <p>This is a static website. There are no accounts and no forms that send data to us. The site sets no cookies.</p>
+    <h2>What stays on your device</h2>
+    <p>If you switch between light and dark themes, your choice is saved in your browser's local storage so the site remembers it. It never leaves your device. The savings calculator runs entirely in your browser; nothing you type is sent anywhere.</p>
+    <h2>Analytics</h2>
+    {analytics
+      ? <p>We use {site.ANALYTICS.provider}, a privacy-friendly analytics service. It counts page views without cookies and without collecting personal data.</p>
+      : <p>No analytics are running on this site.</p>}
+    <h2>Email alerts</h2>
+    {signup
+      ? <p>If you sign up for alerts, the form is run by our email provider, and your address is stored by that provider. We use it only to send the alerts you asked for, and you can unsubscribe from any email.</p>
+      : <p>Email alerts are not running yet. If we add them, they will use a separate email provider, and we will update this page first.</p>}
+    <h2>Links to other sites</h2>
+    <p>We link to legislatures, government data and sellers. Those sites have their own privacy policies.</p>
+  </article>
+</Base>

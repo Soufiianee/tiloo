@@ -9,10 +9,15 @@
     "dev": "astro dev",
     "build": "npm run validate && astro build",
     "preview": "astro preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "yield": "tsx scripts/pvwatts.ts",
+    "staleness": "tsx scripts/staleness.ts"
   },
   "devDependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "@resvg/resvg-js": "^2.6.2",
     "astro": "^5.18.2",
+    "satori": "^0.12.2",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vitest": "^3.2.7",

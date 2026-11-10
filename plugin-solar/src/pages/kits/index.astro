@@ -1,0 +1,29 @@
+---
+import Base from '../../layouts/Base.astro';
+import { kits, ul3700, fmtDate } from '../../lib/data';
+import { CERT_STATUS, SCOPE, PRODUCT_TYPE } from '../../lib/labels';
+const sorted = [...kits].sort((a, b) => (a.brand + a.model).localeCompare(b.brand + b.model));
+---
+<Base title="Plug-in solar kits sold in the US" description={`${kits.length} plug-in solar kits and inverters sold for US plug-in use, with output, price and UL 3700 status taken from certificates, not marketing.`} crumbs={[{ name: 'Kits', href: '/kits/' }]}>
+  <h1>Plug-in solar kits</h1>
+  <p class="prose">Products sold for US plug-in use by major brands and notable sellers. We mark a product "certified" only when we have seen a certificate; a claim on a product page is shown as a claim. <a href="/certification-watch/">Certification watch</a> tracks UL 3700 status.</p>
+  <div class="table-wrap"><table class="stack">
+    <thead><tr><th scope="col">Product</th><th scope="col">Type</th><th scope="col">AC output</th><th scope="col">Panels</th><th scope="col">Price</th><th scope="col">UL 3700</th></tr></thead>
+    <tbody>
+      {sorted.map((k) => {
+        const u = ul3700(k);
+        return (
+          <tr>
+            <th scope="row"><a href={`/kits/${k.slug}/`}>{k.brand} {k.model}</a></th>
+            <td data-label="Type" class="small">{PRODUCT_TYPE[k.product_type]}</td>
+            <td data-label="AC output" class="num">{typeof k.ac_output_w === 'number' ? `${k.ac_output_w.toLocaleString('en-US')} W${k.ac_output_basis === 'estimated' ? ' (estimated)' : ''}` : 'Not stated'}</td>
+            <td data-label="Panels" class="num">{typeof k.panel_w_total === 'number' ? `${k.panel_w_total} W` : k.panel_w_total === 'not_included' ? 'Not included' : 'Unknown'}</td>
+            <td data-label="Price" class="num">{typeof k.price_usd === 'number' ? `$${k.price_usd.toLocaleString('en-US')}` : 'Unknown'}{k.price_checked_on && <span class="small muted"><br />{fmtDate(k.price_checked_on)}</span>}</td>
+            <td data-label="UL 3700" class="small">{u ? CERT_STATUS[u.status] + (u.status === 'certified' ? ` (${SCOPE[u.scope]})` : '') : 'Unknown'}</td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table></div>
+  <p class="small muted">Prices are what the seller listed on the date shown and change often. We have no affiliate relationships yet; see the <a href="/affiliate-disclosure/">affiliate disclosure</a>.</p>
+</Base>

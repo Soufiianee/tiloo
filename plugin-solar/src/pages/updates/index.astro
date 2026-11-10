@@ -1,0 +1,17 @@
+---
+import Base from '../../layouts/Base.astro';
+import { updates, byCode, fmtDate } from '../../lib/data';
+---
+<Base title="Updates: plug-in solar law and data changes" description="Every change to a state law record or kit record on this site, newest first, with the source for each." crumbs={[{ name: 'Updates', href: '/updates/' }]}>
+  <h1>Updates</h1>
+  <p class="prose">Every law or data change, newest first. Subscribe with the <a href="/updates/rss.xml">RSS feed</a>.</p>
+  <ol style="list-style:none;padding:0">
+    {updates.map((u) => (
+      <li class="card" style="margin-bottom:0.8rem">
+        <p class="small muted" style="margin:0"><time datetime={u.date}>{fmtDate(u.date)}</time>{u.state && <> · <a href={`/states/${byCode[u.state].slug}/`}>{byCode[u.state].name}</a></>}</p>
+        <h2 style="margin:0.2rem 0 0.4rem;font-size:1.15rem">{u.title}</h2>
+        <p style="margin:0">{u.body} <a href={u.source.url} rel="noopener" class="small">Source</a></p>
+      </li>
+    ))}
+  </ol>
+</Base>

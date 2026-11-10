@@ -1,0 +1,104 @@
+---
+import '../styles/global.css';
+import { site, absUrl } from '../lib/data';
+
+interface Crumb { name: string; href: string }
+interface Props {
+  title: string;
+  description: string;
+  crumbs?: Crumb[]; // excluding Home
+  ogImage?: string; // path
+  jsonLd?: object[];
+  noindex?: boolean;
+}
+const { title, description, crumbs = [], ogImage = '/og/default.png', jsonLd = [], noindex = false } = Astro.props;
+const path = Astro.url.pathname;
+const canonical = absUrl(path);
+const name = site.SITE_NAME === 'TBD' ? 'Plug-in Solar Tracker' : site.SITE_NAME;
+const fullTitle = path === '/' ? `${name}: ${title}` : `${title} | ${name}`;
+const allCrumbs = [{ name: 'Home', href: '/' }, ...crumbs];
+const breadcrumbLd = {
+  '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+  itemListElement: allCrumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: absUrl(c.href) })),
+};
+const nav = [
+  ['/', 'Check your state'], ['/kits/', 'Kits'], ['/certification-watch/', 'Certification watch'],
+  ['/updates/', 'Updates'], ['/how-we-verify/', 'How we verify'],
+];
+const analytics = site.ANALYTICS.key ? site.ANALYTICS : null;
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  {noindex && <meta name="robots" content="noindex" />}
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="alternate" type="application/rss+xml" title={`${name} updates`} href="/updates/rss.xml" />
+  <meta name="color-scheme" content="light dark" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content={name} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={absUrl(ogImage)} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script is:inline>
+    try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)} />
+  {jsonLd.map((j) => <script type="application/ld+json" set:html={JSON.stringify(j)} />)}
+  {analytics && analytics.provider === 'plausible' && <script defer data-domain={analytics.key} src="https://plausible.io/js/script.js"></script>}
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/">{name}</a>
+      <nav aria-label="Main">
+        <ul class="nav">
+          {nav.map(([href, label]) => <li><a href={href} aria-current={path === href ? 'page' : undefined}>{label}</a></li>)}
+        </ul>
+      </nav>
+      <button class="theme-btn" type="button" id="theme-btn" aria-label="Switch colour theme">Theme</button>
+    </div>
+  </header>
+  <main id="main" class="wrap">
+    {crumbs.length > 0 && (
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <ol>{allCrumbs.map((c, i) => <li>{i === allCrumbs.length - 1 ? <span aria-current="page">{c.name}</span> : <a href={c.href}>{c.name}</a>}</li>)}</ol>
+      </nav>
+    )}
+    <slot />
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <p><strong>{name}</strong> is an independent information site. It is not a government website and is not legal or electrical advice.</p>
+      <ul>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/how-we-verify/">How we verify</a></li>
+        <li><a href="/updates/">Updates</a></li>
+        <li><a href="/disclaimer/">Disclaimer</a></li>
+        <li><a href="/privacy/">Privacy</a></li>
+        <li><a href="/affiliate-disclosure/">Affiliate disclosure</a></li>
+        {site.CONTACT_EMAIL && <li><a href="/contact/">Contact</a></li>}
+      </ul>
+    </div>
+  </footer>
+  <script is:inline>
+    (function () {
+      var b = document.getElementById('theme-btn'); if (!b) return;
+      b.addEventListener('click', function () {
+        var r = document.documentElement, cur = r.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        var next = cur === 'dark' ? 'light' : 'dark'; r.dataset.theme = next;
+        try { localStorage.setItem('theme', next); } catch (e) {}
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+---
+import Base from '../layouts/Base.astro';
+import Signup from '../components/Signup.astro';
+import Disclaimer from '../components/Disclaimer.astro';
+import { kits, states, isEnacted, kitVerdict, ul3700, fmtDate, site } from '../lib/data';
+import { needsSystemCert } from '../lib/compat';
+import { CERT_STATUS, SCOPE } from '../lib/labels';
+
+const rows = kits.map((k) => ({ k, u: ul3700(k) })).sort((a, b) => {
+  const o = ['certified', 'pending_or_claimed', 'not_certified', 'unknown'];
+  return o.indexOf(a.u?.status ?? 'unknown') - o.indexOf(b.u?.status ?? 'unknown');
+});
+const systemCertified = rows.filter((r) => r.u?.status === 'certified' && r.u.scope === 'complete_system');
+const componentCertified = rows.filter((r) => r.u?.status === 'certified' && r.u.scope === 'component');
+const claimed = rows.filter((r) => r.u?.status === 'pending_or_claimed');
+const strictStates = states.filter((s) => isEnacted(s) && needsSystemCert(s.rules.certification_required.value)).sort((a, b) => a.name.localeCompare(b.name));
+const checked = kits.map((k) => k.last_checked).sort().reverse()[0];
+const signupOn = Boolean(site.CERT_WATCH_SIGNUP_EMBED_URL);
+---
+<Base title="Certification watch: UL 3700 status of plug-in solar kits" description={`Which plug-in solar kits have UL 3700 or complete-system certification. As of ${fmtDate(checked)}: ${systemCertified.length} complete kits confirmed, ${componentCertified.length} component certificate, ${claimed.length} unverified claims.`} crumbs={[{ name: 'Certification watch', href: '/certification-watch/' }]}>
+  <h1>Certification watch</h1>
+  <p class="prose" style="font-size:1.1rem">UL 3700 is the North American safety standard written for plug-in solar systems. Some state laws require it, or certification of the whole system, before a kit qualifies. This page tracks which products have that certificate, based on certificates we have seen, not marketing.</p>
+
+  <div class={systemCertified.length ? 'note info' : 'note'}>
+    <strong>As of {fmtDate(checked)}: {systemCertified.length === 0 ? 'no complete plug-in kit is confirmed to UL 3700.' : `${systemCertified.length} complete kit${systemCertified.length > 1 ? 's are' : ' is'} confirmed to UL 3700.`}</strong>
+    {componentCertified.length > 0 && ` ${componentCertified.length} inverter has a UL 3700 certificate as a component only, which does not cover a whole kit.`}
+    {claimed.length > 0 && ` ${claimed.length} products claim UL 3700 without a certificate we could find.`}
+  </div>
+
+  <h2>States where this matters most</h2>
+  <p>These states' laws name UL 3700 (or a comparable standard) or require certification as a complete plug-in system:</p>
+  <ul>
+    {strictStates.map((s) => {
+      const ok = kits.filter((k) => kitVerdict(s, k) === 'compatible').length;
+      return <li><a href={`/states/${s.slug}/`}>{s.name}</a>: {ok ? `${ok} confirmed kit${ok > 1 ? 's' : ''}` : 'no confirmed kit yet'}</li>;
+    })}
+  </ul>
+  <p class="small muted">Other states ask for certification by UL or an equivalent lab without naming a standard. We apply the same rule there: a component certificate alone is "check with seller", never "compatible".</p>
+
+  <h2>Status by product</h2>
+  <div class="table-wrap"><table class="stack">
+    <thead><tr><th scope="col">Product</th><th scope="col">UL 3700 status</th><th scope="col">Certifier and conditions</th><th scope="col">Evidence</th></tr></thead>
+    <tbody>{rows.map(({ k, u }) => (
+      <tr>
+        <th scope="row"><a href={`/kits/${k.slug}/`}>{k.brand} {k.model}</a></th>
+        <td data-label="UL 3700 status"><strong>{u ? CERT_STATUS[u.status] : 'Unknown'}</strong>{u && u.status === 'certified' && <><br />{SCOPE[u.scope]}</>}</td>
+        <td data-label="Certifier and conditions" class="small">{u && u.certifier !== 'unknown' && u.certifier !== 'not applicable' && <>{u.certifier}<br /></>}{u?.conditions}</td>
+        <td data-label="Evidence" class="small">{u && u.evidence_url !== 'unknown' ? <a href={u.evidence_url} rel="noopener">Evidence</a> : 'None found'}{u && <><br /><span class="muted">Checked {fmtDate(u.checked_on)}</span></>}</td>
+      </tr>
+    ))}</tbody>
+  </table></div>
+
+  <h2>How we check</h2>
+  <p class="prose">We mark a product "certified" only with an entry in the certifier's public directory or a certificate document. A product page that says "UL 3700 compliant" counts as a claim. We also record what the certificate covers: a single component, such as an inverter, or the complete system you plug in. On {fmtDate(checked)}, UL's Product iQ and CSA's directory could not be reached from our research tools, so the one certificate listed comes from a CSA certificate the manufacturer publishes. We re-check every week. <a href="/how-we-verify/#kits">Full method</a>.</p>
+
+  {signupOn ? <Signup kind="cert" /> : <p>Email alerts are not set up yet. To follow changes now, use the <a href="/updates/rss.xml">updates RSS feed</a>.</p>}
+  <Disclaimer />
+</Base>

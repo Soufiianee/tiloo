@@ -55,7 +55,8 @@
         "type": "manufacturer_page"
       }
     ],
-    "last_checked": "2026-11-10"
+    "last_checked": "2026-11-10",
+    "ac_output_basis": "manufacturer_stated"
   },
   {
     "brand": "EcoFlow",
@@ -107,7 +108,8 @@
         "type": "manufacturer_page"
       }
     ],
-    "last_checked": "2026-11-10"
+    "last_checked": "2026-11-10",
+    "ac_output_basis": "manufacturer_stated"
   },
   {
     "brand": "EcoFlow",
@@ -159,7 +161,8 @@
         "type": "manufacturer_page"
       }
     ],
-    "last_checked": "2026-11-10"
+    "last_checked": "2026-11-10",
+    "ac_output_basis": "manufacturer_stated"
   },
   {
     "brand": "EcoFlow",
@@ -211,7 +214,8 @@
         "type": "manufacturer_page"
       }
     ],
-    "last_checked": "2026-11-10"
+    "last_checked": "2026-11-10",
+    "ac_output_basis": "manufacturer_stated"
   },
   {
     "brand": "Hoymiles",
@@ -263,7 +267,8 @@
         "type": "manufacturer_page"
       }
     ],
-    "last_checked": "2026-11-10"
+    "last_checked": "2026-11-10",
+    "ac_output_basis": "manufacturer_stated"
   },
   {
     "brand": "Hoymiles",
@@ -309,7 +314,8 @@
         "type": "manufacturer_page"
       }
     ],
-    "last_checked": "2026-11-10"
+    "last_checked": "2026-11-10",
+    "ac_output_basis": "manufacturer_stated"
   },
   {
     "brand": "Bright Saver",
@@ -361,7 +367,8 @@
         "type": "manufacturer_page"
       }
     ],
-    "last_checked": "2026-11-10"
+    "last_checked": "2026-11-10",
+    "ac_output_basis": "unknown"
   },
   {
     "brand": "Bright Saver",
@@ -412,7 +419,8 @@
         "type": "manufacturer_page"
       }
     ],
-    "last_checked": "2026-11-10"
+    "last_checked": "2026-11-10",
+    "ac_output_basis": "unknown"
   },
   {
     "brand": "CraftStrom",
@@ -455,7 +463,7 @@
         "affiliate_slot": "craftstrom"
       }
     ],
-    "notes": "Includes 4 x 200 W bifacial panels and a \"Smart PowerMeter\" that the seller says limits export to the grid. AC output of 700 W is 2 x the 350 W inverter rating; battery add-ons are optional.",
+    "notes": "Includes 4 x 200 W bifacial panels and a \"Smart PowerMeter\" that the seller says limits export to the grid. Estimated AC output: 2 x the inverter's \"Ppeak: 350W @ 120V\" from the spec table. The seller does not state a kit total; battery add-ons are optional.",
     "sources": [
       {
         "title": "CraftStrom: 800 Watt Plug&Play Solar product page and store data",
@@ -464,7 +472,8 @@
         "type": "manufacturer_page"
       }
     ],
-    "last_checked": "2026-11-10"
+    "last_checked": "2026-11-10",
+    "ac_output_basis": "estimated"
   },
   {
     "brand": "CraftStrom",
@@ -507,7 +516,7 @@
         "affiliate_slot": "craftstrom"
       }
     ],
-    "notes": "Includes 6 x 200 W bifacial panels. AC output of 1,050 W is 3 x the 350 W inverter rating. Three inverters may count as more than one device under one-device-per-meter rules (Connecticut, Maryland); check your state.",
+    "notes": "Includes 6 x 200 W bifacial panels. Estimated AC output: 3 x the inverter's \"Ppeak: 350W @ 120V\" from the spec table. The seller does not state a kit total. Three inverters may count as more than one device under one-device-per-meter rules (Connecticut, Maryland); check your state.",
     "sources": [
       {
         "title": "CraftStrom: 1200 Watt Plug&Play Solar product page and store data",
@@ -516,6 +525,7 @@
         "type": "manufacturer_page"
       }
     ],
-    "last_checked": "2026-11-10"
+    "last_checked": "2026-11-10",
+    "ac_output_basis": "estimated"
   }
 ]

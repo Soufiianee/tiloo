@@ -1,0 +1,66 @@
+---
+import Base from '../../layouts/Base.astro';
+import SourceList from '../../components/SourceList.astro';
+import Disclaimer from '../../components/Disclaimer.astro';
+import { kits, states, isEnacted, kitVerdict, retailerLink, fmtDate } from '../../lib/data';
+import { verdictLabel } from '../../lib/compat';
+import { CERT_STATUS, SCOPE, PRODUCT_TYPE } from '../../lib/labels';
+import type { Kit } from '../../lib/schema';
+
+export function getStaticPaths() {
+  return kits.map((k) => ({ params: { slug: k.slug }, props: { kit: k } }));
+}
+const { kit: k } = Astro.props as { kit: Kit };
+const name = `${k.brand} ${k.model}`;
+const enacted = states.filter(isEnacted).sort((a, b) => a.name.localeCompare(b.name));
+const fit = enacted.map((s) => ({ s, v: kitVerdict(s, k) }));
+const ac = typeof k.ac_output_w === 'number' ? `${k.ac_output_w.toLocaleString('en-US')} W` : 'Not stated by the seller';
+const productLd = {
+  '@context': 'https://schema.org', '@type': 'Product', name, brand: { '@type': 'Brand', name: k.brand },
+  ...(typeof k.price_usd === 'number' && k.retailers[0] ? { offers: { '@type': 'Offer', price: k.price_usd, priceCurrency: 'USD', url: k.retailers[0].url } } : {}),
+};
+---
+<Base title={`${name}: specs and certification status`} description={`${name}: ${ac} AC output, ${typeof k.price_usd === 'number' ? '$' + k.price_usd + ', ' : ''}UL 3700 status from certificates, and which state limits it fits. Checked ${fmtDate(k.last_checked)}.`} crumbs={[{ name: 'Kits', href: '/kits/' }, { name, href: `/kits/${k.slug}/` }]} jsonLd={[productLd]}>
+  <h1>{name}</h1>
+  <p class="muted">{PRODUCT_TYPE[k.product_type]} · Checked {fmtDate(k.last_checked)}</p>
+
+  <h2>Specs</h2>
+  <dl class="kv">
+    <dt>AC output</dt><dd>{ac}{k.ac_output_basis === 'estimated' && <strong> (estimated)</strong>}</dd>
+    <dt>Panels</dt><dd>{typeof k.panel_w_total === 'number' ? `${k.panel_w_total} W included` : k.panel_w_total === 'not_included' ? 'Not included' : 'Unknown'}</dd>
+    <dt>Inverter</dt><dd>{k.inverter}</dd>
+    <dt>Battery</dt><dd>{k.battery_included === 'unknown' ? 'Unknown' : k.battery_included ? 'Included' : 'Not included'}</dd>
+    <dt>Plug</dt><dd>{k.plug_type === 'unknown' ? 'Not stated' : k.plug_type}</dd>
+    <dt>Price</dt><dd>{typeof k.price_usd === 'number' ? `$${k.price_usd.toLocaleString('en-US')} (seller's listed price on ${fmtDate(k.price_checked_on!)})` : 'Unknown'}</dd>
+  </dl>
+  {k.notes && <p class="prose">{k.notes}</p>}
+
+  <h2>Certification</h2>
+  <div class="table-wrap"><table class="stack">
+    <thead><tr><th scope="col">Standard</th><th scope="col">Status</th><th scope="col">Evidence</th></tr></thead>
+    <tbody>{k.certifications.map((c) => (
+      <tr>
+        <th scope="row">{c.standard}</th>
+        <td><strong>{CERT_STATUS[c.status]}</strong>{c.status === 'certified' && <>, {SCOPE[c.scope]}</>}{c.certifier !== 'unknown' && <><br /><span class="small muted">Certifier: {c.certifier}</span></>}{c.conditions && <><br /><span class="small">{c.conditions}</span></>}</td>
+        <td class="small">{c.evidence_url !== 'unknown' ? <a href={c.evidence_url} rel="noopener">Evidence</a> : 'None found'}<br /><span class="muted">Checked {fmtDate(c.checked_on)}</span></td>
+      </tr>
+    ))}</tbody>
+  </table></div>
+
+  <h2>Which state limits it fits</h2>
+  <div class="table-wrap"><table class="stack">
+    <thead><tr><th scope="col">State</th><th scope="col">Result</th></tr></thead>
+    <tbody>{fit.map(({ s, v }) => <tr><th scope="row"><a href={`/states/${s.slug}/`}>{s.name}</a></th><td class={`v-${v}`}>{verdictLabel[v]}</td></tr>)}</tbody>
+  </table></div>
+  <p class="small muted">Only states with an enacted law are listed. "Compatible" needs a certificate for the complete system and output within the limit. <a href="/how-we-verify/#kits">How we judge kits</a>.</p>
+
+  {k.retailers.length > 0 && (
+    <>
+      <h2>Where it is sold</h2>
+      <ul>{k.retailers.map((r) => { const l = retailerLink(r); return <li><a href={l.href} rel={l.rel}>{r.name}</a>{l.sponsored && <span class="tag">Sponsored link</span>}</li>; })}</ul>
+    </>
+  )}
+  <h2>Sources</h2>
+  <SourceList sources={k.sources} />
+  <Disclaimer />
+</Base>

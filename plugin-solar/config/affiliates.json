@@ -1,7 +1,33 @@
 {
-  "apsystems": { "label": "APsystems shop", "program": "", "affiliate_id": "", "notes": "Empty: links render as plain retailer links until an ID is added." },
-  "ecoflow": { "label": "EcoFlow US store", "program": "", "affiliate_id": "" },
-  "brightsaver": { "label": "Bright Saver", "program": "", "affiliate_id": "" },
-  "craftstrom": { "label": "CraftStrom", "program": "", "affiliate_id": "" },
-  "amazon": { "label": "Amazon", "program": "Amazon Associates", "affiliate_id": "" }
+  "apsystems": {
+    "label": "APsystems shop",
+    "program": "",
+    "affiliate_id": "",
+    "notes": "Empty: links render as plain retailer links until affiliate_id AND link_template are set. Template placeholders: {raw_url}, {url} (encoded), {id}.",
+    "link_template": ""
+  },
+  "ecoflow": {
+    "label": "EcoFlow US store",
+    "program": "",
+    "affiliate_id": "",
+    "link_template": ""
+  },
+  "brightsaver": {
+    "label": "Bright Saver",
+    "program": "",
+    "affiliate_id": "",
+    "link_template": ""
+  },
+  "craftstrom": {
+    "label": "CraftStrom",
+    "program": "",
+    "affiliate_id": "",
+    "link_template": ""
+  },
+  "amazon": {
+    "label": "Amazon",
+    "program": "Amazon Associates",
+    "affiliate_id": "",
+    "link_template": ""
+  }
 }

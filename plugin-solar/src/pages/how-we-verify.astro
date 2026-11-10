@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import { states, kits, prices, yields, fmtDate } from '../lib/data';
+const counts = { primary: states.filter((s) => s.verification === 'primary').length, other: states.filter((s) => s.verification !== 'primary').length };
+const unknownStates = states.filter((s) => s.status === 'unknown').map((s) => s.name);
+---
+<Base title="How we verify" description="Our method: every legal fact comes from a legislature bill page, enacted text, governor record or utility commission. Kits count as certified only with a certificate." crumbs={[{ name: 'How we verify', href: '/how-we-verify/' }]}>
+  <article class="prose">
+    <h1>How we verify</h1>
+    <p>This site exists to be right, not to be first. These are the rules we follow.</p>
+
+    <h2>State laws</h2>
+    <ol>
+      <li><strong>Primary sources only.</strong> Every legal fact (status, bill number, dates, size limit, battery rules, utility notice, landlord and HOA rules, certification, net metering) must come from the legislature's bill page, the enacted or chaptered text, a governor's signing record, or a state utility commission page.</li>
+      <li><strong>Trackers and news find leads; they are not evidence.</strong> When a tracker and the law disagree, the law wins, and we log the conflict.</li>
+      <li><strong>Every rule shows its source.</strong> Each row in a state's rules table links to the section of the law it comes from.</li>
+      <li><strong>No guesses.</strong> If we cannot confirm a fact, we mark it "unknown" and explain why. We do not estimate dates, wattages or certifications.</li>
+      <li><strong>Derived dates are labelled.</strong> Some laws don't print a calendar date. They take effect "six months after enactment" or on a constitutional default date. We work out the date and mark it as derived.</li>
+    </ol>
+    <p>Each state page carries a verification level. Today {counts.primary} records are fully traced to primary sources. {counts.other} have a note explaining what is still unconfirmed. We could not yet confirm the status in {unknownStates.join(', ')}, because their legislature websites did not load for our research tools. We list them as "status not yet confirmed" rather than repeat a tracker.</p>
+
+    <h2 id="kits">Kits and certification</h2>
+    <ul>
+      <li><strong>Certified</strong>: we have seen the certifier's public directory entry or a certificate document.</li>
+      <li><strong>Claimed</strong>: the maker says so, but we found no certificate.</li>
+      <li><strong>Not certified</strong>: the maker or seller says it is not certified.</li>
+      <li><strong>Unknown</strong>: no claim and no evidence either way.</li>
+    </ul>
+    <p>We also record what a certificate covers. A UL 3700 certificate for an inverter "as a component" is not a certificate for the kit you plug in. So we call a kit <strong>compatible</strong> with a state only when two things hold. Its stated output is within the state's limit, and a certificate covers the complete system. A component-only certificate is shown as "check with seller", never "compatible". Specs and prices come from the maker's or seller's own pages, with the date we checked. An output we calculated from the parts is labelled "estimated".</p>
+
+    <h2>Savings estimates</h2>
+    <p>Electricity prices are U.S. EIA residential averages for {prices.period}: total revenue divided by total sales, from Form EIA-861M. Solar output comes from {yields.model}, run for each state capital in two cases: 20° tilt facing south, and vertical (90°) facing south. Where a figure is missing, we show no estimate.</p>
+
+    <h2>Update schedule</h2>
+    <p>We re-check every record at least weekly. We check sooner when a bill has a vote scheduled or a law is about to take effect. Each page shows the date it was last checked. Every change is logged on the <a href="/updates/">updates page</a> and in its RSS feed.</p>
+    <p class="small muted">Records last checked: {fmtDate(states.map((s) => s.last_checked).sort()[0])} (oldest state record) · {kits.length} kits tracked.</p>
+
+    <h2>Corrections</h2>
+    <p>If you find an error, we want to know. Corrections are logged on the updates page with the source we used.</p>
+  </article>
+</Base>

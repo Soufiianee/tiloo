@@ -1,0 +1,14 @@
+---
+import Base from '../layouts/Base.astro';
+import { affiliates } from '../lib/data';
+const active = Object.values(affiliates).filter((a) => a.affiliate_id && a.link_template);
+---
+<Base title="Affiliate disclosure" description="How retailer links on this site work, and why they never change our data." crumbs={[{ name: 'Affiliate disclosure', href: '/affiliate-disclosure/' }]}>
+  <article class="prose">
+    <h1>Affiliate disclosure</h1>
+    {active.length
+      ? <p>Some retailer links on this site are affiliate links. If you buy through one, we may earn a commission at no extra cost to you. These links are marked "Sponsored link" and carry <code>rel="sponsored"</code>. Active programs: {active.map((a) => a.label).join(', ')}.</p>
+      : <p>Right now this site has <strong>no</strong> affiliate links. Retailer links go straight to the seller, and we earn nothing from them.</p>}
+    <p>If we add affiliate links later, each one will be marked "Sponsored link" next to the link. Money never affects what we publish. A kit's certification status, its fit with state laws and its place in our tables come only from the evidence described in <a href="/how-we-verify/">how we verify</a>. A seller cannot pay to be listed, to rank higher, or to change a status.</p>
+  </article>
+</Base>

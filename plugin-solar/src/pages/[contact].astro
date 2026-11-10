@@ -1,0 +1,21 @@
+---
+/**
+ * Contact page. Built ONLY when config/site.json has CONTACT_EMAIL set;
+ * until then no /contact/ page exists and the footer link is hidden.
+ */
+import Base from '../layouts/Base.astro';
+import { site } from '../lib/data';
+
+export function getStaticPaths() {
+  return site.CONTACT_EMAIL ? [{ params: { contact: 'contact' } }] : [];
+}
+const email = site.CONTACT_EMAIL;
+---
+<Base title="Contact" description="How to reach us with corrections or questions." crumbs={[{ name: 'Contact', href: '/contact/' }]}>
+  <article class="prose">
+    <h1>Contact</h1>
+    <p>Corrections and questions: <strong>{email}</strong></p>
+    <p>For a correction, please include the page and a link to the official source. We log every correction on the <a href="/updates/">updates page</a>.</p>
+    <p class="small muted">We cannot give legal or electrical advice about your situation.</p>
+  </article>
+</Base>
