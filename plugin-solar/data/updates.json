@@ -1,5 +1,33 @@
 [
   {
+    "date": "2026-11-10",
+    "state": null,
+    "kind": "data_correction",
+    "title": "Electricity prices now use a rolling 12-month average",
+    "body": "State electricity prices now use EIA's residential average for September 2025 – August 2026 (12 months), total revenue divided by total sales, replacing the January-August 2026 figure.",
+    "source": {
+      "title": "U.S. EIA, Form EIA-861M: Sales and revenue data by state, monthly (sales_revenue.xlsx)",
+      "url": "https://www.eia.gov/electricity/data/eia861m/",
+      "accessed": "2026-11-10",
+      "type": "government_data",
+      "note": "Data statuses in window: Final, Preliminary. File: https://www.eia.gov/electricity/data/eia861m/xls/sales_revenue.xlsx"
+    }
+  },
+  {
+    "date": "2026-11-10",
+    "state": "NH",
+    "kind": "data_correction",
+    "title": "New Hampshire: shown as \"Signed — details being verified\"",
+    "body": "Reports and an unofficial copy of the final text say SB 540 became Chapter 262, effective January 1, 2027. We could not reach the state legislature website to confirm it, so every New Hampshire rule is held as unknown until we do.",
+    "source": {
+      "title": "Copy of \"CHAPTER 262, SB 540-FN - FINAL VERSION\" (NH Liberty Alliance bill-text mirror)",
+      "url": "https://bills.nhliberty.org/bills/2026/SB540/revision/52678",
+      "accessed": "2026-11-10",
+      "type": "secondary_mirror",
+      "note": "Non-official copy. Used to describe the law pending primary confirmation; no rule value relies on it."
+    }
+  },
+  {
     "date": "2026-09-30",
     "state": "CA",
     "kind": "law_signed",

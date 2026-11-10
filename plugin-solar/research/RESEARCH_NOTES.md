@@ -77,3 +77,28 @@ Checked: **10 November 2026**. Everything below describes what was checked that 
 8. **CraftStrom AC outputs (700 W and 1,050 W).** Inferred from "2 × / 3 × 350W Smart Inverter" with "Max Input Power: 420W" on the product pages.
 9. **APsystems EZ1-LV as `certified` (UL 3700).** Rests on a CSA certificate PDF hosted by APsystems, not on the CSA directory. It covers the inverter as a component only, with conditions.
 10. **Virginia HOA reading (`covenants_preserved`).** Based on 15.2-2288.7(F), which says the section does not supersede HOA or condominium documents. A court could read it differently for devices on a tenant's own balcony.
+
+## 6. Phase 2 additions (10 November 2026)
+
+**Session ends, from official journals** (each linked on the state page):
+
+| State | Sine die | Record |
+|---|---|---|
+| Alaska | 20 May 2026, 9:43 p.m. | House Journal, May 20 |
+| Georgia | 2 Apr 2026 (Day 40) | House Status No. 40 |
+| Idaho | 2 Apr 2026 | Senate Journal, day 81 |
+| Iowa | 2 May 2026, 6:11 p.m. | House Journal, May 2 (H.C.R. 104) |
+| Missouri | 28 May 2026 | Senate Journal, 70th day (bill deadline was May 15) |
+| Oklahoma | 14 May 2026, 4:15 p.m. | Senate Journal, 54th legislative day |
+| South Carolina | 14 May 2026, 5:00 p.m. | House Journal, May 14 |
+| New Mexico | not confirmed | 2026 journals not found on nmlegis.gov |
+
+**New conflict:** NCSL's 2026 session calendar listed GA April 6, ID April 10, IA April 21 and SC May 7. The official journals show April 2, April 2, May 2 and May 14. We use the journals.
+
+**Colorado referendum:** the Secretary of State's "Amendments and Propositions on the 2026 Ballot" lists no referendum on HB26-1007, so the August 12, 2026 effective date stands. This removes item 2 of the least-sure list.
+
+**CraftStrom output:** the spec table lists "Ppeak: 350W @120V" per inverter and gives no kit total. The 700 W and 1,050 W figures are marked *estimated*.
+
+**Electricity prices:** switched to a rolling 12-month residential average (Sep 2025 – Aug 2026) from EIA Form 861M: total revenue divided by total sales.
+
+**Solar yield:** two scenarios per state capital, 20° and 90° facing south. Runs are blocked: the API key saved for developer.nlr.gov returns `API_KEY_INVALID`, and because it is injected into every request it also overrides the public demo key.

@@ -45,10 +45,10 @@ for (const [code, rec] of Object.entries<any>(data.states)) {
     sc.kwh_per_kw_year = Math.round(body.outputs.ac_annual);
     sc.source = {
       title: `NREL/NLR PVWatts v8: ${rec.location}, ${def.label}`,
-      url: `${API}?${q}`,
+      url: 'https://developer.nlr.gov/docs/solar/pvwatts/v8/',
       accessed: today,
       type: 'government_data',
-      note: `Solar resource file ${body.station_info?.solar_resource_file ?? 'n/a'}; API key omitted from URL.`,
+      note: `API query: ${q}. Solar resource file ${body.station_info?.solar_resource_file ?? 'n/a'}; API key omitted from URL.`,
     };
     changed++;
     console.log(`${code}/${name}: ${sc.kwh_per_kw_year} kWh per kW per year`);

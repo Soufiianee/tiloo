@@ -89,10 +89,10 @@
           "kwh_per_kw_year": 1627,
           "source": {
             "title": "NREL/NLR PVWatts API v8 result for Sacramento",
-            "url": "https://developer.nlr.gov/api/pvwatts/v8.json?lat=38.58&lon=-121.49&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+            "url": "https://developer.nlr.gov/docs/solar/pvwatts/v8/",
             "accessed": "2026-11-10",
             "type": "government_data",
-            "note": "Run with NREL public demo key; key omitted from URL."
+            "note": "API query: lat=38.58&lon=-121.49&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14. Run with NREL public demo key; key omitted from URL."
           }
         },
         "vertical": {
@@ -110,10 +110,10 @@
           "kwh_per_kw_year": 1600,
           "source": {
             "title": "NREL/NLR PVWatts API v8 result for Denver",
-            "url": "https://developer.nlr.gov/api/pvwatts/v8.json?lat=39.74&lon=-104.99&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+            "url": "https://developer.nlr.gov/docs/solar/pvwatts/v8/",
             "accessed": "2026-11-10",
             "type": "government_data",
-            "note": "Run with NREL public demo key; key omitted from URL."
+            "note": "API query: lat=39.74&lon=-104.99&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14. Run with NREL public demo key; key omitted from URL."
           }
         },
         "vertical": {
@@ -131,10 +131,10 @@
           "kwh_per_kw_year": 1263,
           "source": {
             "title": "NREL/NLR PVWatts API v8 result for Hartford",
-            "url": "https://developer.nlr.gov/api/pvwatts/v8.json?lat=41.76&lon=-72.67&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+            "url": "https://developer.nlr.gov/docs/solar/pvwatts/v8/",
             "accessed": "2026-11-10",
             "type": "government_data",
-            "note": "Run with NREL public demo key; key omitted from URL."
+            "note": "API query: lat=41.76&lon=-72.67&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14. Run with NREL public demo key; key omitted from URL."
           }
         },
         "vertical": {
@@ -347,10 +347,10 @@
           "kwh_per_kw_year": 1396,
           "source": {
             "title": "NREL/NLR PVWatts API v8 result for Annapolis",
-            "url": "https://developer.nlr.gov/api/pvwatts/v8.json?lat=38.98&lon=-76.49&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+            "url": "https://developer.nlr.gov/docs/solar/pvwatts/v8/",
             "accessed": "2026-11-10",
             "type": "government_data",
-            "note": "Run with NREL public demo key; key omitted from URL."
+            "note": "API query: lat=38.98&lon=-76.49&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14. Run with NREL public demo key; key omitted from URL."
           }
         },
         "vertical": {
@@ -368,10 +368,10 @@
           "kwh_per_kw_year": 1272,
           "source": {
             "title": "NREL/NLR PVWatts API v8 result for Augusta",
-            "url": "https://developer.nlr.gov/api/pvwatts/v8.json?lat=44.31&lon=-69.78&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+            "url": "https://developer.nlr.gov/docs/solar/pvwatts/v8/",
             "accessed": "2026-11-10",
             "type": "government_data",
-            "note": "Run with NREL public demo key; key omitted from URL."
+            "note": "API query: lat=44.31&lon=-69.78&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14. Run with NREL public demo key; key omitted from URL."
           }
         },
         "vertical": {
@@ -509,10 +509,10 @@
           "kwh_per_kw_year": 1265,
           "source": {
             "title": "NREL/NLR PVWatts API v8 result for Concord",
-            "url": "https://developer.nlr.gov/api/pvwatts/v8.json?lat=43.21&lon=-71.54&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+            "url": "https://developer.nlr.gov/docs/solar/pvwatts/v8/",
             "accessed": "2026-11-10",
             "type": "government_data",
-            "note": "Run with NREL public demo key; key omitted from URL."
+            "note": "API query: lat=43.21&lon=-71.54&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14. Run with NREL public demo key; key omitted from URL."
           }
         },
         "vertical": {
@@ -530,10 +530,10 @@
           "kwh_per_kw_year": 1346,
           "source": {
             "title": "NREL/NLR PVWatts API v8 result for Trenton",
-            "url": "https://developer.nlr.gov/api/pvwatts/v8.json?lat=40.22&lon=-74.76&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+            "url": "https://developer.nlr.gov/docs/solar/pvwatts/v8/",
             "accessed": "2026-11-10",
             "type": "government_data",
-            "note": "Run with NREL public demo key; key omitted from URL."
+            "note": "API query: lat=40.22&lon=-74.76&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14. Run with NREL public demo key; key omitted from URL."
           }
         },
         "vertical": {
@@ -731,10 +731,10 @@
           "kwh_per_kw_year": 1493,
           "source": {
             "title": "NREL/NLR PVWatts API v8 result for Salt Lake City",
-            "url": "https://developer.nlr.gov/api/pvwatts/v8.json?lat=40.76&lon=-111.89&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+            "url": "https://developer.nlr.gov/docs/solar/pvwatts/v8/",
             "accessed": "2026-11-10",
             "type": "government_data",
-            "note": "Run with NREL public demo key; key omitted from URL."
+            "note": "API query: lat=40.76&lon=-111.89&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14. Run with NREL public demo key; key omitted from URL."
           }
         },
         "vertical": {
@@ -752,10 +752,10 @@
           "kwh_per_kw_year": 1352,
           "source": {
             "title": "NREL/NLR PVWatts API v8 result for Richmond",
-            "url": "https://developer.nlr.gov/api/pvwatts/v8.json?lat=37.54&lon=-77.44&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+            "url": "https://developer.nlr.gov/docs/solar/pvwatts/v8/",
             "accessed": "2026-11-10",
             "type": "government_data",
-            "note": "Run with NREL public demo key; key omitted from URL."
+            "note": "API query: lat=37.54&lon=-77.44&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14. Run with NREL public demo key; key omitted from URL."
           }
         },
         "vertical": {
@@ -773,10 +773,10 @@
           "kwh_per_kw_year": 1202,
           "source": {
             "title": "NREL/NLR PVWatts API v8 result for Montpelier",
-            "url": "https://developer.nlr.gov/api/pvwatts/v8.json?lat=44.26&lon=-72.58&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+            "url": "https://developer.nlr.gov/docs/solar/pvwatts/v8/",
             "accessed": "2026-11-10",
             "type": "government_data",
-            "note": "Run with NREL public demo key; key omitted from URL."
+            "note": "API query: lat=44.26&lon=-72.58&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14. Run with NREL public demo key; key omitted from URL."
           }
         },
         "vertical": {

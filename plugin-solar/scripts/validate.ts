@@ -29,7 +29,7 @@ const affiliates = check('config/affiliates.json', affiliatesFile);
 check('config/site.json', siteFile);
 
 if (states) {
-  const codes = new Set(states.map((s: { code: string }) => s.code));
+  const codes = new Set<string>(states.map((s: { code: string }) => s.code));
   if (codes.size !== 51) errors.push(`states: expected 51 unique codes, got ${codes.size}`);
   const slugs = new Set(states.map((s: { slug: string }) => s.slug));
   if (slugs.size !== 51) errors.push('states: slugs must be unique');
