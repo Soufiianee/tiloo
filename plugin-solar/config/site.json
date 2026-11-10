@@ -1,0 +1,7 @@
+{
+  "SITE_NAME": "TBD",
+  "BASE_URL": "https://example.com",
+  "CONTACT_EMAIL": "",
+  "EMAIL_SIGNUP_EMBED_URL": "",
+  "ANALYTICS": { "provider": "plausible", "key": "" }
+}

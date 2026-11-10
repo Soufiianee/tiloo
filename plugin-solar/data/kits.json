@@ -1,0 +1,521 @@
+[
+  {
+    "brand": "APsystems",
+    "model": "EZ1-LV plug-in microinverter",
+    "slug": "apsystems-ez1-lv",
+    "product_type": "inverter_only",
+    "ac_output_w": 900,
+    "panel_w_total": "not_included",
+    "inverter": "APsystems EZ1-LV (2 inputs, independent MPPT; 900 VA max output)",
+    "battery_included": false,
+    "plug_type": "unknown",
+    "certifications": [
+      {
+        "standard": "UL 3700",
+        "status": "certified",
+        "scope": "component",
+        "certifier": "CSA Group",
+        "evidence_url": "https://usa.apsystems.com/document/ez1-certifications/",
+        "evidence_type": "manufacturer_certificate",
+        "checked_on": "2026-11-10",
+        "conditions": "CSA Certificate of Compliance 80310017 (issued 2026-07-15) certifies the EZ1-LV as a PIPV grid-interactive inverter \"interconnected with other subassembly plug-in equipment to form a PIPV System\". Conditions: further evaluation is needed when forming a complete system; for use on dedicated circuits (10 A breaker); a listed proprietary latching or locking plug and receptacle (mated pair) per UL 6703; a listed Class A GFCI between the system and any non-dedicated circuit."
+      },
+      {
+        "standard": "UL 1741",
+        "status": "certified",
+        "scope": "component",
+        "certifier": "CSA Group",
+        "evidence_url": "https://usa.apsystems.com/document/ez1-certifications/",
+        "evidence_type": "manufacturer_certificate",
+        "checked_on": "2026-11-10",
+        "conditions": "CSA Certificate 80196075 (issued 2026-07-14): grid support utility interactive microinverter, models EZ1-LV and DS3-LV, to UL 1741 including Supplement SB and IEEE 1547-2018."
+      }
+    ],
+    "price_usd": 325.0,
+    "price_checked_on": "2026-11-10",
+    "retailers": [
+      {
+        "name": "APsystems shop (direct)",
+        "url": "https://apshop.apsystems.com/products/apsystems-ez1-140219",
+        "affiliate_slot": "apsystems"
+      }
+    ],
+    "notes": "Inverter only: panels are sold separately. The maker's shop lists \"Max output power reaching 900VA\" and a 5 m power cord. The UL 3700 certificate covers the inverter as a component with installation conditions, not a complete plug-in kit.",
+    "sources": [
+      {
+        "title": "APsystems EZ1 certifications folder (CSA certificates 80310017 and 80196075)",
+        "url": "https://usa.apsystems.com/document/ez1-certifications/",
+        "accessed": "2026-11-10",
+        "type": "manufacturer_certificate"
+      },
+      {
+        "title": "APsystems shop: EZ1 Plug-in Microinverter",
+        "url": "https://apshop.apsystems.com/products/apsystems-ez1-140219",
+        "accessed": "2026-11-10",
+        "type": "manufacturer_page"
+      }
+    ],
+    "last_checked": "2026-11-10"
+  },
+  {
+    "brand": "EcoFlow",
+    "model": "STREAM Microinverter",
+    "slug": "ecoflow-stream-microinverter",
+    "product_type": "inverter_only",
+    "ac_output_w": 1200,
+    "panel_w_total": "not_included",
+    "inverter": "EcoFlow STREAM Microinverter (1200 W, 450 W per MPPT)",
+    "battery_included": false,
+    "plug_type": "unknown",
+    "certifications": [
+      {
+        "standard": "UL 1741",
+        "status": "pending_or_claimed",
+        "scope": "component",
+        "certifier": "unknown",
+        "evidence_url": "https://us.ecoflow.com/products/stream-microinverter",
+        "evidence_type": "manufacturer_page",
+        "checked_on": "2026-11-10",
+        "conditions": "Product page says \"UL1741 certificated\"; no certificate or directory entry found."
+      },
+      {
+        "standard": "UL 3700",
+        "status": "unknown",
+        "scope": "unknown",
+        "certifier": "unknown",
+        "evidence_url": "unknown",
+        "evidence_type": "unknown",
+        "checked_on": "2026-11-10",
+        "conditions": "No UL 3700 claim found on the manufacturer page and no directory entry found. UL Product iQ and the CSA directory were not reachable from our research environment."
+      }
+    ],
+    "price_usd": 369.0,
+    "price_checked_on": "2026-11-10",
+    "retailers": [
+      {
+        "name": "EcoFlow US store",
+        "url": "https://us.ecoflow.com/products/stream-microinverter",
+        "affiliate_slot": "ecoflow"
+      }
+    ],
+    "notes": "EcoFlow's own page conflicts on where it sells this for plug-in use: one note lists Utah, Maryland, Connecticut and Colorado; another says sale and plug-and-play installation are limited to Utah under H.B. 340.",
+    "sources": [
+      {
+        "title": "EcoFlow US: STREAM Microinverter product page and product data",
+        "url": "https://us.ecoflow.com/products/stream-microinverter",
+        "accessed": "2026-11-10",
+        "type": "manufacturer_page"
+      }
+    ],
+    "last_checked": "2026-11-10"
+  },
+  {
+    "brand": "EcoFlow",
+    "model": "STREAM Microinverter + 2 x 400W Rigid Solar Panels",
+    "slug": "ecoflow-stream-microinverter-2x400w",
+    "product_type": "complete_kit",
+    "ac_output_w": 1200,
+    "panel_w_total": 800,
+    "inverter": "EcoFlow STREAM Microinverter (1200 W rated output)",
+    "battery_included": false,
+    "plug_type": "unknown",
+    "certifications": [
+      {
+        "standard": "UL 1741",
+        "status": "pending_or_claimed",
+        "scope": "component",
+        "certifier": "unknown",
+        "evidence_url": "https://us.ecoflow.com/products/stream-microinverter",
+        "evidence_type": "manufacturer_page",
+        "checked_on": "2026-11-10",
+        "conditions": "Claim applies to the microinverter; no certificate found."
+      },
+      {
+        "standard": "UL 3700",
+        "status": "unknown",
+        "scope": "unknown",
+        "certifier": "unknown",
+        "evidence_url": "unknown",
+        "evidence_type": "unknown",
+        "checked_on": "2026-11-10",
+        "conditions": "No UL 3700 claim found on the manufacturer page and no directory entry found. UL Product iQ and the CSA directory were not reachable from our research environment."
+      }
+    ],
+    "price_usd": 1099.0,
+    "price_checked_on": "2026-11-10",
+    "retailers": [
+      {
+        "name": "EcoFlow US store",
+        "url": "https://us.ecoflow.com/products/stream-microinverter",
+        "affiliate_slot": "ecoflow"
+      }
+    ],
+    "notes": "Bundle option on the STREAM Microinverter page. With 800 W of panels, actual AC output will usually stay below the inverter's 1,200 W rating.",
+    "sources": [
+      {
+        "title": "EcoFlow US: STREAM Microinverter bundle options (product data)",
+        "url": "https://us.ecoflow.com/products/stream-microinverter.json",
+        "accessed": "2026-11-10",
+        "type": "manufacturer_page"
+      }
+    ],
+    "last_checked": "2026-11-10"
+  },
+  {
+    "brand": "EcoFlow",
+    "model": "STREAM Ultra",
+    "slug": "ecoflow-stream-ultra",
+    "product_type": "inverter_with_battery",
+    "ac_output_w": 800,
+    "panel_w_total": "not_included",
+    "inverter": "Built-in grid-tied microinverter; 4 MPPT, max 2000 W solar input",
+    "battery_included": true,
+    "plug_type": "unknown",
+    "certifications": [
+      {
+        "standard": "UL 1741",
+        "status": "unknown",
+        "scope": "unknown",
+        "certifier": "unknown",
+        "evidence_url": "unknown",
+        "evidence_type": "unknown",
+        "checked_on": "2026-11-10",
+        "conditions": "No UL 1741 or UL 3700 claim found in the product description; no certificate found."
+      },
+      {
+        "standard": "UL 3700",
+        "status": "unknown",
+        "scope": "unknown",
+        "certifier": "unknown",
+        "evidence_url": "unknown",
+        "evidence_type": "unknown",
+        "checked_on": "2026-11-10",
+        "conditions": "No UL 3700 claim found on the manufacturer page and no directory entry found. UL Product iQ and the CSA directory were not reachable from our research environment."
+      }
+    ],
+    "price_usd": 1399.0,
+    "price_checked_on": "2026-11-10",
+    "retailers": [
+      {
+        "name": "EcoFlow US store",
+        "url": "https://us.ecoflow.com/products/stream-ultra",
+        "affiliate_slot": "ecoflow"
+      }
+    ],
+    "notes": "1.92 kWh LFP battery. The product page shows 800 W on its own and \"Max. 1200W On-Grid AC Output\" when paired with one STREAM Microinverter. We record the 800 W standalone figure.",
+    "sources": [
+      {
+        "title": "EcoFlow US: STREAM Ultra product page and product data",
+        "url": "https://us.ecoflow.com/products/stream-ultra",
+        "accessed": "2026-11-10",
+        "type": "manufacturer_page"
+      }
+    ],
+    "last_checked": "2026-11-10"
+  },
+  {
+    "brand": "Hoymiles",
+    "model": "HiFlow Pro LV HMS-391-1WM-LV",
+    "slug": "hoymiles-hiflow-pro-hms-391",
+    "product_type": "inverter_only",
+    "ac_output_w": 391,
+    "panel_w_total": "not_included",
+    "inverter": "Hoymiles HMS-391-1WM-LV (1 MPPT; 391 VA rated output, 120 V)",
+    "battery_included": false,
+    "plug_type": "unknown",
+    "certifications": [
+      {
+        "standard": "UL 3700",
+        "status": "pending_or_claimed",
+        "scope": "component",
+        "certifier": "unknown",
+        "evidence_url": "https://www.hoymiles.com/product-release/hoymiles-introduces-hiflow-pro-the-first-ul-3700-compliant-plug-in-microinverter-in-the-us-to-boost-diy-solar.html",
+        "evidence_type": "manufacturer_page",
+        "checked_on": "2026-11-10",
+        "conditions": "Hoymiles calls HiFlow Pro \"the first UL 3700-compliant plug-in microinverter\" and its datasheet lists UL 3700. We found no certificate document or directory entry, and the certifier is not named."
+      },
+      {
+        "standard": "UL 1741",
+        "status": "pending_or_claimed",
+        "scope": "component",
+        "certifier": "unknown",
+        "evidence_url": "https://www.hoymiles.com/uploadfile/1/202607/76ba93c782.pdf",
+        "evidence_type": "manufacturer_page",
+        "checked_on": "2026-11-10",
+        "conditions": "Listed under compliance on the North America datasheet (REV1.1)."
+      }
+    ],
+    "price_usd": "unknown",
+    "price_checked_on": null,
+    "retailers": [],
+    "notes": "Hoymiles sells through distributors; we found no manufacturer price. 391 VA matches the 391-watt small-device tier in Colorado, Maryland and Virginia law. Up to four units can run in parallel on separate outlets.",
+    "sources": [
+      {
+        "title": "Hoymiles HiFlow (360-500) Pro LV North America datasheet REV1.1",
+        "url": "https://www.hoymiles.com/uploadfile/1/202607/76ba93c782.pdf",
+        "accessed": "2026-11-10",
+        "type": "manufacturer_page"
+      },
+      {
+        "title": "Hoymiles product release: HiFlow Pro (July 2026)",
+        "url": "https://www.hoymiles.com/product-release/hoymiles-introduces-hiflow-pro-the-first-ul-3700-compliant-plug-in-microinverter-in-the-us-to-boost-diy-solar.html",
+        "accessed": "2026-11-10",
+        "type": "manufacturer_page"
+      }
+    ],
+    "last_checked": "2026-11-10"
+  },
+  {
+    "brand": "Hoymiles",
+    "model": "HiFlow Pro LV HMS-420-1WM-LV",
+    "slug": "hoymiles-hiflow-pro-hms-420",
+    "product_type": "inverter_only",
+    "ac_output_w": 420,
+    "panel_w_total": "not_included",
+    "inverter": "Hoymiles HMS-420-1WM-LV (1 MPPT; 420 VA rated output, 120 V)",
+    "battery_included": false,
+    "plug_type": "unknown",
+    "certifications": [
+      {
+        "standard": "UL 3700",
+        "status": "pending_or_claimed",
+        "scope": "component",
+        "certifier": "unknown",
+        "evidence_url": "https://www.hoymiles.com/product-release/hoymiles-introduces-hiflow-pro-the-first-ul-3700-compliant-plug-in-microinverter-in-the-us-to-boost-diy-solar.html",
+        "evidence_type": "manufacturer_page",
+        "checked_on": "2026-11-10",
+        "conditions": "Hoymiles calls HiFlow Pro \"the first UL 3700-compliant plug-in microinverter\" and its datasheet lists UL 3700. We found no certificate document or directory entry, and the certifier is not named."
+      },
+      {
+        "standard": "UL 1741",
+        "status": "pending_or_claimed",
+        "scope": "component",
+        "certifier": "unknown",
+        "evidence_url": "https://www.hoymiles.com/uploadfile/1/202607/76ba93c782.pdf",
+        "evidence_type": "manufacturer_page",
+        "checked_on": "2026-11-10",
+        "conditions": "Listed under compliance on the North America datasheet (REV1.1)."
+      }
+    ],
+    "price_usd": "unknown",
+    "price_checked_on": null,
+    "retailers": [],
+    "notes": "Same family as HMS-391. The datasheet also lists 360, 450 and 500 VA models.",
+    "sources": [
+      {
+        "title": "Hoymiles HiFlow (360-500) Pro LV North America datasheet REV1.1",
+        "url": "https://www.hoymiles.com/uploadfile/1/202607/76ba93c782.pdf",
+        "accessed": "2026-11-10",
+        "type": "manufacturer_page"
+      }
+    ],
+    "last_checked": "2026-11-10"
+  },
+  {
+    "brand": "Bright Saver",
+    "model": "Balcony Solar Kit, 180 W",
+    "slug": "bright-saver-balcony-kit-180w",
+    "product_type": "complete_kit",
+    "ac_output_w": "unknown",
+    "panel_w_total": 180,
+    "inverter": "Hoymiles HiFlow Pro LV (model not specified)",
+    "battery_included": false,
+    "plug_type": "Grounded 3-prong plug (per seller)",
+    "certifications": [
+      {
+        "standard": "UL 3700",
+        "status": "not_certified",
+        "scope": "complete_system",
+        "certifier": "not applicable",
+        "evidence_url": "https://www.brightsaver.org/balcony-solar-kits",
+        "evidence_type": "manufacturer_page",
+        "checked_on": "2026-11-10",
+        "conditions": "The seller states it cannot ship to states that require whole-system UL 3700 certification (it names California, Maine and Vermont) \"as UL 3700 balcony solar kits have not yet been achieved.\""
+      },
+      {
+        "standard": "UL 1741",
+        "status": "unknown",
+        "scope": "unknown",
+        "certifier": "unknown",
+        "evidence_url": "unknown",
+        "evidence_type": "unknown",
+        "checked_on": "2026-11-10",
+        "conditions": "See the Hoymiles HiFlow Pro LV entries for the inverter's own claims."
+      }
+    ],
+    "price_usd": 299.0,
+    "price_checked_on": "2026-11-10",
+    "retailers": [
+      {
+        "name": "Bright Saver",
+        "url": "https://www.brightsaver.org/balcony-solar-kits",
+        "affiliate_slot": "brightsaver"
+      }
+    ],
+    "notes": "Sold by Bright Saver, which describes itself as funding policy and advocacy work; the page also offers member pricing. AC output depends on which HiFlow Pro LV model ships, which the page does not state; with one 180 W panel, output cannot exceed 180 W.",
+    "sources": [
+      {
+        "title": "Bright Saver: Balcony Solar Kits",
+        "url": "https://www.brightsaver.org/balcony-solar-kits",
+        "accessed": "2026-11-10",
+        "type": "manufacturer_page"
+      }
+    ],
+    "last_checked": "2026-11-10"
+  },
+  {
+    "brand": "Bright Saver",
+    "model": "Balcony Solar Kit, 360 W",
+    "slug": "bright-saver-balcony-kit-360w",
+    "product_type": "complete_kit",
+    "ac_output_w": "unknown",
+    "panel_w_total": 360,
+    "inverter": "Hoymiles HiFlow Pro LV (model not specified)",
+    "battery_included": false,
+    "plug_type": "Grounded 3-prong plug (per seller)",
+    "certifications": [
+      {
+        "standard": "UL 3700",
+        "status": "not_certified",
+        "scope": "complete_system",
+        "certifier": "not applicable",
+        "evidence_url": "https://www.brightsaver.org/balcony-solar-kits",
+        "evidence_type": "manufacturer_page",
+        "checked_on": "2026-11-10",
+        "conditions": "Same seller statement as the 180 W kit: no UL 3700 balcony kits yet."
+      },
+      {
+        "standard": "UL 1741",
+        "status": "unknown",
+        "scope": "unknown",
+        "certifier": "unknown",
+        "evidence_url": "unknown",
+        "evidence_type": "unknown",
+        "checked_on": "2026-11-10"
+      }
+    ],
+    "price_usd": 432.0,
+    "price_checked_on": "2026-11-10",
+    "retailers": [
+      {
+        "name": "Bright Saver",
+        "url": "https://www.brightsaver.org/balcony-solar-kits",
+        "affiliate_slot": "brightsaver"
+      }
+    ],
+    "notes": "Two 180 W panels. Inverter count and model for this size are not stated on the page.",
+    "sources": [
+      {
+        "title": "Bright Saver: Balcony Solar Kits",
+        "url": "https://www.brightsaver.org/balcony-solar-kits",
+        "accessed": "2026-11-10",
+        "type": "manufacturer_page"
+      }
+    ],
+    "last_checked": "2026-11-10"
+  },
+  {
+    "brand": "CraftStrom",
+    "model": "800 Watt Plug&Play Solar",
+    "slug": "craftstrom-800w",
+    "product_type": "complete_kit",
+    "ac_output_w": 700,
+    "panel_w_total": 800,
+    "inverter": "2 x CraftStrom \"Hedy\" 350 W smart inverter (max input 420 W each)",
+    "battery_included": false,
+    "plug_type": "unknown",
+    "certifications": [
+      {
+        "standard": "UL 1741",
+        "status": "pending_or_claimed",
+        "scope": "component",
+        "certifier": "Intertek (ETL), per seller",
+        "evidence_url": "https://craftstrom.com/product/800-watt-plugplay-solar/",
+        "evidence_type": "manufacturer_page",
+        "checked_on": "2026-11-10",
+        "conditions": "Page says \"ETL certified to UL 1742 and IEEE 1547 Standards\" (UL 1742 appears to be a typo for UL 1741; not confirmed)."
+      },
+      {
+        "standard": "UL 3700",
+        "status": "unknown",
+        "scope": "unknown",
+        "certifier": "unknown",
+        "evidence_url": "unknown",
+        "evidence_type": "unknown",
+        "checked_on": "2026-11-10",
+        "conditions": "No UL 3700 claim found on the manufacturer page and no directory entry found. UL Product iQ and the CSA directory were not reachable from our research environment."
+      }
+    ],
+    "price_usd": 1846.65,
+    "price_checked_on": "2026-11-10",
+    "retailers": [
+      {
+        "name": "CraftStrom",
+        "url": "https://craftstrom.com/product/800-watt-plugplay-solar/",
+        "affiliate_slot": "craftstrom"
+      }
+    ],
+    "notes": "Includes 4 x 200 W bifacial panels and a \"Smart PowerMeter\" that the seller says limits export to the grid. AC output of 700 W is 2 x the 350 W inverter rating; battery add-ons are optional.",
+    "sources": [
+      {
+        "title": "CraftStrom: 800 Watt Plug&Play Solar product page and store data",
+        "url": "https://craftstrom.com/product/800-watt-plugplay-solar/",
+        "accessed": "2026-11-10",
+        "type": "manufacturer_page"
+      }
+    ],
+    "last_checked": "2026-11-10"
+  },
+  {
+    "brand": "CraftStrom",
+    "model": "1200 Watt Plug&Play Solar",
+    "slug": "craftstrom-1200w",
+    "product_type": "complete_kit",
+    "ac_output_w": 1050,
+    "panel_w_total": 1200,
+    "inverter": "3 x CraftStrom \"Hedy\" 350 W smart inverter (max input 420 W each)",
+    "battery_included": false,
+    "plug_type": "unknown",
+    "certifications": [
+      {
+        "standard": "UL 1741",
+        "status": "pending_or_claimed",
+        "scope": "component",
+        "certifier": "Intertek (ETL), per seller",
+        "evidence_url": "https://craftstrom.com/product/1200-watt-plugplay-solar/",
+        "evidence_type": "manufacturer_page",
+        "checked_on": "2026-11-10",
+        "conditions": "Same \"ETL certified to UL 1742 and IEEE 1547\" wording as the 800 W kit."
+      },
+      {
+        "standard": "UL 3700",
+        "status": "unknown",
+        "scope": "unknown",
+        "certifier": "unknown",
+        "evidence_url": "unknown",
+        "evidence_type": "unknown",
+        "checked_on": "2026-11-10",
+        "conditions": "No UL 3700 claim found on the manufacturer page and no directory entry found. UL Product iQ and the CSA directory were not reachable from our research environment."
+      }
+    ],
+    "price_usd": 2770.44,
+    "price_checked_on": "2026-11-10",
+    "retailers": [
+      {
+        "name": "CraftStrom",
+        "url": "https://craftstrom.com/product/1200-watt-plugplay-solar/",
+        "affiliate_slot": "craftstrom"
+      }
+    ],
+    "notes": "Includes 6 x 200 W bifacial panels. AC output of 1,050 W is 3 x the 350 W inverter rating. Three inverters may count as more than one device under one-device-per-meter rules (Connecticut, Maryland); check your state.",
+    "sources": [
+      {
+        "title": "CraftStrom: 1200 Watt Plug&Play Solar product page and store data",
+        "url": "https://craftstrom.com/product/1200-watt-plugplay-solar/",
+        "accessed": "2026-11-10",
+        "type": "manufacturer_page"
+      }
+    ],
+    "last_checked": "2026-11-10"
+  }
+]

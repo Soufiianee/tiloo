@@ -1,0 +1,400 @@
+{
+  "assumptions": {
+    "model": "NREL (now National Laboratory of the Rockies) PVWatts v8, typical meteorological year",
+    "system_capacity_kw_dc": 1,
+    "tilt_deg": 20,
+    "azimuth_deg": 180,
+    "array_type": "fixed open rack",
+    "losses_pct": 14
+  },
+  "fallback_note": "States marked \"unknown\" have no figure yet. The site must not show a savings estimate for them until a PVWatts run is added; it must not substitute a guessed national value.",
+  "states": {
+    "AK": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "AL": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "AR": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "AZ": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "CA": {
+      "kwh_per_kw_year": 1627,
+      "location": "Sacramento (state capital)",
+      "lat": 38.58,
+      "lon": -121.49,
+      "method": "PVWatts v8.5.0 run, solar resource file 131636.csv",
+      "source": {
+        "title": "NREL/NLR PVWatts API v8 result for Sacramento",
+        "url": "https://developer.nlr.gov/api/pvwatts/v8.json?api_key=DEMO_KEY&lat=38.58&lon=-121.49&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+        "accessed": "2026-11-10",
+        "type": "government_data",
+        "note": "Modeled with typical-year weather; DEMO_KEY in URL is NREL's public demo key."
+      }
+    },
+    "CO": {
+      "kwh_per_kw_year": 1600,
+      "location": "Denver (state capital)",
+      "lat": 39.74,
+      "lon": -104.99,
+      "method": "PVWatts v8.5.0 run, solar resource file 484137.csv",
+      "source": {
+        "title": "NREL/NLR PVWatts API v8 result for Denver",
+        "url": "https://developer.nlr.gov/api/pvwatts/v8.json?api_key=DEMO_KEY&lat=39.74&lon=-104.99&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+        "accessed": "2026-11-10",
+        "type": "government_data",
+        "note": "Modeled with typical-year weather; DEMO_KEY in URL is NREL's public demo key."
+      }
+    },
+    "CT": {
+      "kwh_per_kw_year": 1263,
+      "location": "Hartford (state capital)",
+      "lat": 41.76,
+      "lon": -72.67,
+      "method": "PVWatts v8.5.0 run, solar resource file 1287563.csv",
+      "source": {
+        "title": "NREL/NLR PVWatts API v8 result for Hartford",
+        "url": "https://developer.nlr.gov/api/pvwatts/v8.json?api_key=DEMO_KEY&lat=41.76&lon=-72.67&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+        "accessed": "2026-11-10",
+        "type": "government_data",
+        "note": "Modeled with typical-year weather; DEMO_KEY in URL is NREL's public demo key."
+      }
+    },
+    "DC": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "DE": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "FL": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "GA": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "HI": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "IA": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "ID": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "IL": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "IN": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "KS": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "KY": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "LA": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "MA": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "MD": {
+      "kwh_per_kw_year": 1396,
+      "location": "Annapolis (state capital)",
+      "lat": 38.98,
+      "lon": -76.49,
+      "method": "PVWatts v8.5.0 run, solar resource file 1162861.csv",
+      "source": {
+        "title": "NREL/NLR PVWatts API v8 result for Annapolis",
+        "url": "https://developer.nlr.gov/api/pvwatts/v8.json?api_key=DEMO_KEY&lat=38.98&lon=-76.49&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+        "accessed": "2026-11-10",
+        "type": "government_data",
+        "note": "Modeled with typical-year weather; DEMO_KEY in URL is NREL's public demo key."
+      }
+    },
+    "ME": {
+      "kwh_per_kw_year": 1272,
+      "location": "Augusta (state capital)",
+      "lat": 44.31,
+      "lon": -69.78,
+      "method": "PVWatts v8.5.0 run, solar resource file 1382311.csv",
+      "source": {
+        "title": "NREL/NLR PVWatts API v8 result for Augusta",
+        "url": "https://developer.nlr.gov/api/pvwatts/v8.json?api_key=DEMO_KEY&lat=44.31&lon=-69.78&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+        "accessed": "2026-11-10",
+        "type": "government_data",
+        "note": "Modeled with typical-year weather; DEMO_KEY in URL is NREL's public demo key."
+      }
+    },
+    "MI": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "MN": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "MO": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "MS": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "MT": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "NC": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "ND": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "NE": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "NH": {
+      "kwh_per_kw_year": 1265,
+      "location": "Concord (state capital)",
+      "lat": 43.21,
+      "lon": -71.54,
+      "method": "PVWatts v8.5.0 run, solar resource file 1324465.csv",
+      "source": {
+        "title": "NREL/NLR PVWatts API v8 result for Concord",
+        "url": "https://developer.nlr.gov/api/pvwatts/v8.json?api_key=DEMO_KEY&lat=43.21&lon=-71.54&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+        "accessed": "2026-11-10",
+        "type": "government_data",
+        "note": "Modeled with typical-year weather; DEMO_KEY in URL is NREL's public demo key."
+      }
+    },
+    "NJ": {
+      "kwh_per_kw_year": 1346,
+      "location": "Trenton (state capital)",
+      "lat": 40.22,
+      "lon": -74.76,
+      "method": "PVWatts v8.5.0 run, solar resource file 1219930.csv",
+      "source": {
+        "title": "NREL/NLR PVWatts API v8 result for Trenton",
+        "url": "https://developer.nlr.gov/api/pvwatts/v8.json?api_key=DEMO_KEY&lat=40.22&lon=-74.76&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+        "accessed": "2026-11-10",
+        "type": "government_data",
+        "note": "Modeled with typical-year weather; DEMO_KEY in URL is NREL's public demo key."
+      }
+    },
+    "NM": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "NV": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "NY": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "OH": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "OK": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "OR": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "PA": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "RI": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "SC": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "SD": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "TN": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "TX": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "UT": {
+      "kwh_per_kw_year": 1493,
+      "location": "Salt Lake City (state capital)",
+      "lat": 40.76,
+      "lon": -111.89,
+      "method": "PVWatts v8.5.0 run, solar resource file 158327.csv",
+      "source": {
+        "title": "NREL/NLR PVWatts API v8 result for Salt Lake City",
+        "url": "https://developer.nlr.gov/api/pvwatts/v8.json?api_key=DEMO_KEY&lat=40.76&lon=-111.89&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+        "accessed": "2026-11-10",
+        "type": "government_data",
+        "note": "Modeled with typical-year weather; DEMO_KEY in URL is NREL's public demo key."
+      }
+    },
+    "VA": {
+      "kwh_per_kw_year": 1352,
+      "location": "Richmond (state capital)",
+      "lat": 37.54,
+      "lon": -77.44,
+      "method": "PVWatts v8.5.0 run, solar resource file 1131745.csv",
+      "source": {
+        "title": "NREL/NLR PVWatts API v8 result for Richmond",
+        "url": "https://developer.nlr.gov/api/pvwatts/v8.json?api_key=DEMO_KEY&lat=37.54&lon=-77.44&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+        "accessed": "2026-11-10",
+        "type": "government_data",
+        "note": "Modeled with typical-year weather; DEMO_KEY in URL is NREL's public demo key."
+      }
+    },
+    "VT": {
+      "kwh_per_kw_year": 1202,
+      "location": "Montpelier (state capital)",
+      "lat": 44.26,
+      "lon": -72.58,
+      "method": "PVWatts v8.5.0 run, solar resource file 1290449.csv",
+      "source": {
+        "title": "NREL/NLR PVWatts API v8 result for Montpelier",
+        "url": "https://developer.nlr.gov/api/pvwatts/v8.json?api_key=DEMO_KEY&lat=44.26&lon=-72.58&system_capacity=1&azimuth=180&tilt=20&array_type=0&module_type=0&losses=14",
+        "accessed": "2026-11-10",
+        "type": "government_data",
+        "note": "Modeled with typical-year weather; DEMO_KEY in URL is NREL's public demo key."
+      }
+    },
+    "WA": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "WI": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "WV": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    },
+    "WY": {
+      "kwh_per_kw_year": "unknown",
+      "location": "not yet run",
+      "method": "Pending: PVWatts demo key allows 10 runs per hour. Needs a free API key to finish.",
+      "source": null
+    }
+  },
+  "last_checked": "2026-11-10"
+}

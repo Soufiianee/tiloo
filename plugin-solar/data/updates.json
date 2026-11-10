@@ -1,0 +1,121 @@
+[
+  {
+    "date": "2026-09-30",
+    "state": "CA",
+    "kind": "law_signed",
+    "title": "California: SB 868 signed into law",
+    "body": "SB 868 (Electricity: portable solar generation devices) was signed on 2026-09-30. Effective date: 2027-01-01.",
+    "source": {
+      "title": "California Legislative Information: SB-868 bill page",
+      "url": "https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202520260SB868",
+      "accessed": "2026-11-10",
+      "type": "legislature_bill_page",
+      "note": "Could not be loaded from our research environment (bot check); facts below come from the Legislature's official bulk data."
+    }
+  },
+  {
+    "date": "2026-09-01",
+    "state": "NJ",
+    "kind": "law_signed",
+    "title": "New Jersey: S2368 / A4836 signed into law",
+    "body": "S2368 / A4836 (Garden State Balcony Solar Act) was signed on 2026-09-01. Effective date: 2027-03-01.",
+    "source": {
+      "title": "New Jersey Legislature: S2368 (2026-2027 session) bill page",
+      "url": "https://www.njleg.state.nj.us/bill-search/2026/S2368",
+      "accessed": "2026-11-10",
+      "type": "legislature_bill_page"
+    }
+  },
+  {
+    "date": "2026-06-16",
+    "state": "VT",
+    "kind": "law_signed",
+    "title": "Vermont: S.202 signed into law",
+    "body": "S.202 (An act relating to plug-in photovoltaic devices) was signed on 2026-06-16. Effective date: 2026-07-01.",
+    "source": {
+      "title": "Vermont General Assembly: S.202 (Act 149) bill status",
+      "url": "https://legislature.vermont.gov/bill/status/2026/S.202",
+      "accessed": "2026-11-10",
+      "type": "legislature_bill_page"
+    }
+  },
+  {
+    "date": "2026-06-04",
+    "state": "CT",
+    "kind": "law_signed",
+    "title": "Connecticut: HB 5340 signed into law",
+    "body": "HB 5340 (An Act Concerning Renewable Power Generation) was signed on 2026-06-04. Effective date: 2026-10-01.",
+    "source": {
+      "title": "Connecticut General Assembly: HB 5340 (2026) bill status",
+      "url": "https://www.cga.ct.gov/asp/cgabillstatus/cgabillstatus.asp?selBillType=Bill&which_year=2026&bill_num=5340",
+      "accessed": "2026-11-10",
+      "type": "legislature_bill_page",
+      "note": "This server sends an incomplete certificate chain; we fetched it with the public GoDaddy G2 intermediate added."
+    }
+  },
+  {
+    "date": "2026-05-12",
+    "state": "MD",
+    "kind": "law_signed",
+    "title": "Maryland: HB 1532 signed into law",
+    "body": "HB 1532 (Utility RELIEF (Reducing Energy Load Inflation for Everyday Families) Act) was signed on 2026-05-12. Effective date: 2026-07-01.",
+    "source": {
+      "title": "Maryland General Assembly: HB1532 (2026RS) legislation page",
+      "url": "https://mgaleg.maryland.gov/mgawebsite/Legislation/Details/hb1532?ys=2026RS",
+      "accessed": "2026-11-10",
+      "type": "legislature_bill_page"
+    }
+  },
+  {
+    "date": "2026-05-07",
+    "state": "CO",
+    "kind": "law_signed",
+    "title": "Colorado: HB26-1007 signed into law",
+    "body": "HB26-1007 (Improve Customer Use Distributed Energy Resources) was signed on 2026-05-07. Effective date: 2026-08-12.",
+    "source": {
+      "title": "Colorado General Assembly: HB26-1007 bill page",
+      "url": "https://leg.colorado.gov/bills/hb26-1007",
+      "accessed": "2026-11-10",
+      "type": "legislature_bill_page"
+    }
+  },
+  {
+    "date": "2026-04-22",
+    "state": "VA",
+    "kind": "law_signed",
+    "title": "Virginia: HB 395 signed into law",
+    "body": "HB 395 (Electric utilities; small portable solar generation devices, local regulation) was signed on 2026-04-22. Effective date: 2027-01-01.",
+    "source": {
+      "title": "Virginia LIS: HB395 (2026 Regular Session) bill details",
+      "url": "https://lis.virginia.gov/bill-details/20261/HB395",
+      "accessed": "2026-11-10",
+      "type": "legislature_bill_page"
+    }
+  },
+  {
+    "date": "2026-04-06",
+    "state": "ME",
+    "kind": "law_signed",
+    "title": "Maine: LD 1730 (SP 676) signed into law",
+    "body": "LD 1730 (SP 676) (An Act to Make Small Plug-in Solar Generation Devices Accessible for All Maine Residents to Address the Energy Affordability Crisis) was signed on 2026-04-06. Effective date: 2026-07-29.",
+    "source": {
+      "title": "Maine Legislature: LD 1730 (SP 676) summary and status",
+      "url": "https://legislature.maine.gov/LawMakerWeb/summary.asp?LD=1730&SessionID=16",
+      "accessed": "2026-11-10",
+      "type": "legislature_bill_page"
+    }
+  },
+  {
+    "date": "2025-03-25",
+    "state": "UT",
+    "kind": "law_signed",
+    "title": "Utah: H.B. 340 signed into law",
+    "body": "H.B. 340 (Solar Power Amendments) was signed on 2025-03-25. Effective date: 2025-05-07.",
+    "source": {
+      "title": "Utah Legislature: H.B. 340 (2025 General Session) bill page and status",
+      "url": "https://le.utah.gov/~2025/bills/static/HB0340.html",
+      "accessed": "2026-11-10",
+      "type": "legislature_bill_page"
+    }
+  }
+]

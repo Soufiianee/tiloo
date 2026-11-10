@@ -1,0 +1,21 @@
+{
+  "name": "plugin-solar-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "US plug-in (balcony) solar tracker: state law x kit compatibility",
+  "scripts": {
+    "validate": "tsx scripts/validate.ts",
+    "dev": "astro dev",
+    "build": "npm run validate && astro build",
+    "preview": "astro preview",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "astro": "^5.18.2",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7",
+    "zod": "^3.25.76"
+  }
+}

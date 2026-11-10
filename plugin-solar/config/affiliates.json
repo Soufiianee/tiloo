@@ -1,0 +1,7 @@
+{
+  "apsystems": { "label": "APsystems shop", "program": "", "affiliate_id": "", "notes": "Empty: links render as plain retailer links until an ID is added." },
+  "ecoflow": { "label": "EcoFlow US store", "program": "", "affiliate_id": "" },
+  "brightsaver": { "label": "Bright Saver", "program": "", "affiliate_id": "" },
+  "craftstrom": { "label": "CraftStrom", "program": "", "affiliate_id": "" },
+  "amazon": { "label": "Amazon", "program": "Amazon Associates", "affiliate_id": "" }
+}
