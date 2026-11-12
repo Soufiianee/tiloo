@@ -130,7 +130,7 @@ test('trois versions : Essentiel ≤ Confort ≤ Premium pour chaque produit', (
 test('carport en configuration : articles sans prix signalés, prix nul tant qu’ils ne sont pas saisis', () => {
   const p = C.PRODUCTS.find((x) => x.id === 'abri-voiture');
   assert.ok(!p.archived);
-  assert.ok(C.PRODUCTS.filter((x) => x.id !== 'abri-voiture').every((x) => x.archived));
+  assert.ok(C.PRODUCTS.filter((x) => x.id !== 'abri-voiture' && x.id !== 'carport-arche').every((x) => x.archived));
   const r = E.priceLine(p, {}, C.BOOK, C.SETTINGS, TODAY, {});
   assert.ok(r.unpriced.length > 0);
   assert.equal(r.sale.win, 0);
@@ -140,19 +140,33 @@ test('carport en configuration : articles sans prix signalés, prix nul tant qu�
   assert.ok(f.sale.win > 0);
 });
 
-test('carport : toutes les options produisent des lignes valides', () => {
-  const p = C.PRODUCTS.find((x) => x.id === 'abri-voiture'), book = filledBook();
-  const opts = (id) => p.params.find((d) => d.id === id).options.map((o) => o.v);
-  for (const mat of opts('mat')) for (const profP of opts('profP')) for (const couv of opts('couv')) for (const sol of opts('sol'))
-    for (const config of opts('config')) for (const forme of opts('forme')) for (const poutre of opts('poutre')) {
-      const params = { mat, profP, poutre, profB: profP === 'rond' ? 'carre' : 'rond', dP: 150, cP: 150, tP: 4, dB: 90, cB: 80, tB: 1.5, cPan: 60, tPan: 2,
-        couv, sol, config, forme, mur: 'creux', cotes: 'trois', gout: true, lamb: true, spots: 2, expo: 'mer' };
-      const r = E.priceLine(p, params, book, C.SETTINGS, TODAY, {});
-      const label = JSON.stringify(params);
-      assert.ok(!r.warnings.some((w) => w.includes('introuvable')), label + ' ' + r.warnings.join(' | '));
-      assert.ok(r.lines.every((l) => l.qty > 0 && Number.isFinite(l.qty)), label);
-      assert.ok(r.sale.win > 0, label);
-    }
+test('carport plat et arché : toutes les options produisent des lignes valides', () => {
+  const book = filledBook();
+  for (const id of ['abri-voiture', 'carport-arche']) {
+    const p = C.PRODUCTS.find((x) => x.id === id);
+    const opts = (k) => { const d = p.params.find((x) => x.id === k); return d ? d.options.map((o) => o.v) : [undefined]; };
+    for (const mat of opts('mat')) for (const profP of opts('profP')) for (const couv of opts('couv')) for (const sol of opts('sol'))
+      for (const config of opts('config')) for (const poutre of opts('poutre')) {
+        const params = { mat, profP, poutre, profB: profP === 'rond' ? 'carre' : 'rond', dP: 150, cP: 150, tP: 4, dB: 90, cB: 80, tB: 1.5, cPan: 60, tPan: 2,
+          couv, sol, config, mur: 'creux', cotes: 'trois', gout: true, lamb: true, spots: 2 };
+        const r = E.priceLine(p, params, book, C.SETTINGS, TODAY, {});
+        const label = id + ' ' + JSON.stringify(params);
+        assert.ok(!r.warnings.some((w) => w.includes('introuvable')), label + ' ' + r.warnings.join(' | '));
+        assert.ok(r.lines.every((l) => l.qty > 0 && Number.isFinite(l.qty)), label);
+        assert.ok(r.sale.win > 0, label);
+      }
+  }
+});
+
+test('carport arché : fer seulement, autoportant, couverture souple', () => {
+  const p = C.PRODUCTS.find((x) => x.id === 'carport-arche');
+  assert.deepEqual(p.params.find((d) => d.id === 'mat').options.map((o) => o.v), ['acier']);
+  assert.ok(!p.params.some((d) => d.id === 'config'));
+  assert.deepEqual(p.params.find((d) => d.id === 'couv').options.map((o) => o.v), ['pvc', 'toile']);
+  // une ancienne configuration (alu, sandwich, adossé) est ramenée sur des choix valides
+  const r = E.priceLine(p, { mat: 'alu', couv: 'sandwich', config: 'adossee' }, C.BOOK, C.SETTINGS, TODAY, {});
+  const ids = r.lines.map((l) => l.item);
+  assert.ok(ids.includes('cp_couv_pvc_1') && ids.some((i) => i.startsWith('cp_t_acier_')) && !ids.includes('cp_chimique'), ids.join(' '));
 });
 
 test('carport : plus de places = plus de poteaux ; adossé sur mur creux = chevilles chimiques', () => {
@@ -182,12 +196,12 @@ test('barres de 6 m : on compte par la découpe, pas par le total des mètres', 
   const p = C.PRODUCTS.find((x) => x.id === 'abri-voiture');
   // 2 places de 3 m, entraxe 3 m, autoportant : 6 poteaux de 3,20 m (H 3,05 + 0,15)
   const r = E.priceLine(p, { places: 2, lp: 3, entraxe: 3, H: 3.05, profP: 'rond', dP: 100, tP: 2, poutre: 'autre', profB: 'rond', dB: 90, tB: 2 }, C.BOOK, C.SETTINGS, TODAY, {});
-  const post = r.lines.find((l) => l.item === 'cp_t_galva_r100_20');
+  const post = r.lines.find((l) => l.item === 'cp_t_acier_r100_20');
   assert.equal(post.qty, 6, '19,2 m de poteaux = 6 barres (un poteau par barre), pas 4');
   // barre de 12 m : 3 poteaux de 3,20 m par barre → 2 barres
   const s12 = Object.assign(clone(C.SETTINGS), { barLength: 12 });
   const r12 = E.priceLine(p, { places: 2, lp: 3, entraxe: 3, H: 3.05, poutre: 'autre', dB: 90 }, C.BOOK, s12, TODAY, {});
-  assert.equal(r12.lines.find((l) => l.item === 'cp_t_galva_r100_20').qty, 2);
+  assert.equal(r12.lines.find((l) => l.item === 'cp_t_acier_r100_20').qty, 2);
   // pièce de 9 m (3 places) : raboutage signalé
   const r3 = E.priceLine(p, { places: 3 }, C.BOOK, C.SETTINGS, TODAY, {});
   assert.ok(r3.warnings.some((w) => w.includes('raboutage')));
