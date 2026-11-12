@@ -1,2 +1,5 @@
 node_modules/
 .DS_Store
+
+# Études et plans clients : gardés en local (dépôt public)
+etudes/
