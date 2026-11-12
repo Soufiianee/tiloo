@@ -206,3 +206,13 @@ test('barres de 6 m : on compte par la découpe, pas par le total des mètres', 
   const r3 = E.priceLine(p, { places: 3 }, C.BOOK, C.SETTINGS, TODAY, {});
   assert.ok(r3.warnings.some((w) => w.includes('raboutage')));
 });
+
+test('carport arché : cintrage compté à l’arceau ; galvanisation = finition du fer', () => {
+  const p = C.PRODUCTS.find((x) => x.id === 'carport-arche');
+  const r = E.priceLine(p, { places: 2, lp: 3, entraxe: 3, finA: 'galva' }, C.BOOK, C.SETTINGS, TODAY, {});
+  const q = (id) => r.lines.filter((l) => l.item === id).reduce((a, l) => a + l.qty, 0);
+  assert.equal(q('cp_cintrage'), 3, '6 m de large, entraxe 3 m : 3 arceaux');
+  assert.ok(r.lines.some((l) => l.item.startsWith('cp_f_galva_')));
+  const plat = E.priceLine(C.PRODUCTS.find((x) => x.id === 'abri-voiture'), {}, C.BOOK, C.SETTINGS, TODAY, {});
+  assert.ok(!plat.lines.some((l) => l.item === 'cp_cintrage'));
+});

@@ -278,7 +278,7 @@
       });
     });
   });
-  [['peinture', 'Apprêt + peinture'], ['thermo', 'Thermolaquage']].forEach(function (f) {
+  [['peinture', 'Apprêt + peinture'], ['thermo', 'Thermolaquage'], ['galva', 'Galvanisation à chaud']].forEach(function (f) {
     [['rond', CP_DIMS.rond], ['carre', CP_DIMS.carre], ['carre', CP_DIMS.panne]].forEach(function (g) {
       g[1].forEach(function (D) {
         BOOK[cpFinId(f[0], g[0], D)] = { name: f[1] + ' tube ' + cpDimName(g[0], D), unit: 'm', cat: 'equipement', sub: 'Finitions', dim: true, type: 'mad', group: CP_GROUP, hist: [] };
@@ -287,6 +287,7 @@
   });
   [
     ['cp_fab_acier_m', 'Façonnage et soudure fer', 'm', 'pose', 'Structure'],
+    ['cp_cintrage', 'Cintrage d’un arceau', 'u', 'pose', 'Structure'],
     ['cp_fab_alu_m', 'Façonnage et assemblage aluminium', 'm', 'pose', 'Structure'],
     ['cp_couv_pvc_1', 'Bâche PVC 1er choix', 'm²', 'matiere', 'Toiture'],
     ['cp_couv_pvc_2', 'Bâche PVC 2e choix', 'm²', 'matiere', 'Toiture'],
@@ -312,7 +313,7 @@
     ['cp_pose_jour', 'Équipe de pose', 'jour', 'pose', 'Pose']
   ].forEach(function (a) {
     BOOK[a[0]] = { name: a[1], unit: a[2], cat: a[3], sub: a[4], type: 'mad', group: CP_GROUP, hist: [] };
-    if (/^cp_fab_/.test(a[0])) BOOK[a[0]].noAccess = true; // travail d'atelier : pas de coefficient d'accès chantier
+    if (/^cp_fab_|^cp_cintrage/.test(a[0])) BOOK[a[0]].noAccess = true; // travail d'atelier : pas de coefficient d'accès chantier
   });
 
   var SETTINGS = {
@@ -462,7 +463,7 @@
   };
   var CP_COUV = { pvc: 'bâche PVC', toile: 'toile', sandwich: 'panneau sandwich', dalakit: 'dalle à kit' };
   var CP_MAT = { acier: 'fer', alu: 'aluminium' };
-  var CP_FIN = { peinture: 'apprêt + peinture', thermo: 'thermolaqué', brut: 'brut', sans: 'sans finition', autoclave: 'autoclave', lasure: 'autoclave + lasure' };
+  var CP_FIN = { peinture: 'apprêt + peinture', thermo: 'thermolaqué', galva: 'galvanisé à chaud', brut: 'brut', sans: 'sans finition', autoclave: 'autoclave', lasure: 'autoclave + lasure' };
   function fr(x) { return String(x).replace('.', ','); }
   function cpMetal() { return true; }
   function rep(n, v) { var a = []; for (var i = 0; i < n; i++) a.push(v); return a; }
@@ -504,7 +505,7 @@
       { id: 'mat', comp: 'structure', sec: 'Structure', label: 'Matériau', type: 'seg', def: 'acier', options: arche ? [{ v: 'acier', l: 'Fer' }] : [
         { v: 'acier', l: 'Fer' }, { v: 'alu', l: 'Aluminium' }] },
       { id: 'finA', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'peinture', showIf: function (p) { return p.mat === 'acier'; }, options: [
-        { v: 'peinture', l: 'Apprêt + peinture' }, { v: 'thermo', l: 'Thermolaquage' }] },
+        { v: 'peinture', l: 'Apprêt + peinture' }, { v: 'thermo', l: 'Thermolaquage' }, { v: 'galva', l: 'Galvanisation à chaud' }] },
       { id: 'finL', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'thermo', showIf: function (p) { return p.mat === 'alu'; }, options: [
         { v: 'thermo', l: 'Thermolaqué' }, { v: 'brut', l: 'Brut / anodisé' }] }
     ].concat(cpTubeParams('P', 'Poteaux'), [
@@ -545,10 +546,11 @@
     build: function (p, h, ctx) {
       /* Modèle imposé + valeurs d'anciennes configurations ramenées sur des choix valides. */
       p.forme = arche ? 'cintre' : 'plat'; p.expo = 'normal';
+      if (p.mat === 'galva') { p.mat = 'acier'; p.finA = 'galva'; } // ancien matériau « galvanisé »
       if (arche) { p.config = 'autoportante'; p.mat = 'acier'; }
       if (CP_COUV_OK[kind].indexOf(p.couv) < 0) p.couv = 'pvc';
       if (!CP_MAT[p.mat]) p.mat = 'acier';
-      if (p.finA !== 'peinture' && p.finA !== 'thermo') p.finA = 'peinture';
+      if (['peinture', 'thermo', 'galva'].indexOf(p.finA) < 0) p.finA = 'peinture';
       var W = [], L = [], n = p.places, Wd = n * p.lp, area = Wd * p.P, auto = p.config === 'autoportante';
       var R = CP_ROOF[p.forme] || CP_ROOF.p1, rigid = p.couv === 'sandwich' || p.couv === 'dalakit', fin = cpFin(p);
       var spans = Math.max(1, h.ceil(Wd / p.entraxe - 1e-9)), np = auto ? 2 * (spans + 1) : spans + 1;
@@ -603,9 +605,10 @@
           var bars = k.bars + handBars, chute = bars * BL - T.m;
           L.push({ item: id, qty: bars, comp: 'structure', note: 'Découpe : ' + T.what.join(' · ') + ' · chute ' + fr(h.r1(Math.max(0, chute))) + ' m' + (k.joints ? ' · ' + k.joints + ' raboutage' + (k.joints > 1 ? 's' : '') : '') });
           if (k.joints) W.push(cpSectName(T.s) + ' : pièces de plus de ' + fr(BL) + ' m, ' + k.joints + ' raboutage' + (k.joints > 1 ? 's' : '') + ' soudé' + (k.joints > 1 ? 's' : '') + ' à prévoir.');
-          if (fin === 'peinture' || fin === 'thermo') L.push({ item: cpFinId(fin, T.s.prof, T.s.D), qty: h.r1(T.m), comp: 'structure', note: fr(h.r1(T.m)) + ' m réellement utilisés' });
+          if (fin === 'peinture' || fin === 'thermo' || fin === 'galva') L.push({ item: cpFinId(fin, T.s.prof, T.s.D), qty: h.r1(T.m), comp: 'structure', note: fr(h.r1(T.m)) + ' m réellement utilisés' });
         });
-        L.push({ item: 'cp_fab_' + (p.mat === 'galva' ? 'acier' : p.mat) + '_m', qty: h.r1(total * R.f), comp: 'structure', note: fr(h.r1(total)) + ' m de tube utilisés' + (R.f > 1 ? ', ' + R.l + ' : +' + Math.round((R.f - 1) * 100) + ' %' : '') });
+        L.push({ item: 'cp_fab_' + (p.mat === 'galva' ? 'acier' : p.mat) + '_m', qty: h.r1(total * (arche ? 1 : R.f)), comp: 'structure', note: fr(h.r1(total)) + ' m de tube utilisés' + (!arche && R.f > 1 ? ', ' + R.l + ' : +' + Math.round((R.f - 1) * 100) + ' %' : '') });
+        if (arche) L.push({ item: 'cp_cintrage', qty: spans + 1, comp: 'structure', note: (spans + 1) + ' arceaux de ' + fr(h.r2(p.P * R.c)) + ' m' });
       } else {
         L.push({ item: 'cp_bois_' + p.sb, qty: h.r1(ml.mlP + ml.mlB), comp: 'structure', note: np + ' poteaux, poutres et portiques ' + p.sb + ' × ' + p.sb });
         L.push({ item: 'cp_bois_chevron', qty: h.r1(ml.mlPan), comp: 'structure' });
@@ -1181,7 +1184,7 @@
     'carport-arche': function (p) {
       return { A: { finA: 'peinture', profP: 'rond', dP: 90, tP: 2, poutre: 'idem', couv: 'pvc', q: '2', gout: false, lamb: false, spots: 0 },
         B: { finA: 'peinture', profP: 'rond', dP: 100, tP: 2.5, poutre: 'idem', couv: 'pvc', q: '1', gout: false, lamb: true, spots: 0 },
-        C: { finA: 'thermo', profP: 'rond', dP: 110, tP: 3, poutre: 'idem', couv: 'toile', q: '1', gout: true, lamb: true, spots: Math.max(p.spots, 4) } };
+        C: { finA: 'galva', profP: 'rond', dP: 110, tP: 3, poutre: 'idem', couv: 'toile', q: '1', gout: true, lamb: true, spots: Math.max(p.spots, 4) } };
     },
     'pergola-bioclimatique': function (p) {
       var sides = p.config === 'autoportante' ? 'trois' : 'avant1';
