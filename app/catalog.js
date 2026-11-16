@@ -378,9 +378,9 @@
   }
 
   /* Carport arché : ppf poteaux par file, au centre de segments égaux de la profondeur. */
-  function archPosts(L, P, spans, ppf) {
+  function archPosts(L, P, ppf) {
     var out = [];
-    for (var i = 0; i <= spans; i++) for (var j = 0; j < ppf; j++) out.push([L * i / spans, P * (j + 0.5) / ppf]);
+    for (var j = 0; j < ppf; j++) out.push([L / 2, P * (j + 0.5) / ppf]);
     return out;
   }
   function posts(L, P, spans, auto) {
@@ -512,7 +512,7 @@
     blurb: arche ? 'Toit cintré, structure en fer, autoportant.' : 'Toit plat, fer ou aluminium, adossé ou autoportant.',
     /* Carport arché : sous-sections de la structure repliées par défaut, avec un résumé. */
     folds: arche ? {
-      'Poteaux': function (p) { return cpSectName(cpSect(p, 'P')) + ' · ' + (p.P > 6 ? 3 : 2) + ' par file'; },
+      'Poteaux': function (p) { return cpSectName(cpSect(p, 'P')) + ' · ' + (p.P > 6 ? 3 : 2) + ' poteaux'; },
       'Poutres (arcs)': function (p) { return cpSectName(cpSect(p, 'B')) + ' · 2 arcs par poteau'; },
       'Traverses': function (p) { return cpSectName(cpSect(p, 'T')) + ' · tous les ' + fr(p.espT) + ' m'; }
     } : null,
@@ -553,7 +553,7 @@
       { id: 'mur', sec: 'Implantation', label: 'Mur porteur', type: 'seg', def: 'beton', showIf: function (p) { return p.config === 'adossee'; }, options: [
         { v: 'beton', l: 'Béton' }, { v: 'plein', l: 'Brique pleine' }, { v: 'creux', l: 'Brique / parpaing creux' }] },
     ], [
-      { id: 'entraxe', sec: 'Implantation', label: 'Entraxe des poteaux', type: 'number', unit: 'm', min: 2.5, max: 3.5, step: 0.05, def: 3 },
+      { id: 'entraxe', sec: 'Implantation', label: 'Entraxe des poteaux', type: 'number', unit: 'm', min: 2.5, max: 3.5, step: 0.05, def: 3, showIf: function () { return !arche; } },
 
       { id: 'couv', comp: 'couverture', sec: 'Toiture', label: 'Couverture', type: 'seg', def: 'pvc', options: [
         { v: 'pvc', l: 'Bâche PVC' }, { v: 'toile', l: 'Toile' }, { v: 'sandwich', l: 'Panneau sandwich' }, { v: 'dalakit', l: 'Dalle à kit' }]
@@ -580,15 +580,15 @@
       var W = [], L = [], n = p.places, Wd = n * p.lp, area = Wd * p.P, auto = p.config === 'autoportante';
       var R = CP_ROOF[p.forme] || CP_ROOF.p1, rigid = p.couv === 'sandwich' || p.couv === 'dalakit', fin = cpFin(p);
       var spans = Math.max(1, h.ceil(Wd / p.entraxe - 1e-9)), np = auto ? 2 * (spans + 1) : spans + 1;
-      /* Carport arché : 2 poteaux par file (3 au-delà de 6 m de profondeur), chacun portant 2 arcs ;
-       * les poteaux sont au centre de segments égaux de la profondeur, les arcs couvrent chacun la moitié
-       * d'un segment. Traverses en travers des arcs, espacées de 0,75 à 1 m le long de l'arc développé. */
-      var files = spans + 1, ppf = arche && p.P > 6 ? 3 : 2, arcLen = p.P * R.c, nArcs = files * ppf * 2;
+      /* Carport arché : une rangée de poteaux dans la profondeur, au milieu de la largeur : 2 poteaux
+       * (3 au-delà de 6 m de profondeur). Chaque poteau porte 2 arcs, un de chaque côté, qui couvrent
+       * la largeur. Traverses dans le sens de la profondeur, espacées de 0,75 à 1 m le long des arcs. */
+      var files = spans + 1, ppf = arche && p.P > 6 ? 3 : 2, arcLen = Wd * R.c, nArcs = ppf * 2;
       var espT = Math.min(1, Math.max(0.75, +p.espT || 0.9)), nT = h.ceil(arcLen / espT - 1e-9) + 1;
-      if (arche) np = files * ppf;
+      if (arche) np = ppf;
 
       /* Métrages calculés : poteaux ; poutres (façade + arrière ou lisse murale, faîtage) et portiques ; pannes. */
-      var auto3 = arche ? { mlP: h.r1(np * (p.H + 0.15)), mlB: h.r1(files * arcLen), mlPan: h.r1(nT * Wd) } : {
+      var auto3 = arche ? { mlP: h.r1(np * (p.H + 0.15)), mlB: h.r1(ppf * arcLen), mlPan: h.r1(nT * p.P) } : {
         mlP: h.r1(np * (p.H + 0.15)),
         mlB: h.r1(2 * Wd + (p.forme === 'p2' ? Wd : 0) + (spans + 1) * p.P * R.c),
         mlPan: h.r1((h.ceil(p.P / (rigid ? 1.2 : 1.5)) + 1) * Wd)
@@ -601,7 +601,7 @@
         (p.P > 6 ? 1 : 0) + (p.mat === 'alu' ? 1 : 0) - (p.expo === 'abrite' ? 1 : 0);
       var sP = cpSect(p, 'P'), sB = cpSect(p, 'B');
       if (cpMetal(p)) {
-        if (arche && p.P > 6) need -= 1; // poteau intermédiaire : portée des arcs réduite
+        if (arche) need = (p.couv === 'sandwich' || p.couv === 'dalakit' ? 1 : 0) + (Wd > 6 ? 1 : 0); // arché : porte-à-faux des arcs
         var minD = sP.prof === 'rond' ? 90 + 10 * Math.max(0, need - 1) : 80 + 20 * Math.max(0, need - 1);
         var top = 150;
         if (minD > top) W.push('Entraxe, profondeur, couverture et vent cumulés : au-delà des sections proposées, faire valider par une note de calcul.');
@@ -610,7 +610,8 @@
         if (p.mat === 'alu') W.push('Aluminium : environ 3 fois moins rigide que l’acier, d’où une section conseillée plus forte.');
       } else if (need >= 3 && p.sb < 160) W.push('Bois : section 160 × 160 conseillée pour cette configuration.');
       if (hand) W.push('Métrages corrigés à la main (calcul : poteaux ' + fr(auto3.mlP) + ' m, ' + (arche ? 'arcs ' : 'poutres ') + fr(auto3.mlB) + ' m, ' + (arche ? 'traverses ' : 'pannes ') + fr(auto3.mlPan) + ' m).');
-      if (arche && p.P > 6) W.push('Profondeur > 6 m : 3 poteaux par file au lieu de 2 (' + np + ' poteaux, ' + nArcs + ' arcs).');
+      if (arche && p.P > 6) W.push('Profondeur > 6 m : 3 poteaux au lieu de 2 (' + nArcs + ' arcs).');
+      if (arche && Wd / 2 > 3.5) W.push('Arcs de plus de 3,50 m de chaque côté du poteau : porte-à-faux important, faire valider la section des arcs et des poteaux.');
 
       if (cpMetal(p)) {
         /* Pièces réelles de chaque groupe, puis découpe en barres entières par dimension de tube
@@ -621,8 +622,8 @@
         var panN = h.ceil(p.P / (rigid ? 1.2 : 1.5)) + 1;
         var groups = arche ? [
           [sP, 'poteaux', hand ? null : rep(np, p.H + 0.15), ml.mlP],
-          [sB, 'arcs', hand ? null : rep(nArcs, arcLen / (2 * ppf)), ml.mlB],
-          [sPan, 'traverses', hand ? null : rep(nT, Wd), ml.mlPan]
+          [sB, 'arcs', hand ? null : rep(nArcs, arcLen / 2), ml.mlB],
+          [sPan, 'traverses', hand ? null : rep(nT, p.P), ml.mlPan]
         ] : [
           [sP, 'poteaux', hand ? null : rep(np, p.H + 0.15), ml.mlP],
           [sB, 'poutres', hand ? null : rep(2 + (p.forme === 'p2' ? 1 : 0), Wd), hand ? ml.mlB : (2 + (p.forme === 'p2' ? 1 : 0)) * Wd],
@@ -646,7 +647,7 @@
           if (fin === 'peinture' || fin === 'thermo' || fin === 'galva') L.push({ item: cpFinId(fin, T.s.prof, T.s.D), qty: h.r1(T.m), comp: 'structure', note: fr(h.r1(T.m)) + ' m réellement utilisés' });
         });
         L.push({ item: 'cp_fab_' + (p.mat === 'galva' ? 'acier' : p.mat) + '_m', qty: h.r1(total * (arche ? 1 : R.f)), comp: 'structure', note: fr(h.r1(total)) + ' m de tube utilisés' + (!arche && R.f > 1 ? ', ' + R.l + ' : +' + Math.round((R.f - 1) * 100) + ' %' : '') });
-        if (arche) L.push({ item: 'cp_cintrage', qty: nArcs, comp: 'structure', note: nArcs + ' arcs (' + ppf + ' poteaux × 2 arcs × ' + files + ' files), ' + fr(h.r2(arcLen / (2 * ppf))) + ' m chacun' });
+        if (arche) L.push({ item: 'cp_cintrage', qty: nArcs, comp: 'structure', note: nArcs + ' arcs (' + ppf + ' poteaux × 2 arcs), ' + fr(h.r2(arcLen / 2)) + ' m chacun' });
       } else {
         L.push({ item: 'cp_bois_' + p.sb, qty: h.r1(ml.mlP + ml.mlB), comp: 'structure', note: np + ' poteaux, poutres et portiques ' + p.sb + ' × ' + p.sb });
         L.push({ item: 'cp_bois_chevron', qty: h.r1(ml.mlPan), comp: 'structure' });
@@ -687,7 +688,7 @@
       if (p.H > 3 && p.P < 7) W.push('Hauteur camping-car : la plupart font 6 à 7,5 m de long, vérifier la profondeur.');
       if (p.H < 2.2) W.push('Hauteur < 2,20 m : vérifier le gabarit des 4×4 et utilitaires.');
 
-      var days = h.r1(1 + area / 15 + (p.mat === 'inox' ? 0.5 : p.mat === 'bois' ? 0.3 : 0) + (p.forme === 'cintre' ? 0.3 : 0) + (arche ? (ppf - 2) * files * 0.15 : 0) +
+      var days = h.r1(1 + area / 15 + (p.mat === 'inox' ? 0.5 : p.mat === 'bois' ? 0.3 : 0) + (p.forme === 'cintre' ? 0.3 : 0) + (arche ? (ppf - 2) * 0.15 : 0) +
         (p.sol === 'paves' || p.sol === 'plots' ? gp * 0.08 : 0) + (p.sol === 'dalle_neuve' ? area / 25 : 0) + closed * p.H / 20);
       L.push({ item: 'cp_pose_jour', qty: days, note: 'estimation ' + fr(days) + ' j' });
 
@@ -699,7 +700,7 @@
           .concat(p.gout ? ['gouttière'] : []).concat(closed ? ['côtés fermés'] : []).concat(p.lamb ? ['lambrequin'] : []).concat(p.spots ? [p.spots + ' spots LED'] : []),
         summary: n + ' place' + (n > 1 ? 's' : '') + ', ' + fr(h.r2(Wd)) + ' × ' + fr(p.P) + ' m, ' + (auto ? 'autoportant' : 'adossé') + ', ' + np + ' poteaux',
         geo: { kind: 'plan', L: Wd, P: p.P, H: p.H, ral: 'standard',
-          wall: !auto, posts: arche ? archPosts(Wd, p.P, spans, ppf) : posts(Wd, p.P, spans, auto), roof: 'chevrons', pitch: rigid ? 0.9 : 1.2,
+          wall: !auto, posts: arche ? archPosts(Wd, p.P, ppf) : posts(Wd, p.P, spans, auto), roof: 'chevrons', pitch: rigid ? 0.9 : 1.2,
           couv: rigid ? 'sandwich_40' : 'poly_16', sides: [], cars: n, spots: p.spots } };
     }
     };
