@@ -287,7 +287,10 @@
   });
   [
     ['cp_fab_acier_m', 'Façonnage et soudure fer', 'm', 'pose', 'Structure'],
-    ['cp_cintrage', 'Cintrage d’un arceau', 'u', 'pose', 'Structure'],
+    ['cp_fab_cintrage', 'Façonnage et cintrage (carport arché)', 'forfait', 'pose', 'Structure'],
+    ['cp_boulon', 'Boulon de fixation (arcs et traverses)', 'u', 'equipement', 'Structure'],
+    ['cp_fin_forfait', 'Peinture / thermolaquage (forfait)', 'forfait', 'equipement', 'Finitions'],
+    ['cp_galva_forfait', 'Galvanisation à chaud (forfait)', 'forfait', 'equipement', 'Finitions'],
     ['cp_fab_alu_m', 'Façonnage et assemblage aluminium', 'm', 'pose', 'Structure'],
     ['cp_couv_pvc_1', 'Bâche PVC 1er choix', 'm²', 'matiere', 'Toiture'],
     ['cp_couv_pvc_2', 'Bâche PVC 2e choix', 'm²', 'matiere', 'Toiture'],
@@ -519,7 +522,7 @@
     /* Carport arché : sous-sections de la structure repliées par défaut, avec un résumé. */
     folds: arche ? {
       'Poteaux': function (p) { return cpSectName(cpSect(p, 'P')) + ' · ' + archGeom(p).np + ' poteaux à l’arrière'; },
-      'Poutres (arcs)': function (p) { return cpSectName(cpSect(p, 'B')) + ' · 2 arcs par poteau'; },
+      'Poutres (arcs)': function (p) { return cpSectName(cpSect(p, 'B')) + ' · 2 arcs par poteau, boulonnés'; },
       'Traverses': function (p) { return 'bords ' + cpSectName(cpSect(p, 'E')) + ' · milieu ' + cpSectName(cpSect(p, 'T')) + ' · tous les ' + fr(p.espT) + ' m'; }
     } : null,
     comps: [{ id: 'structure', l: 'Structure' }, { id: 'couverture', l: 'Toiture' }, { id: 'fixation', l: 'Sol et fixations' }],
@@ -531,7 +534,8 @@
 
       { id: 'mat', comp: 'structure', sec: 'Structure', label: 'Matériau', type: 'seg', def: 'acier', options: arche ? [{ v: 'acier', l: 'Fer' }] : [
         { v: 'acier', l: 'Fer' }, { v: 'alu', l: 'Aluminium' }] },
-      { id: 'finA', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'peinture', showIf: function (p) { return p.mat === 'acier'; }, options: [
+      { id: 'finA', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'peinture', showIf: function (p) { return p.mat === 'acier'; }, options: arche ? [
+        { v: 'peinture', l: 'Peinture / thermolaquage' }, { v: 'galva', l: 'Galvanisation à chaud' }] : [
         { v: 'peinture', l: 'Apprêt + peinture' }, { v: 'thermo', l: 'Thermolaquage' }, { v: 'galva', l: 'Galvanisation à chaud' }] },
       { id: 'finL', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'thermo', showIf: function (p) { return p.mat === 'alu'; }, options: [
         { v: 'thermo', l: 'Thermolaqué' }, { v: 'brut', l: 'Brut / anodisé' }] }
@@ -580,7 +584,7 @@
       /* Modèle imposé + valeurs d'anciennes configurations ramenées sur des choix valides. */
       p.forme = arche ? 'cintre' : 'plat'; p.expo = 'normal';
       if (p.mat === 'galva') { p.mat = 'acier'; p.finA = 'galva'; } // ancien matériau « galvanisé »
-      if (arche) { p.config = 'autoportante'; p.mat = 'acier'; p.poutre = 'autre'; }
+      if (arche) { p.config = 'autoportante'; p.mat = 'acier'; p.poutre = 'autre'; if (p.finA === 'thermo') p.finA = 'peinture'; }
       if (CP_COUV_OK[kind].indexOf(p.couv) < 0) p.couv = 'pvc';
       if (!CP_MAT[p.mat]) p.mat = 'acier';
       if (['peinture', 'thermo', 'galva'].indexOf(p.finA) < 0) p.finA = 'peinture';
@@ -650,10 +654,18 @@
           var bars = k.bars + handBars, chute = bars * BL - T.m;
           L.push({ item: id, qty: bars, comp: 'structure', note: 'Découpe : ' + T.what.join(' · ') + ' · chute ' + fr(h.r1(Math.max(0, chute))) + ' m' + (k.joints ? ' · ' + k.joints + ' raboutage' + (k.joints > 1 ? 's' : '') : '') });
           if (k.joints) W.push(cpSectName(T.s) + ' : pièces de plus de ' + fr(BL) + ' m, ' + k.joints + ' raboutage' + (k.joints > 1 ? 's' : '') + ' soudé' + (k.joints > 1 ? 's' : '') + ' à prévoir.');
-          if (fin === 'peinture' || fin === 'thermo' || fin === 'galva') L.push({ item: cpFinId(fin, T.s.prof, T.s.D), qty: h.r1(T.m), comp: 'structure', note: fr(h.r1(T.m)) + ' m réellement utilisés' });
+          if (!arche && (fin === 'peinture' || fin === 'thermo' || fin === 'galva')) L.push({ item: cpFinId(fin, T.s.prof, T.s.D), qty: h.r1(T.m), comp: 'structure', note: fr(h.r1(T.m)) + ' m réellement utilisés' });
         });
-        L.push({ item: 'cp_fab_' + (p.mat === 'galva' ? 'acier' : p.mat) + '_m', qty: h.r1(total * (arche ? 1 : R.f)), comp: 'structure', note: fr(h.r1(total)) + ' m de tube utilisés' + (!arche && R.f > 1 ? ', ' + R.l + ' : +' + Math.round((R.f - 1) * 100) + ' %' : '') });
-        if (arche) L.push({ item: 'cp_cintrage', qty: nArcs, comp: 'structure', note: nArcs + ' arcs (' + G.np + ' poteaux × 2 arcs), ' + fr(h.r2(arcLen)) + ' m chacun' });
+        if (!arche) L.push({ item: 'cp_fab_' + (p.mat === 'galva' ? 'acier' : p.mat) + '_m', qty: h.r1(total * (arche ? 1 : R.f)), comp: 'structure', note: fr(h.r1(total)) + ' m de tube utilisés' + (!arche && R.f > 1 ? ', ' + R.l + ' : +' + Math.round((R.f - 1) * 100) + ' %' : '') });
+        if (arche) {
+          /* Structure modulaire démontable : façonnage et cintrage au forfait, finition au forfait,
+           * boulons : 2 par arc (fixation au poteau) + 1 à chaque croisement traverse / arc. */
+          var nBoul = nArcs * 2 + nT * nArcs;
+          L.push({ item: 'cp_fab_cintrage', qty: 1, comp: 'structure', note: fr(h.r1(total)) + ' m de tube, ' + nArcs + ' arcs cintrés (' + G.np + ' poteaux × 2 arcs) de ' + fr(h.r2(arcLen)) + ' m' });
+          L.push({ item: 'cp_boulon', qty: nBoul, comp: 'structure', note: nArcs * 2 + ' pour fixer les arcs aux poteaux (2 par arc) + ' + nT * nArcs + ' pour les traverses (' + nT + ' traverses × ' + nArcs + ' arcs)' });
+          if (fin === 'galva') L.push({ item: 'cp_galva_forfait', qty: 1, comp: 'structure' });
+          else L.push({ item: 'cp_fin_forfait', qty: 1, comp: 'structure', note: 'peinture ou thermolaquage, ' + fr(h.r1(total)) + ' m de tube' });
+        }
       } else {
         L.push({ item: 'cp_bois_' + p.sb, qty: h.r1(ml.mlP + ml.mlB), comp: 'structure', note: np + ' poteaux, poutres et portiques ' + p.sb + ' × ' + p.sb });
         L.push({ item: 'cp_bois_chevron', qty: h.r1(ml.mlPan), comp: 'structure' });

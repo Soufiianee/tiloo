@@ -207,14 +207,16 @@ test('barres de 6 m : on compte par la découpe, pas par le total des mètres', 
   assert.ok(r3.warnings.some((w) => w.includes('raboutage')));
 });
 
-test('carport arché : cintrage compté à l’arceau ; galvanisation = finition du fer', () => {
+test('carport arché : façonnage et cintrage au forfait, finition au forfait, boulons', () => {
   const p = C.PRODUCTS.find((x) => x.id === 'carport-arche');
   const r = E.priceLine(p, { places: 2, lp: 3, entraxe: 3, finA: 'galva' }, C.BOOK, C.SETTINGS, TODAY, {});
   const q = (id) => r.lines.filter((l) => l.item === id).reduce((a, l) => a + l.qty, 0);
-  assert.equal(q('cp_cintrage'), 6, '6 m de long : 3 poteaux à l’arrière × 2 arcs');
-  assert.ok(r.lines.some((l) => l.item.startsWith('cp_f_galva_')));
+  assert.equal(q('cp_fab_cintrage'), 1, 'façonnage et cintrage au forfait');
+  assert.ok(/6 arcs cintrés/.test(r.lines.find((l) => l.item === 'cp_fab_cintrage').note), '6 m de long : 3 poteaux × 2 arcs');
+  assert.equal(q('cp_galva_forfait'), 1);
+  assert.ok(q('cp_boulon') > 0);
   const plat = E.priceLine(C.PRODUCTS.find((x) => x.id === 'abri-voiture'), {}, C.BOOK, C.SETTINGS, TODAY, {});
-  assert.ok(!plat.lines.some((l) => l.item === 'cp_cintrage'));
+  assert.ok(!plat.lines.some((l) => l.item === 'cp_fab_cintrage' || l.item === 'cp_boulon'));
 });
 
 test('carport arché : poteaux à l’arrière tous les 2,5 à 3 m, 2 arcs par poteau, traverses de bord et du milieu', () => {
@@ -225,7 +227,8 @@ test('carport arché : poteaux à l’arrière tous les 2,5 à 3 m, 2 arcs par p
   const q = (r, pre) => r.lines.filter((l) => l.item.startsWith(pre)).reduce((a, l) => a + l.qty, 0);
   const at = (o) => E.priceLine(p, o, C.BOOK, C.SETTINGS, TODAY, {});
   assert.equal(q(at({ P: 5 }), 'cp_platine'), 3);      // 5 m : 2 espaces de 2,50 m
-  assert.equal(q(at({ P: 5.5 }), 'cp_cintrage'), 6);   // 3 poteaux × 2 arcs
+  assert.equal(q(at({ P: 5.5 }), 'cp_boulon'), 6 * 2 + 5 * 6); // 6 arcs × 2 + 5 traverses × 6 arcs
+  assert.equal(q(at({ P: 5.5 }), 'cp_fin_forfait'), 1);
   assert.equal(q(at({ P: 8 }), 'cp_platine'), 4);      // 8 m : 3 espaces de 2,67 m
   const r = at({});
   assert.ok(/2 traverses de bord/.test(r.lines.find((l) => l.item === 'cp_t_acier_x60x40_15').note));
