@@ -8,7 +8,11 @@ import { fileURLToPath } from 'node:url';
 const dir = join(dirname(fileURLToPath(import.meta.url)), '..', 'app');
 const body = readFileSync(join(dir, 'devis.html'), 'utf8');
 const head = body.slice(0, body.indexOf('</style>') + '</style>'.length);
-const rest = body.slice(head.length);
+// Version dans l'adresse des scripts : chaque mise à jour est chargée tout de suite
+// (GitHub Pages et les navigateurs gardent sinon les anciens fichiers en cache).
+import { createHash } from 'node:crypto';
+const ver = createHash('sha1').update(['catalog.js', 'view3d.js', 'engine.js', 'app.js'].map((f) => readFileSync(join(dir, f), 'utf8')).join('')).digest('hex').slice(0, 10);
+const rest = body.slice(head.length).replace(/<script src="(catalog|view3d|engine|app)\.js"><\/script>/g, `<script src="$1.js?v=${ver}"></script>`);
 const html = `<!doctype html>
 <!-- Fichier généré par scripts/build.mjs à partir de devis.html : ne pas modifier à la main. -->
 <html lang="fr">
