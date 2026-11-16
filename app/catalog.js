@@ -246,11 +246,11 @@
    * Les tubes se chiffrent AU MÈTRE, avec un prix par matériau, profil, dimension et épaisseur
    * (articles « dim » : affichés seulement quand ils servent ou ont déjà un prix). */
   var CP_GROUP = 'Carport (abri voiture)';
-  var CP_DIMS = { rond: [90, 100, 110, 120, 130, 140, 150], carre: [80, 100, 120, 150], panne: [40, 50, 60] };
-  var CP_EP = [1.5, 2, 2.5, 3, 3.5, 4], CP_EP_PANNE = [1.5, 2];
+  var CP_DIMS = { rond: [90, 100, 110, 114, 120, 130, 140, 150], carre: [80, 100, 120, 150], rect: ['40x20', '50x30', '60x40', '80x40', '100x50', '120x60'], panne: [40, 50, 60] };
+  var CP_EP = [1.5, 1.8, 2, 2.5, 3, 3.5, 4], CP_EP_PANNE = [1.5, 2];
   var CP_METALS = { acier: 'fer', alu: 'aluminium' };
-  function cpDimKey(prof, D) { return (prof === 'rond' ? 'r' : 'c') + D; }
-  function cpDimName(prof, D) { return prof === 'rond' ? 'Ø ' + D : D + ' × ' + D; }
+  function cpDimKey(prof, D) { return (prof === 'rond' ? 'r' : prof === 'rect' ? 'x' : 'c') + D; }
+  function cpDimName(prof, D) { return prof === 'rond' ? 'Ø ' + D : prof === 'rect' ? String(D).replace('x', ' × ') : D + ' × ' + D; }
   /* Découpe en barres : rangement « plus grandes pièces d'abord » dans des barres de longueur L.
    * Une pièce plus longue qu'une barre est raboutée (barres entières + reste, une soudure par raccord). */
   function cpPack(pieces, L) {
@@ -269,17 +269,17 @@
   function cpFinId(fin, prof, D) { return 'cp_f_' + fin + '_' + cpDimKey(prof, D); }
   function cpEp(t) { return String(t).replace('.', ',') + ' mm'; }
   Object.keys(CP_METALS).forEach(function (m) {
-    [['rond', CP_DIMS.rond, CP_EP], ['carre', CP_DIMS.carre, CP_EP], ['carre', CP_DIMS.panne, CP_EP_PANNE]].forEach(function (g) {
+    [['rond', CP_DIMS.rond, CP_EP], ['carre', CP_DIMS.carre, CP_EP], ['rect', CP_DIMS.rect, CP_EP], ['carre', CP_DIMS.panne, CP_EP_PANNE]].forEach(function (g) {
       g[1].forEach(function (D) {
         g[2].forEach(function (t) {
-          BOOK[cpTubeId(m, g[0], D, t)] = { name: 'Tube ' + CP_METALS[m] + ' ' + (g[0] === 'rond' ? 'rond ' : 'carré ') + cpDimName(g[0], D) + ' × ' + cpEp(t), unit: 'barre', cat: 'matiere', sub: 'Structure', dim: true, noWaste: true, type: 'mad', group: CP_GROUP, hist: [],
+          BOOK[cpTubeId(m, g[0], D, t)] = { name: 'Tube ' + CP_METALS[m] + ' ' + (g[0] === 'rond' ? 'rond ' : g[0] === 'rect' ? 'rectangulaire ' : 'carré ') + cpDimName(g[0], D) + ' × ' + cpEp(t), unit: 'barre', cat: 'matiere', sub: 'Structure', dim: true, noWaste: true, type: 'mad', group: CP_GROUP, hist: [],
             note: 'Prix d’une barre entière (6 m par défaut, voir Réglages). Le devis compte des barres entières, selon la découpe.' };
         });
       });
     });
   });
   [['peinture', 'Apprêt + peinture'], ['thermo', 'Thermolaquage'], ['galva', 'Galvanisation à chaud']].forEach(function (f) {
-    [['rond', CP_DIMS.rond], ['carre', CP_DIMS.carre], ['carre', CP_DIMS.panne]].forEach(function (g) {
+    [['rond', CP_DIMS.rond], ['carre', CP_DIMS.carre], ['rect', CP_DIMS.rect], ['carre', CP_DIMS.panne]].forEach(function (g) {
       g[1].forEach(function (D) {
         BOOK[cpFinId(f[0], g[0], D)] = { name: f[1] + ' tube ' + cpDimName(g[0], D), unit: 'm', cat: 'equipement', sub: 'Finitions', dim: true, type: 'mad', group: CP_GROUP, hist: [] };
       });
@@ -377,6 +377,12 @@
     return { count: count, geo: geo };
   }
 
+  /* Carport arché : ppf poteaux par file, au centre de segments égaux de la profondeur. */
+  function archPosts(L, P, spans, ppf) {
+    var out = [];
+    for (var i = 0; i <= spans; i++) for (var j = 0; j < ppf; j++) out.push([L * i / spans, P * (j + 0.5) / ppf]);
+    return out;
+  }
   function posts(L, P, spans, auto) {
     var out = [];
     for (var i = 0; i <= spans; i++) {
@@ -470,31 +476,46 @@
   function cpFin(p) { return p.mat === 'alu' ? p.finL : p.finA; }
   /* Section (profil, dimension, épaisseur) d'un groupe de tubes : poteaux 'P' ou poutres 'B'. */
   function cpSect(p, k) {
-    if (k === 'B' && p.poutre !== 'autre') k = 'P';
+    if (k === 'B' && p.poutre !== 'autre' && p.xB == null) k = 'P'; // carport arché : les arcs ont toujours leur propre section
     var prof = p['prof' + k];
-    return { prof: prof, D: prof === 'rond' ? p['d' + k] : p['c' + k], t: p['t' + k] };
+    return { prof: prof, D: prof === 'rond' ? p['d' + k] : prof === 'rect' ? p['x' + k] : p['c' + k], t: p['t' + k] };
   }
+  /* Plus grande dimension d'une section (mm), pour les sections conseillées. */
+  function cpDimMax(s) { return s.prof === 'rect' ? parseInt(String(s.D).split('x')[0], 10) : +s.D; }
   function cpSectName(s) { return cpDimName(s.prof, s.D) + ' × ' + cpEp(s.t); }
-  function cpTubeParams(k, sec, show) {
+  /* Profil, dimension et épaisseur d'un groupe de tubes. d : valeurs par défaut ; d.rect ajoute le tube rectangulaire. */
+  function cpTubeParams(k, sec, show, d) {
+    d = d || {};
     var vis = function (p) { return cpMetal(p) && (!show || show(p)); };
+    var profs = [{ v: 'rond', l: 'Tube rond' }, { v: 'carre', l: 'Tube carré' }].concat(d.rect ? [{ v: 'rect', l: 'Tube rectangulaire' }] : []);
     return [
-      { id: 'prof' + k, comp: 'structure', sec: sec, label: 'Profil', type: 'seg', def: 'rond', showIf: vis, options: [{ v: 'rond', l: 'Tube rond' }, { v: 'carre', l: 'Tube carré' }] },
-      { id: 'd' + k, comp: 'structure', sec: sec, label: 'Diamètre', type: 'seg', num: true, def: k === 'P' ? 100 : 90,
+      { id: 'prof' + k, comp: 'structure', sec: sec, label: 'Profil', type: 'seg', def: d.prof || 'rond', showIf: vis, options: profs },
+      { id: 'd' + k, comp: 'structure', sec: sec, label: 'Diamètre', type: 'seg', num: true, def: d.d || (k === 'P' ? 100 : 90),
         showIf: function (p) { return vis(p) && p['prof' + k] === 'rond'; }, options: CP_DIMS.rond.map(function (v) { return { v: v, l: 'Ø ' + v }; }) },
-      { id: 'c' + k, comp: 'structure', sec: sec, label: 'Section', type: 'seg', num: true, def: k === 'P' ? 100 : 80,
-        showIf: function (p) { return vis(p) && p['prof' + k] === 'carre'; }, options: CP_DIMS.carre.map(function (v) { return { v: v, l: v + ' × ' + v }; }) },
-      { id: 't' + k, comp: 'structure', sec: sec, label: 'Épaisseur', type: 'seg', num: true, def: 2, showIf: vis, options: CP_EP.map(function (v) { return { v: v, l: cpEp(v) }; }) }
-    ];
+      { id: 'c' + k, comp: 'structure', sec: sec, label: 'Section', type: 'seg', num: true, def: d.c || (k === 'P' ? 100 : 80),
+        showIf: function (p) { return vis(p) && p['prof' + k] === 'carre'; }, options: CP_DIMS.carre.map(function (v) { return { v: v, l: v + ' × ' + v }; }) }
+    ].concat(d.rect ? [
+      { id: 'x' + k, comp: 'structure', sec: sec, label: 'Dimensions', type: 'seg', def: d.x || '60x40',
+        showIf: function (p) { return vis(p) && p['prof' + k] === 'rect'; }, options: CP_DIMS.rect.map(function (v) { return { v: v, l: v.replace('x', ' × ') }; }) }
+    ] : [], [
+      { id: 't' + k, comp: 'structure', sec: sec, label: 'Épaisseur', type: 'seg', num: true, def: d.t || 2, showIf: vis, options: CP_EP.map(function (v) { return { v: v, l: cpEp(v) }; }) }
+    ]);
   }
   /* Deux modèles : arché (fer, autoportant, toit cintré, couverture souple)
    * et plat (fer ou aluminium, adossé ou autoportant, toit plat pente 5 %). */
   var CP_COUV_OK = { arche: ['pvc', 'toile'], plat: ['pvc', 'toile', 'sandwich', 'dalakit'] };
   function cpProduct(kind) {
-    var arche = kind === 'arche', SB = arche ? 'Poutres et arceaux' : 'Poutres et portiques';
+    var arche = kind === 'arche', SB = arche ? 'Poutres (arcs)' : 'Poutres et portiques';
     return {
     id: arche ? 'carport-arche' : 'abri-voiture', name: arche ? 'Carport arché' : 'Carport plat', short: arche ? 'Carport arché' : 'Carport plat',
     family: 'Carport', icon: 'carport', margin: 0.32, waste: 0.07, priceGroup: CP_GROUP,
     blurb: arche ? 'Toit cintré, structure en fer, autoportant.' : 'Toit plat, fer ou aluminium, adossé ou autoportant.',
+    /* Carport arché : sous-sections de la structure repliées par défaut, avec un résumé. */
+    folds: arche ? {
+      'Poteaux': function (p) { return cpSectName(cpSect(p, 'P')) + ' · ' + (p.P > 6 ? 3 : 2) + ' par file'; },
+      'Poutres (arcs)': function (p) { return cpSectName(cpSect(p, 'B')) + ' · 2 arcs par poteau'; },
+      'Traverses': function (p) { return cpSectName(cpSect(p, 'T')) + ' · tous les ' + fr(p.espT) + ' m'; }
+    } : null,
     comps: [{ id: 'structure', l: 'Structure' }, { id: 'couverture', l: 'Toiture' }, { id: 'fixation', l: 'Sol et fixations' }],
     params: [
       { id: 'places', sec: 'Dimensions', label: 'Nombre de places', type: 'count', unit: 'places', min: 1, max: 6, def: 1 },
@@ -508,19 +529,24 @@
         { v: 'peinture', l: 'Apprêt + peinture' }, { v: 'thermo', l: 'Thermolaquage' }, { v: 'galva', l: 'Galvanisation à chaud' }] },
       { id: 'finL', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'thermo', showIf: function (p) { return p.mat === 'alu'; }, options: [
         { v: 'thermo', l: 'Thermolaqué' }, { v: 'brut', l: 'Brut / anodisé' }] }
-    ].concat(cpTubeParams('P', 'Poteaux'), [
+    ].concat(arche ? cpTubeParams('P', 'Poteaux', null, { rect: true, prof: 'rond', d: 114, t: 1.8 }).concat(
+      cpTubeParams('B', SB, null, { rect: true, prof: 'rect', x: '60x40', t: 1.5 }),
+      cpTubeParams('T', 'Traverses', null, { rect: true, prof: 'rect', x: '40x20', t: 1.5 }), [
+      { id: 'espT', comp: 'structure', sec: 'Traverses', label: 'Espacement des traverses', type: 'number', unit: 'm', min: 0.75, max: 1, step: 0.05, def: 0.9 }
+    ]) : cpTubeParams('P', 'Poteaux').concat([
       { id: 'poutre', comp: 'structure', sec: SB, label: 'Section des poutres', type: 'seg', def: 'idem', showIf: cpMetal, options: [
         { v: 'idem', l: 'Comme les poteaux' }, { v: 'autre', l: 'Autre section' }] }
     ], cpTubeParams('B', SB, function (p) { return p.poutre === 'autre'; }), [
       { id: 'cPan', comp: 'structure', sec: 'Pannes', label: 'Pannes (tube carré)', type: 'seg', num: true, def: 40, showIf: cpMetal,
         options: CP_DIMS.panne.map(function (v) { return { v: v, l: v + ' × ' + v }; }) },
       { id: 'tPan', comp: 'structure', sec: 'Pannes', label: 'Épaisseur des pannes', type: 'seg', num: true, def: 1.5, showIf: cpMetal,
-        options: CP_EP_PANNE.map(function (v) { return { v: v, l: cpEp(v) }; }) },
+        options: CP_EP_PANNE.map(function (v) { return { v: v, l: cpEp(v) }; }) }
+    ]), [
 
       { id: 'mlEdit', comp: 'structure', sec: 'Métrages', label: 'Corriger les métrages à la main', type: 'toggle', def: false, prefill: 'metrage' },
       { id: 'mlP', comp: 'structure', sec: 'Métrages', label: 'Poteaux', type: 'number', unit: 'm', min: 0, max: 400, step: 0.5, def: 0, showIf: function (p) { return p.mlEdit; } },
-      { id: 'mlB', comp: 'structure', sec: 'Métrages', label: arche ? 'Poutres et arceaux' : 'Poutres et portiques', type: 'number', unit: 'm', min: 0, max: 400, step: 0.5, def: 0, showIf: function (p) { return p.mlEdit; } },
-      { id: 'mlPan', comp: 'structure', sec: 'Métrages', label: 'Pannes', type: 'number', unit: 'm', min: 0, max: 400, step: 0.5, def: 0, showIf: function (p) { return p.mlEdit; } },
+      { id: 'mlB', comp: 'structure', sec: 'Métrages', label: arche ? 'Poutres (arcs)' : 'Poutres et portiques', type: 'number', unit: 'm', min: 0, max: 400, step: 0.5, def: 0, showIf: function (p) { return p.mlEdit; } },
+      { id: 'mlPan', comp: 'structure', sec: 'Métrages', label: arche ? 'Traverses' : 'Pannes', type: 'number', unit: 'm', min: 0, max: 400, step: 0.5, def: 0, showIf: function (p) { return p.mlEdit; } },
 
     ], arche ? [] : [
       { id: 'config', sec: 'Implantation', label: 'Implantation', type: 'seg', def: 'autoportante', options: [{ v: 'adossee', l: 'Adossé à un mur' }, { v: 'autoportante', l: 'Autoportant' }] },
@@ -547,16 +573,22 @@
       /* Modèle imposé + valeurs d'anciennes configurations ramenées sur des choix valides. */
       p.forme = arche ? 'cintre' : 'plat'; p.expo = 'normal';
       if (p.mat === 'galva') { p.mat = 'acier'; p.finA = 'galva'; } // ancien matériau « galvanisé »
-      if (arche) { p.config = 'autoportante'; p.mat = 'acier'; }
+      if (arche) { p.config = 'autoportante'; p.mat = 'acier'; p.poutre = 'autre'; }
       if (CP_COUV_OK[kind].indexOf(p.couv) < 0) p.couv = 'pvc';
       if (!CP_MAT[p.mat]) p.mat = 'acier';
       if (['peinture', 'thermo', 'galva'].indexOf(p.finA) < 0) p.finA = 'peinture';
       var W = [], L = [], n = p.places, Wd = n * p.lp, area = Wd * p.P, auto = p.config === 'autoportante';
       var R = CP_ROOF[p.forme] || CP_ROOF.p1, rigid = p.couv === 'sandwich' || p.couv === 'dalakit', fin = cpFin(p);
       var spans = Math.max(1, h.ceil(Wd / p.entraxe - 1e-9)), np = auto ? 2 * (spans + 1) : spans + 1;
+      /* Carport arché : 2 poteaux par file (3 au-delà de 6 m de profondeur), chacun portant 2 arcs ;
+       * les poteaux sont au centre de segments égaux de la profondeur, les arcs couvrent chacun la moitié
+       * d'un segment. Traverses en travers des arcs, espacées de 0,75 à 1 m le long de l'arc développé. */
+      var files = spans + 1, ppf = arche && p.P > 6 ? 3 : 2, arcLen = p.P * R.c, nArcs = files * ppf * 2;
+      var espT = Math.min(1, Math.max(0.75, +p.espT || 0.9)), nT = h.ceil(arcLen / espT - 1e-9) + 1;
+      if (arche) np = files * ppf;
 
       /* Métrages calculés : poteaux ; poutres (façade + arrière ou lisse murale, faîtage) et portiques ; pannes. */
-      var auto3 = {
+      var auto3 = arche ? { mlP: h.r1(np * (p.H + 0.15)), mlB: h.r1(files * arcLen), mlPan: h.r1(nT * Wd) } : {
         mlP: h.r1(np * (p.H + 0.15)),
         mlB: h.r1(2 * Wd + (p.forme === 'p2' ? Wd : 0) + (spans + 1) * p.P * R.c),
         mlPan: h.r1((h.ceil(p.P / (rigid ? 1.2 : 1.5)) + 1) * Wd)
@@ -569,23 +601,29 @@
         (p.P > 6 ? 1 : 0) + (p.mat === 'alu' ? 1 : 0) - (p.expo === 'abrite' ? 1 : 0);
       var sP = cpSect(p, 'P'), sB = cpSect(p, 'B');
       if (cpMetal(p)) {
+        if (arche && p.P > 6) need -= 1; // poteau intermédiaire : portée des arcs réduite
         var minD = sP.prof === 'rond' ? 90 + 10 * Math.max(0, need - 1) : 80 + 20 * Math.max(0, need - 1);
-        var top = sP.prof === 'rond' ? 150 : 150;
+        var top = 150;
         if (minD > top) W.push('Entraxe, profondeur, couverture et vent cumulés : au-delà des sections proposées, faire valider par une note de calcul.');
-        else if (sP.D < minD) W.push('Poteaux : section conseillée ' + cpDimName(sP.prof, minD) + ' minimum (entraxe ' + fr(p.entraxe) + ' m' + (p.expo === 'mer' ? ', bord de mer' : '') + (p.P > 6 ? ', profondeur > 6 m' : '') + ').');
-        if (sP.t < 2 || (sB.t < 2 && need >= 2)) W.push('Épaisseur 1,5 mm : à réserver aux petites portées ; 2 mm minimum conseillé pour les poteaux' + (need >= 2 ? ' et les poutres' : '') + '.');
+        else if (cpDimMax(sP) < minD) W.push('Poteaux : section conseillée ' + cpDimName(sP.prof, minD) + ' minimum (entraxe ' + fr(p.entraxe) + ' m' + (p.expo === 'mer' ? ', bord de mer' : '') + (p.P > 6 ? ', profondeur > 6 m' : '') + ').');
+        if (sP.t < 1.8 || (sB.t < 1.8 && need >= 2)) W.push('Épaisseur 1,5 mm : à réserver aux petites portées ; 1,8 mm minimum conseillé pour les poteaux' + (need >= 2 ? ' et les poutres' : '') + '.');
         if (p.mat === 'alu') W.push('Aluminium : environ 3 fois moins rigide que l’acier, d’où une section conseillée plus forte.');
       } else if (need >= 3 && p.sb < 160) W.push('Bois : section 160 × 160 conseillée pour cette configuration.');
-      if (hand) W.push('Métrages corrigés à la main (calcul : poteaux ' + fr(auto3.mlP) + ' m, poutres ' + fr(auto3.mlB) + ' m, pannes ' + fr(auto3.mlPan) + ' m).');
+      if (hand) W.push('Métrages corrigés à la main (calcul : poteaux ' + fr(auto3.mlP) + ' m, ' + (arche ? 'arcs ' : 'poutres ') + fr(auto3.mlB) + ' m, ' + (arche ? 'traverses ' : 'pannes ') + fr(auto3.mlPan) + ' m).');
+      if (arche && p.P > 6) W.push('Profondeur > 6 m : 3 poteaux par file au lieu de 2 (' + np + ' poteaux, ' + nArcs + ' arcs).');
 
       if (cpMetal(p)) {
         /* Pièces réelles de chaque groupe, puis découpe en barres entières par dimension de tube
          * (poteaux et poutres de même section partagent les barres). Métrage corrigé à la main :
          * on ne connaît plus les pièces, on arrondit le total au nombre de barres supérieur. */
         var BL = (ctx && ctx.settings && ctx.settings.barLength) || 6;
-        var sPan = { prof: 'carre', D: p.cPan, t: p.tPan }, total = 0, tubes = {}, order = [];
+        var sPan = arche ? cpSect(p, 'T') : { prof: 'carre', D: p.cPan, t: p.tPan }, total = 0, tubes = {}, order = [];
         var panN = h.ceil(p.P / (rigid ? 1.2 : 1.5)) + 1;
-        var groups = [
+        var groups = arche ? [
+          [sP, 'poteaux', hand ? null : rep(np, p.H + 0.15), ml.mlP],
+          [sB, 'arcs', hand ? null : rep(nArcs, arcLen / (2 * ppf)), ml.mlB],
+          [sPan, 'traverses', hand ? null : rep(nT, Wd), ml.mlPan]
+        ] : [
           [sP, 'poteaux', hand ? null : rep(np, p.H + 0.15), ml.mlP],
           [sB, 'poutres', hand ? null : rep(2 + (p.forme === 'p2' ? 1 : 0), Wd), hand ? ml.mlB : (2 + (p.forme === 'p2' ? 1 : 0)) * Wd],
           [sB, arche ? 'arceaux' : 'portiques', hand ? null : rep(spans + 1, p.P * R.c), hand ? 0 : (spans + 1) * p.P * R.c],
@@ -608,7 +646,7 @@
           if (fin === 'peinture' || fin === 'thermo' || fin === 'galva') L.push({ item: cpFinId(fin, T.s.prof, T.s.D), qty: h.r1(T.m), comp: 'structure', note: fr(h.r1(T.m)) + ' m réellement utilisés' });
         });
         L.push({ item: 'cp_fab_' + (p.mat === 'galva' ? 'acier' : p.mat) + '_m', qty: h.r1(total * (arche ? 1 : R.f)), comp: 'structure', note: fr(h.r1(total)) + ' m de tube utilisés' + (!arche && R.f > 1 ? ', ' + R.l + ' : +' + Math.round((R.f - 1) * 100) + ' %' : '') });
-        if (arche) L.push({ item: 'cp_cintrage', qty: spans + 1, comp: 'structure', note: (spans + 1) + ' arceaux de ' + fr(h.r2(p.P * R.c)) + ' m' });
+        if (arche) L.push({ item: 'cp_cintrage', qty: nArcs, comp: 'structure', note: nArcs + ' arcs (' + ppf + ' poteaux × 2 arcs × ' + files + ' files), ' + fr(h.r2(arcLen / (2 * ppf))) + ' m chacun' });
       } else {
         L.push({ item: 'cp_bois_' + p.sb, qty: h.r1(ml.mlP + ml.mlB), comp: 'structure', note: np + ' poteaux, poutres et portiques ' + p.sb + ' × ' + p.sb });
         L.push({ item: 'cp_bois_chevron', qty: h.r1(ml.mlPan), comp: 'structure' });
@@ -649,18 +687,19 @@
       if (p.H > 3 && p.P < 7) W.push('Hauteur camping-car : la plupart font 6 à 7,5 m de long, vérifier la profondeur.');
       if (p.H < 2.2) W.push('Hauteur < 2,20 m : vérifier le gabarit des 4×4 et utilitaires.');
 
-      var days = h.r1(1 + area / 15 + (p.mat === 'inox' ? 0.5 : p.mat === 'bois' ? 0.3 : 0) + (p.forme === 'cintre' ? 0.3 : 0) +
+      var days = h.r1(1 + area / 15 + (p.mat === 'inox' ? 0.5 : p.mat === 'bois' ? 0.3 : 0) + (p.forme === 'cintre' ? 0.3 : 0) + (arche ? (ppf - 2) * files * 0.15 : 0) +
         (p.sol === 'paves' || p.sol === 'plots' ? gp * 0.08 : 0) + (p.sol === 'dalle_neuve' ? area / 25 : 0) + closed * p.H / 20);
       L.push({ item: 'cp_pose_jour', qty: days, note: 'estimation ' + fr(days) + ' j' });
 
       var solN = { dalle: 'sur dalle existante', paves: 'plots sous pavés', plots: 'plots isolés', dalle_neuve: 'dalle béton coulée' }[p.sol];
-      var structN = cpMetal(p) ? 'poteaux ' + cpSectName(sP) + (p.poutre === 'autre' ? ', poutres ' + cpSectName(sB) : '') : 'section ' + p.sb + ' × ' + p.sb;
+      var structN = arche ? 'poteaux ' + cpSectName(sP) + ', arcs ' + cpSectName(sB) + ', traverses ' + cpSectName(cpSect(p, 'T')) :
+        cpMetal(p) ? 'poteaux ' + cpSectName(sP) + (p.poutre === 'autre' ? ', poutres ' + cpSectName(sB) : '') : 'section ' + p.sb + ' × ' + p.sb;
       return { lines: L, warnings: W, laborDays: days, area: area, metrage: auto3,
         details: [CP_MAT[p.mat] + (fin && fin !== 'sans' ? ' ' + CP_FIN[fin] : '') + ', ' + structN, CP_COUV[p.couv] + (p.q === '2' ? ' 2e choix' : ' 1er choix') + ', ' + R.l, solN]
           .concat(p.gout ? ['gouttière'] : []).concat(closed ? ['côtés fermés'] : []).concat(p.lamb ? ['lambrequin'] : []).concat(p.spots ? [p.spots + ' spots LED'] : []),
         summary: n + ' place' + (n > 1 ? 's' : '') + ', ' + fr(h.r2(Wd)) + ' × ' + fr(p.P) + ' m, ' + (auto ? 'autoportant' : 'adossé') + ', ' + np + ' poteaux',
         geo: { kind: 'plan', L: Wd, P: p.P, H: p.H, ral: 'standard',
-          wall: !auto, posts: posts(Wd, p.P, spans, auto), roof: 'chevrons', pitch: rigid ? 0.9 : 1.2,
+          wall: !auto, posts: arche ? archPosts(Wd, p.P, spans, ppf) : posts(Wd, p.P, spans, auto), roof: 'chevrons', pitch: rigid ? 0.9 : 1.2,
           couv: rigid ? 'sandwich_40' : 'poly_16', sides: [], cars: n, spots: p.spots } };
     }
     };
@@ -1182,9 +1221,9 @@
         C: { mat: 'alu', finL: 'thermo', profP: 'carre', cP: 120, tP: 3, poutre: 'idem', couv: 'sandwich', q: '1', gout: true, lamb: true, spots: Math.max(p.spots, 4) } };
     },
     'carport-arche': function (p) {
-      return { A: { finA: 'peinture', profP: 'rond', dP: 90, tP: 2, poutre: 'idem', couv: 'pvc', q: '2', gout: false, lamb: false, spots: 0 },
-        B: { finA: 'peinture', profP: 'rond', dP: 100, tP: 2.5, poutre: 'idem', couv: 'pvc', q: '1', gout: false, lamb: true, spots: 0 },
-        C: { finA: 'galva', profP: 'rond', dP: 110, tP: 3, poutre: 'idem', couv: 'toile', q: '1', gout: true, lamb: true, spots: Math.max(p.spots, 4) } };
+      return { A: { finA: 'peinture', profP: 'rond', dP: 114, tP: 1.8, profB: 'rect', xB: '60x40', tB: 1.5, profT: 'rect', xT: '40x20', tT: 1.5, couv: 'pvc', q: '2', gout: false, lamb: false, spots: 0 },
+        B: { finA: 'peinture', profP: 'rond', dP: 114, tP: 2, profB: 'rect', xB: '60x40', tB: 1.8, profT: 'rect', xT: '40x20', tT: 1.5, couv: 'pvc', q: '1', gout: false, lamb: true, spots: 0 },
+        C: { finA: 'galva', profP: 'rond', dP: 120, tP: 2.5, profB: 'rect', xB: '80x40', tB: 2, profT: 'rect', xT: '40x20', tT: 1.8, couv: 'toile', q: '1', gout: true, lamb: true, spots: Math.max(p.spots, 4) } };
     },
     'pergola-bioclimatique': function (p) {
       var sides = p.config === 'autoportante' ? 'trois' : 'avant1';

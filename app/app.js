@@ -731,6 +731,10 @@
     var cum = 0; rows.forEach(function (x) { x.share = total ? x.cost / total : 0; x.major = cum < 0.8; cum += x.share; });
     return { rows: rows, total: total };
   }
+  var openFold = {}; // sous-sections ouvertes (gardées pendant la session)
+  $('form').addEventListener('toggle', function (e) {
+    var d = e.target; if (d.dataset && d.dataset.fold) openFold[d.dataset.fold] = d.open;
+  }, true);
   function renderForm() {
     var prod = byId[S.current.productId], p = E.fullParams(prod, S.current.params), mode = modeOf(prod);
     var h = '<div class="cfg-head"><div><h2>' + esc(prod.name) + '</h2><p class="lede">' + esc(prod.blurb) + '</p></div>' +
@@ -761,6 +765,13 @@
     var pillDone = {};
     secs.forEach(function (s) {
       var c = secComp[s], todo = c && !isPicked(prod, c), pill = c && !pillDone[c]; if (c) pillDone[c] = true;
+      var fold = prod.folds && prod.folds[s];
+      if (fold) { // sous-section repliable, fermée par défaut, avec résumé
+        var fk = prod.id + '|' + s;
+        h += '<details class="sec fold"' + (openFold[fk] ? ' open' : '') + ' data-fold="' + esc(fk) + '"' + (c ? ' data-comp="' + c + '"' : '') + '><summary class="sec-h"><h3>' + esc(s) + '</h3>' +
+          '<span class="fold-sum">' + esc(fold(p)) + '</span><i class="fold-ic" aria-hidden="true"></i></summary><div class="grid">' + bySec[s].join('') + '</div></details>';
+        return;
+      }
       h += '<div class="sec' + (todo ? ' todo' : '') + '"' + (c ? ' data-comp="' + c + '"' : '') + '><div class="sec-h"><h3>' + esc(s) + '</h3>' +
         (pill ? '<span class="pill" data-share="' + c + '"></span>' : '') + (todo ? '<span class="pill warn">À choisir</span>' : '') + '</div><div class="grid">' + bySec[s].join('') + '</div></div>';
     });
@@ -899,7 +910,17 @@
     });
     return h + '</div>';
   }
+  /* Met à jour le résumé des sous-sections repliées (ex. nombre de poteaux quand la profondeur change). */
+  function refreshFolds() {
+    var prod = byId[S.current.productId]; if (!prod.folds) return;
+    var p = E.fullParams(prod, S.current.params);
+    document.querySelectorAll('#form details.fold').forEach(function (d) {
+      var sec = d.dataset.fold.split('|')[1], el = d.querySelector('.fold-sum');
+      if (prod.folds[sec] && el) el.textContent = prod.folds[sec](p);
+    });
+  }
   function renderResult() {
+    refreshFolds();
     var prod = byId[S.current.productId];
     var r = last = price(S.current.productId, S.current.params), t = validTier(r, curTier());
     if (r.unpriced.length) { renderUnpriced(prod, r); return; }

@@ -211,8 +211,23 @@ test('carport arché : cintrage compté à l’arceau ; galvanisation = finition
   const p = C.PRODUCTS.find((x) => x.id === 'carport-arche');
   const r = E.priceLine(p, { places: 2, lp: 3, entraxe: 3, finA: 'galva' }, C.BOOK, C.SETTINGS, TODAY, {});
   const q = (id) => r.lines.filter((l) => l.item === id).reduce((a, l) => a + l.qty, 0);
-  assert.equal(q('cp_cintrage'), 3, '6 m de large, entraxe 3 m : 3 arceaux');
+  assert.equal(q('cp_cintrage'), 12, '3 files × 2 poteaux × 2 arcs');
   assert.ok(r.lines.some((l) => l.item.startsWith('cp_f_galva_')));
   const plat = E.priceLine(C.PRODUCTS.find((x) => x.id === 'abri-voiture'), {}, C.BOOK, C.SETTINGS, TODAY, {});
   assert.ok(!plat.lines.some((l) => l.item === 'cp_cintrage'));
+});
+
+test('carport arché : défauts, 3 poteaux par file au-delà de 6 m, 2 arcs par poteau, traverses espacées', () => {
+  const p = C.PRODUCTS.find((x) => x.id === 'carport-arche');
+  const base = E.fullParams(p, {});
+  assert.deepEqual([base.profP, base.dP, base.tP, base.profB, base.xB, base.tB, base.profT, base.xT, base.tT],
+    ['rond', 114, 1.8, 'rect', '60x40', 1.5, 'rect', '40x20', 1.5]);
+  const q = (r, pre) => r.lines.filter((l) => l.item.startsWith(pre)).reduce((a, l) => a + l.qty, 0);
+  const r6 = E.priceLine(p, { P: 6 }, C.BOOK, C.SETTINGS, TODAY, {}), r7 = E.priceLine(p, { P: 6.5 }, C.BOOK, C.SETTINGS, TODAY, {});
+  assert.equal(q(r6, 'cp_platine'), 4); assert.equal(q(r6, 'cp_cintrage'), 8);
+  assert.equal(q(r7, 'cp_platine'), 6); assert.equal(q(r7, 'cp_cintrage'), 12);
+  assert.ok(r6.lines.some((l) => l.item === 'cp_t_acier_r114_18') && r6.lines.some((l) => l.item === 'cp_t_acier_x60x40_15') && r6.lines.some((l) => l.item === 'cp_t_acier_x40x20_15'));
+  const trav = (r) => +r.lines.find((l) => l.item === 'cp_t_acier_x40x20_15').note.match(/(\d+) traverses/)[1];
+  assert.ok(trav(E.priceLine(p, { espT: 0.75 }, C.BOOK, C.SETTINGS, TODAY, {})) > trav(E.priceLine(p, { espT: 1 }, C.BOOK, C.SETTINGS, TODAY, {})));
+  assert.ok(p.folds && p.folds['Poteaux'] && p.folds['Poutres (arcs)'] && p.folds['Traverses']);
 });
