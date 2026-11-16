@@ -158,15 +158,16 @@ test('carport plat et arché : toutes les options produisent des lignes valides'
   }
 });
 
-test('carport arché : fer seulement, autoportant, couverture souple', () => {
+test('carport arché : fer, galvanisé ou inox (galvanisé par défaut), autoportant, couverture souple', () => {
   const p = C.PRODUCTS.find((x) => x.id === 'carport-arche');
-  assert.deepEqual(p.params.find((d) => d.id === 'mat').options.map((o) => o.v), ['acier']);
+  assert.deepEqual(p.params.find((d) => d.id === 'mat').options.map((o) => o.v), ['acier', 'galva', 'inox']);
+  assert.equal(E.fullParams(p, {}).mat, 'galva');
   assert.ok(!p.params.some((d) => d.id === 'config'));
   assert.deepEqual(p.params.find((d) => d.id === 'couv').options.map((o) => o.v), ['pvc', 'toile']);
   // une ancienne configuration (alu, sandwich, adossé) est ramenée sur des choix valides
   const r = E.priceLine(p, { mat: 'alu', couv: 'sandwich', config: 'adossee' }, C.BOOK, C.SETTINGS, TODAY, {});
   const ids = r.lines.map((l) => l.item);
-  assert.ok(ids.includes('cp_couv_pvc_1') && ids.some((i) => i.startsWith('cp_t_acier_')) && !ids.includes('cp_chimique'), ids.join(' '));
+  assert.ok(ids.includes('cp_couv_pvc_1') && ids.some((i) => i.startsWith('cp_t_galva_')) && !ids.includes('cp_chimique'), ids.join(' '));
 });
 
 test('carport : plus de places = plus de poteaux ; adossé sur mur creux = chevilles chimiques', () => {
@@ -209,11 +210,15 @@ test('barres de 6 m : on compte par la découpe, pas par le total des mètres', 
 
 test('carport arché : façonnage et cintrage au forfait, finition au forfait, boulons', () => {
   const p = C.PRODUCTS.find((x) => x.id === 'carport-arche');
-  const r = E.priceLine(p, { places: 2, lp: 3, entraxe: 3, finA: 'galva' }, C.BOOK, C.SETTINGS, TODAY, {});
+  const r = E.priceLine(p, { places: 2, lp: 3, entraxe: 3, mat: 'galva', finA: 'thermo' }, C.BOOK, C.SETTINGS, TODAY, {});
   const q = (id) => r.lines.filter((l) => l.item === id).reduce((a, l) => a + l.qty, 0);
   assert.equal(q('cp_fab_cintrage'), 1, 'façonnage et cintrage au forfait');
   assert.ok(/6 arcs cintrés/.test(r.lines.find((l) => l.item === 'cp_fab_cintrage').note), '6 m de long : 3 poteaux × 2 arcs');
-  assert.equal(q('cp_galva_forfait'), 1);
+  assert.equal(q('cp_fin_thermo_forfait'), 1);
+  assert.equal(q('cp_pose_forfait'), 1);
+  assert.ok(r.lines.some((l) => l.item.startsWith('cp_t_galva_')));
+  const inox = E.priceLine(p, { mat: 'inox' }, C.BOOK, C.SETTINGS, TODAY, {});
+  assert.ok(inox.lines.some((l) => l.item.startsWith('cp_t_inox_')) && !inox.lines.some((l) => /cp_fin_/.test(l.item)));
   assert.ok(q('cp_boulon') > 0);
   const plat = E.priceLine(C.PRODUCTS.find((x) => x.id === 'abri-voiture'), {}, C.BOOK, C.SETTINGS, TODAY, {});
   assert.ok(!plat.lines.some((l) => l.item === 'cp_fab_cintrage' || l.item === 'cp_boulon'));
@@ -228,11 +233,11 @@ test('carport arché : poteaux à l’arrière tous les 2,5 à 3 m, 2 arcs par p
   const at = (o) => E.priceLine(p, o, C.BOOK, C.SETTINGS, TODAY, {});
   assert.equal(q(at({ P: 5 }), 'cp_platine'), 3);      // 5 m : 2 espaces de 2,50 m
   assert.equal(q(at({ P: 5.5 }), 'cp_boulon'), 6 * 2 + 5 * 6); // 6 arcs × 2 + 5 traverses × 6 arcs
-  assert.equal(q(at({ P: 5.5 }), 'cp_fin_forfait'), 1);
+  assert.equal(q(at({ P: 5.5 }), 'cp_fin_peinture_forfait'), 1);
   assert.equal(q(at({ P: 8 }), 'cp_platine'), 4);      // 8 m : 3 espaces de 2,67 m
   const r = at({});
-  assert.ok(/2 traverses de bord/.test(r.lines.find((l) => l.item === 'cp_t_acier_x60x40_15').note));
-  const mid = (o) => +at(o).lines.find((l) => l.item === 'cp_t_acier_x40x20_15').note.match(/(\d+) traverses du milieu/)[1];
+  assert.ok(/2 traverses de bord/.test(r.lines.find((l) => l.item === 'cp_t_galva_x60x40_15').note));
+  const mid = (o) => +at(o).lines.find((l) => l.item === 'cp_t_galva_x40x20_15').note.match(/(\d+) traverses du milieu/)[1];
   assert.ok(mid({ espT: 0.75 }) > mid({ espT: 1 }));
   assert.ok(p.folds && p.folds['Poteaux'] && p.folds['Poutres (arcs)'] && p.folds['Traverses']);
 });

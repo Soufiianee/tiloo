@@ -248,7 +248,7 @@
   var CP_GROUP = 'Carport (abri voiture)';
   var CP_DIMS = { rond: [60, 90, 100, 110, 114, 120, 130, 140, 150], carre: [80, 100, 120, 150], rect: ['40x20', '50x30', '60x40', '80x40', '100x50', '120x60'], panne: [40, 50, 60] };
   var CP_EP = [1.5, 1.8, 2, 2.5, 3, 3.5, 4], CP_EP_PANNE = [1.5, 2];
-  var CP_METALS = { acier: 'fer', alu: 'aluminium' };
+  var CP_METALS = { acier: 'fer', galva: 'acier galvanisé', inox: 'inox', alu: 'aluminium' };
   function cpDimKey(prof, D) { return (prof === 'rond' ? 'r' : prof === 'rect' ? 'x' : 'c') + D; }
   function cpDimName(prof, D) { return prof === 'rond' ? 'Ø ' + D : prof === 'rect' ? String(D).replace('x', ' × ') : D + ' × ' + D; }
   /* Découpe en barres : rangement « plus grandes pièces d'abord » dans des barres de longueur L.
@@ -289,8 +289,9 @@
     ['cp_fab_acier_m', 'Façonnage et soudure fer', 'm', 'pose', 'Structure'],
     ['cp_fab_cintrage', 'Façonnage et cintrage (carport arché)', 'forfait', 'pose', 'Structure'],
     ['cp_boulon', 'Boulon de fixation (arcs et traverses)', 'u', 'equipement', 'Structure'],
-    ['cp_fin_forfait', 'Peinture / thermolaquage (forfait)', 'forfait', 'equipement', 'Finitions'],
-    ['cp_galva_forfait', 'Galvanisation à chaud (forfait)', 'forfait', 'equipement', 'Finitions'],
+    ['cp_fin_peinture_forfait', 'Apprêt + peinture (forfait, carport arché)', 'forfait', 'equipement', 'Finitions'],
+    ['cp_fin_thermo_forfait', 'Thermolaquage (forfait, carport arché)', 'forfait', 'equipement', 'Finitions'],
+    ['cp_pose_forfait', 'Équipe de pose (forfait, carport arché)', 'forfait', 'pose', 'Pose'],
     ['cp_fab_alu_m', 'Façonnage et assemblage aluminium', 'm', 'pose', 'Structure'],
     ['cp_couv_pvc_1', 'Bâche PVC 1er choix', 'm²', 'matiere', 'Toiture'],
     ['cp_couv_pvc_2', 'Bâche PVC 2e choix', 'm²', 'matiere', 'Toiture'],
@@ -477,12 +478,12 @@
     p2: { c: 1.04, f: 1.1, l: 'toit deux pentes' }, cintre: { c: 1.08, f: 1.2, l: 'toit cintré' }
   };
   var CP_COUV = { pvc: 'bâche PVC', toile: 'toile', sandwich: 'panneau sandwich', dalakit: 'dalle à kit' };
-  var CP_MAT = { acier: 'fer', alu: 'aluminium' };
+  var CP_MAT = { acier: 'fer', galva: 'acier galvanisé', inox: 'inox', alu: 'aluminium' };
   var CP_FIN = { peinture: 'apprêt + peinture', thermo: 'thermolaqué', galva: 'galvanisé à chaud', brut: 'brut', sans: 'sans finition', autoclave: 'autoclave', lasure: 'autoclave + lasure' };
   function fr(x) { return String(x).replace('.', ','); }
   function cpMetal() { return true; }
   function rep(n, v) { var a = []; for (var i = 0; i < n; i++) a.push(v); return a; }
-  function cpFin(p) { return p.mat === 'alu' ? p.finL : p.finA; }
+  function cpFin(p) { return p.mat === 'alu' ? p.finL : p.mat === 'inox' ? null : p.finA; }
   /* Section (profil, dimension, épaisseur) d'un groupe de tubes : poteaux 'P' ou poutres 'B'. */
   function cpSect(p, k) {
     if (k === 'B' && p.poutre !== 'autre' && p.xB == null) k = 'P'; // carport arché : les arcs ont toujours leur propre section
@@ -532,10 +533,11 @@
       { id: 'P', sec: 'Dimensions', label: 'Profondeur', type: 'number', unit: 'm', min: 5, max: 8, step: 0.05, def: 5.5 },
       { id: 'H', sec: 'Dimensions', label: 'Hauteur de passage', type: 'number', unit: 'm', min: 2.1, max: 3.5, step: 0.05, def: 2.4 },
 
-      { id: 'mat', comp: 'structure', sec: 'Structure', label: 'Matériau', type: 'seg', def: 'acier', options: arche ? [{ v: 'acier', l: 'Fer' }] : [
+      { id: 'mat', comp: 'structure', sec: 'Structure', label: 'Matériau', type: 'seg', def: arche ? 'galva' : 'acier', options: arche ? [
+        { v: 'acier', l: 'Fer' }, { v: 'galva', l: 'Galvanisé' }, { v: 'inox', l: 'Inox' }] : [
         { v: 'acier', l: 'Fer' }, { v: 'alu', l: 'Aluminium' }] },
-      { id: 'finA', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'peinture', showIf: function (p) { return p.mat === 'acier'; }, options: arche ? [
-        { v: 'peinture', l: 'Peinture / thermolaquage' }, { v: 'galva', l: 'Galvanisation à chaud' }] : [
+      { id: 'finA', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'peinture', showIf: function (p) { return arche ? p.mat !== 'inox' : p.mat === 'acier'; }, options: arche ? [
+        { v: 'peinture', l: 'Apprêt + peinture' }, { v: 'thermo', l: 'Thermolaquage' }] : [
         { v: 'peinture', l: 'Apprêt + peinture' }, { v: 'thermo', l: 'Thermolaquage' }, { v: 'galva', l: 'Galvanisation à chaud' }] },
       { id: 'finL', comp: 'structure', sec: 'Structure', label: 'Finition', type: 'seg', def: 'thermo', showIf: function (p) { return p.mat === 'alu'; }, options: [
         { v: 'thermo', l: 'Thermolaqué' }, { v: 'brut', l: 'Brut / anodisé' }] }
@@ -583,11 +585,15 @@
     build: function (p, h, ctx) {
       /* Modèle imposé + valeurs d'anciennes configurations ramenées sur des choix valides. */
       p.forme = arche ? 'cintre' : 'plat'; p.expo = 'normal';
-      if (p.mat === 'galva') { p.mat = 'acier'; p.finA = 'galva'; } // ancien matériau « galvanisé »
-      if (arche) { p.config = 'autoportante'; p.mat = 'acier'; p.poutre = 'autre'; if (p.finA === 'thermo') p.finA = 'peinture'; }
+      if (!arche && p.mat === 'galva') { p.mat = 'acier'; p.finA = 'galva'; } // ancien matériau « galvanisé » (carport plat)
+      if (arche) {
+        p.config = 'autoportante'; p.poutre = 'autre';
+        if (['acier', 'galva', 'inox'].indexOf(p.mat) < 0) p.mat = 'galva';
+        if (p.finA !== 'peinture' && p.finA !== 'thermo') p.finA = 'peinture';
+      }
       if (CP_COUV_OK[kind].indexOf(p.couv) < 0) p.couv = 'pvc';
       if (!CP_MAT[p.mat]) p.mat = 'acier';
-      if (['peinture', 'thermo', 'galva'].indexOf(p.finA) < 0) p.finA = 'peinture';
+      if (!arche && ['peinture', 'thermo', 'galva'].indexOf(p.finA) < 0) p.finA = 'peinture';
       var W = [], L = [], n = p.places, Wd = n * p.lp, area = Wd * p.P, auto = p.config === 'autoportante';
       var R = CP_ROOF[p.forme] || CP_ROOF.p1, rigid = p.couv === 'sandwich' || p.couv === 'dalakit', fin = cpFin(p);
       var spans = Math.max(1, h.ceil(Wd / p.entraxe - 1e-9)), np = auto ? 2 * (spans + 1) : spans + 1;
@@ -663,8 +669,7 @@
           var nBoul = nArcs * 2 + nT * nArcs;
           L.push({ item: 'cp_fab_cintrage', qty: 1, comp: 'structure', note: fr(h.r1(total)) + ' m de tube, ' + nArcs + ' arcs cintrés (' + G.np + ' poteaux × 2 arcs) de ' + fr(h.r2(arcLen)) + ' m' });
           L.push({ item: 'cp_boulon', qty: nBoul, comp: 'structure', note: nArcs * 2 + ' pour fixer les arcs aux poteaux (2 par arc) + ' + nT * nArcs + ' pour les traverses (' + nT + ' traverses × ' + nArcs + ' arcs)' });
-          if (fin === 'galva') L.push({ item: 'cp_galva_forfait', qty: 1, comp: 'structure' });
-          else L.push({ item: 'cp_fin_forfait', qty: 1, comp: 'structure', note: 'peinture ou thermolaquage, ' + fr(h.r1(total)) + ' m de tube' });
+          if (fin === 'peinture' || fin === 'thermo') L.push({ item: 'cp_fin_' + fin + '_forfait', qty: 1, comp: 'structure', note: fr(h.r1(total)) + ' m de tube' });
         }
       } else {
         L.push({ item: 'cp_bois_' + p.sb, qty: h.r1(ml.mlP + ml.mlB), comp: 'structure', note: np + ' poteaux, poutres et portiques ' + p.sb + ' × ' + p.sb });
@@ -708,7 +713,8 @@
 
       var days = h.r1(1 + area / 15 + (p.mat === 'inox' ? 0.5 : p.mat === 'bois' ? 0.3 : 0) + (p.forme === 'cintre' ? 0.3 : 0) + (arche ? Math.max(0, G.np - 2) * 0.15 : 0) +
         (p.sol === 'paves' || p.sol === 'plots' ? gp * 0.08 : 0) + (p.sol === 'dalle_neuve' ? area / 25 : 0) + closed * p.H / 20);
-      L.push({ item: 'cp_pose_jour', qty: days, note: 'estimation ' + fr(days) + ' j' });
+      if (arche) L.push({ item: 'cp_pose_forfait', qty: 1, note: 'durée estimée ' + fr(days) + ' j' });
+      else L.push({ item: 'cp_pose_jour', qty: days, note: 'estimation ' + fr(days) + ' j' });
 
       var solN = { dalle: 'sur dalle existante', paves: 'plots sous pavés', plots: 'plots isolés', dalle_neuve: 'dalle béton coulée' }[p.sol];
       var structN = arche ? np + ' poteaux ' + cpSectName(sP) + ', arcs ' + cpSectName(sB) + ', traverses ' + cpSectName(cpSect(p, 'E')) + ' / ' + cpSectName(cpSect(p, 'T')) :
@@ -1241,9 +1247,9 @@
     },
     'carport-arche': function (p) {
       var T = { profE: 'rect', xE: '60x40', tE: 1.5, profT: 'rect', xT: '40x20', tT: 1.5 };
-      return { A: Object.assign({ finA: 'peinture', profP: 'rond', dP: 114, tP: 1.8, profB: 'rond', dB: 60, tB: 1.5, couv: 'pvc', q: '2', gout: false, lamb: false, spots: 0 }, T),
-        B: Object.assign({ finA: 'peinture', profP: 'rond', dP: 114, tP: 2, profB: 'rond', dB: 60, tB: 1.8, couv: 'pvc', q: '1', gout: false, lamb: true, spots: 0 }, T),
-        C: Object.assign({ finA: 'galva', profP: 'rond', dP: 114, tP: 2.5, profB: 'rond', dB: 60, tB: 2, couv: 'toile', q: '1', gout: true, lamb: true, spots: Math.max(p.spots, 4) }, T) };
+      return { A: Object.assign({ mat: 'acier', finA: 'peinture', profP: 'rond', dP: 114, tP: 1.8, profB: 'rond', dB: 60, tB: 1.5, couv: 'pvc', q: '2', gout: false, lamb: false, spots: 0 }, T),
+        B: Object.assign({ mat: 'galva', finA: 'peinture', profP: 'rond', dP: 114, tP: 1.8, profB: 'rond', dB: 60, tB: 1.5, couv: 'pvc', q: '1', gout: false, lamb: true, spots: 0 }, T),
+        C: Object.assign({ mat: 'galva', finA: 'thermo', profP: 'rond', dP: 114, tP: 2, profB: 'rond', dB: 60, tB: 1.8, couv: 'toile', q: '1', gout: true, lamb: true, spots: Math.max(p.spots, 4) }, T) };
     },
     'pergola-bioclimatique': function (p) {
       var sides = p.config === 'autoportante' ? 'trois' : 'avant1';
